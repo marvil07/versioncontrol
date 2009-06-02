@@ -11,6 +11,9 @@
  * Copyright 2007, 2008 by Jakob Petsovits ("jpetso", http://drupal.org/user/56020)
  */
 
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+
 /**
  * Determine if a commit, branch or tag operation may be executed or not.
  * Call this function inside a pre-commit hook.
@@ -977,7 +980,7 @@ function versioncontrol_delete_repository($repository) {
   unset($placeholders); // ...likewise
 
   // Delete accounts.
-  $accounts = versioncontrol_get_accounts(
+  $accounts = VersioncontrolAccount::getAccounts(
     array('repo_ids' => array($repository['repo_id'])), TRUE
   );
   foreach ($accounts as $uid => $usernames_by_repository) {
@@ -1035,7 +1038,7 @@ function versioncontrol_delete_repository($repository) {
  *   as is.
  */
 function versioncontrol_export_accounts($repository) {
-  $accounts = versioncontrol_get_accounts(array(
+  $accounts = VersioncontrolAccount::getAccounts(array(
     'repo_ids' => array($repository['repo_id']),
   ));
   return _versioncontrol_call_backend($repository['vcs'], 'export_accounts',

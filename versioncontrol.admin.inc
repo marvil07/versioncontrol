@@ -12,6 +12,9 @@
  * Copyright 2007, 2008, 2009 by Jakob Petsovits ("jpetso", http://drupal.org/user/56020)
  */
 
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+
 /**
  * Form callback for "admin/project/versioncontrol-settings/general":
  * Provide a form for settings of Version Control API itself.
@@ -121,7 +124,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   ));
 
   // Filter the list of accounts.
-  $accounts = versioncontrol_get_accounts(array(), TRUE);
+  $accounts = VersioncontrolAccount::getAccounts(array(), TRUE);
 
   foreach (module_implements('versioncontrol_filter_accounts') as $module) {
     $function = $module .'_versioncontrol_filter_accounts';
@@ -318,7 +321,7 @@ function versioncontrol_admin_account_list_filter_form_submit($form, &$form_stat
  *
  * @param $accounts
  *   The accounts that would normally be displayed, in the same format as the
- *   return value of versioncontrol_get_accounts(). Entries in this list
+ *   return value of VersioncontrolAccount::getAccounts(). Entries in this list
  *   may be unset by this filter function.
  */
 function versioncontrol_versioncontrol_filter_accounts(&$accounts) {

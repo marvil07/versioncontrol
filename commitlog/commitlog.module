@@ -9,6 +9,9 @@
  * Copyright 2007, 2008, 2009 by Jakob Petsovits ("jpetso", http://drupal.org/user/56020)
  */
 
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+
 /**
  * Implementation of hook_menu().
  */
@@ -71,7 +74,7 @@ function commitlog_account_tracker_access($account) {
   if (!user_access('access commit messages')) {
     return FALSE;
   }
-  $vcs_accounts = versioncontrol_get_accounts(array('uids' => array($account->uid)));
+  $vcs_accounts = VersioncontrolAccount::getAccounts(array('uids' => array($account->uid)));
   return !empty($vcs_accounts);
 }
 

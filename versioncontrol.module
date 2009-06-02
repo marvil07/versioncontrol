@@ -113,6 +113,8 @@ define('VERSIONCONTROL_USER_ASSOCIATED_ACTIVE', 2);
 /** Used internally by the repository and account admin pages. Private constant. */
 define('VERSIONCONTROL_FORM_CREATE', FALSE);
 
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
 
 /**
  * Implementation of hook_init():
@@ -161,7 +163,7 @@ function versioncontrol_user($type, &$edit, &$user, $category = NULL) {
       return $categories;
 
     case 'delete':
-      $accounts = versioncontrol_get_accounts(array('uids' => array($user->uid)), TRUE);
+      $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($user->uid)), TRUE);
       if (empty($accounts)) {
         return;
       }
@@ -412,17 +414,17 @@ function versioncontrol_repository_title_callback($repository) {
 /**
  * Menu wildcard loader for '%versioncontrol_user_accounts':
  * Load all VCS accounts of a given user (in the format that
- * versioncontrol_get_accounts() returns) and return either that
+ * VersioncontrolAccount::getAccounts() returns) and return either that
  * or FALSE if no VCS accounts exist for this user.
  *
  * @param $uid
  *   Drupal user id of the user whose VCS accounts should be loaded.
  * @param $include_unauthorized
- *   Will be passed on to versioncontrol_get_accounts(), see the
+ *   Will be passed on to VersioncontrolAccount::getAccounts(), see the
  *   API documentation of that function.
  */
 function versioncontrol_user_accounts_load($uid, $include_unauthorized = FALSE) {
-  $accounts = versioncontrol_get_accounts(array('uids' => array($uid)), $include_unauthorized);
+  $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($uid)), $include_unauthorized);
   return empty($accounts) ? FALSE : $accounts;
 }
 
@@ -2573,141 +2575,9 @@ function versioncontrol_get_labels($repository, $constraints = array()) {
 
 
 /**
- * Retrieve a set of Drupal uid / VCS username mappings
- * that match the given constraints.
- *
- * @param $constraints
- *   An optional array of constraints. Possible array elements are:
- *
- *   - 'uids': An array of Drupal user ids. If given, only accounts that
- *        correspond to these Drupal users will be returned.
- *   - 'repo_ids': An array of repository ids. If given, only accounts
- *        in the corresponding repositories will be returned.
- *   - 'usernames': An array of system specific VCS usernames,
- *        like array('dww', 'jpetso'). If given, only accounts
- *        with these VCS usernames will be returned.
- *   - 'usernames_by_repository': A structured array that looks like
- *        array($repo_id => array('dww', 'jpetso'), ...).
- *        You might want this if you combine multiple username and repository
- *        constraints, otherwise you can well do without.
- *
- * @param $include_unauthorized
- *   If FALSE (which is the default), this function does not return accounts
- *   that are pending, queued, disabled, blocked, or otherwise non-approved.
- *   If TRUE, all accounts are returned, regardless of their status.
- *
- * @return
- *   A structured array that looks like
- *   array($drupal_uid => array($repo_id => 'VCS username', ...), ...).
- *   If not a single account matches these constraints,
- *   an empty array is returned.
- */
-function versioncontrol_get_accounts($constraints = array(), $include_unauthorized = FALSE) {
-  $and_constraints = array();
-  $params = array();
-
-  // Filter by Drupal user id.
-  if (isset($constraints['uids'])) {
-    if (empty($constraints['uids'])) {
-      return array();
-    }
-    $or_constraints = array();
-    foreach ($constraints['uids'] as $uid) {
-      $or_constraints[] = 'uid = %d';
-      $params[] = $uid;
-    }
-    $and_constraints[] = '('. implode(' OR ', $or_constraints) .')';
-  }
-
-  // Filter by repository id.
-  if (isset($constraints['repo_ids'])) {
-    if (empty($constraints['repo_ids'])) {
-      return array();
-    }
-    $or_constraints = array();
-    foreach ($constraints['repo_ids'] as $repo_id) {
-      $or_constraints[] = 'repo_id = %d';
-      $params[] = $repo_id;
-    }
-    $and_constraints[] = '('. implode(' OR ', $or_constraints) .')';
-  }
-
-  // Filter by VCS username.
-  if (isset($constraints['usernames'])) {
-    if (empty($constraints['usernames'])) {
-      return array();
-    }
-    $or_constraints = array();
-    foreach ($constraints['usernames'] as $username) {
-      $or_constraints[] = "username = '%s'";
-      $params[] = $username;
-    }
-    $and_constraints[] = '('. implode(' OR ', $or_constraints) .')';
-  }
-
-  // Filter by usernames-by-repository.
-  if (isset($constraints['usernames_by_repository'])) {
-    if (empty($constraints['usernames_by_repository'])) {
-      return array();
-    }
-    $or_constraints = array();
-    foreach ($usernames_by_repository as $repo_id => $usernames) {
-      $repo_constraint = 'repo_id = %d';
-      $params[] = $repo_id;
-
-      $username_constraints = array();
-      foreach ($usernames as $username) {
-        $username_constraints[] = "username = '%s'";
-        $params[] = $username;
-      }
-
-      $or_constraints[] = '('. $repo_constraint
-                          .' AND ('. implode(' OR ', $username_constraints) .'))';
-    }
-    $and_constraints[] = '('. implode(' OR ', $or_constraints) .')';
-  }
-
-  // All the constraints have been gathered, assemble them to a WHERE clause.
-  $where = empty($and_constraints) ? '' : ' WHERE '. implode(' AND ', $and_constraints);
-
-  // Execute the query.
-  $result = db_query('SELECT uid, repo_id, username
-                      FROM {versioncontrol_accounts}
-                      '. $where .'
-                      ORDER BY uid', $params);
-
-  // Assemble the return value.
-  $account_rows = array();
-  $repo_ids = array();
-  while ($account = db_fetch_object($result)) {
-    $repo_ids[] = $account->repo_id;
-    $account_rows[] = $account;
-  }
-  if (empty($repo_ids)) {
-    return array();
-  }
-  $repo_ids = array_unique($repo_ids);
-
-  $repositories = versioncontrol_get_repositories(array('repo_ids' => $repo_ids));
-  $accounts = array();
-
-  foreach ($account_rows as $account) {
-    // Only include approved accounts, except in case the caller said otherwise.
-    if ($include_unauthorized
-        || versioncontrol_is_account_authorized($repositories[$account->repo_id], $account->uid)) {
-      if (!isset($accounts[$account->uid])) {
-        $accounts[$account->uid] = array();
-      }
-      $accounts[$account->uid][$account->repo_id] = $account->username;
-    }
-  }
-  return $accounts;
-}
-
-/**
  * Retrieve the VCS username for a given Drupal user id in a specific
  * repository. If you need more detailed querying functionality than this
- * function provides, use versioncontrol_get_accounts() instead.
+ * function provides, use VersioncontrolAccount::getAccounts() instead.
  *
  * @param $repo_id
  *   The repository id of the repository where the user has its VCS account.
@@ -2741,7 +2611,7 @@ function versioncontrol_get_account_uid_for_username($repo_id, $username, $inclu
 /**
  * Retrieve the Drupal user id for a given VCS username in a specific
  * repository. If you need more detailed querying functionality than this
- * function provides, use versioncontrol_get_accounts() instead.
+ * function provides, use VersioncontrolAccount::getAccounts() instead.
  *
  * @param $repo_id
  *   The repository id of the repository where the user has its VCS account.

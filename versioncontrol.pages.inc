@@ -16,6 +16,9 @@
 // demonstrate how the various registration messages are being used.
 define('VERSIONCONTROL_REGISTER_DEMO', -1);
 
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+
 /**
  * Form callback for "versioncontrol/register[/$register_uid[/$register_at_repo_id]]":
  * Provide an indirection that leads to an account registration form.
@@ -46,7 +49,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
     return;
   }
 
-  $accounts = versioncontrol_get_accounts(array('uids' => array($register_uid)), TRUE);
+  $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($register_uid)), TRUE);
   $repositories = versioncontrol_get_repositories();
 
   // Construct the '#options' array.
@@ -302,7 +305,7 @@ function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_userna
  * Show a list of VCS accounts to the admin or the user.
  *
  * @param $accounts
- *   The list of accounts to show, in versioncontrol_get_accounts() format.
+ *   The list of accounts to show, in VersioncontrolAccount::getAccounts() format.
  */
 function versioncontrol_account_list_form(&$form_state, $accounts) {
   $form = array();

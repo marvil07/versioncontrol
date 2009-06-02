@@ -14,6 +14,8 @@ define('VERSIONCONTROL_FAKEVCS_UPDATE_SCRIPT', 1);
 
 // The admin pages.
 include_once(drupal_get_path('module', 'versioncontrol_fakevcs') .'/versioncontrol_fakevcs.admin.inc');
+//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
 
 /**
  * Implementation of hook_versioncontrol_backends().
@@ -1180,7 +1182,7 @@ function versioncontrol_fakevcs_import_accounts($repository, $data) {
  *   The repository whose accounts will be exported.
  * @param $accounts
  *   The list (array) of accounts that should be exported, given in the same
- *   format as the return value of versioncontrol_get_accounts().
+ *   format as the return value of VersioncontrolAccount::getAccounts().
  *   All accounts in this list are from the above repository.
  *
  * @return
