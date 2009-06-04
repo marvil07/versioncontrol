@@ -1,0 +1,35 @@
+on code
+-------
+
+- repository class bulk update
+- refactor all methods in each class, to avoid calling now deleted funcitons and call each class where is necesary.
+- unify get<some entity>, format<some entity>, load<some entity> in one <some entity> method if applies
+- remove fetch*() methods because with objects we can do that on demand whenever the API user needs the information.
+
+"fetch_source_items(), fetch_successor_items(), get_common_directory_path() and get_item_paths() apply to a list of items, we might consider to have a VersionControlItemList instead of a single array, in order to have it perform lazy loading and stuff. The other possibility would be to keep items in memory as a static copy, but that needs further thought."
+
+"Example: VersionControlItem::fetchCommitOperations() (see above) can be reduced to VersionControlItem::commitOperations(), and the item object keeps track whether the commit operations have already been fetched or not (is_null($this->commitOperations))."
+
+"The get_url_*() functions are actually the thing that the "repository url backend" provides. Let's stick all of them into a VersionControlRepositoryDefaultURLBackend class (implementing a VersionControlRepositoryURLBackend interface) which can be accessed by $repository->urls()->commitView($operation) or similar."
+(I do not know how to represent interfaces on dia, so make it on code)
+
+Replace versioncontrol_backend_implements() approach with one interface per feature
+
+on design
+---------
+
+- "Still not solved: how to represent accounts that do not have an exact uid/repository/username combination."
+  - Start working on account stuff(now there are two classes: VersioncontrolVcsAccount and VersioncontrolAccount)
+  - defered until all classes stuff is done(suggested by jpetso)
+
+do not forget
+------------- 
+- we want to let other modules inherit from all of our classes
+- camelcase at conceptual boundaries
+- __USE__ gets, like php spl
+- for now  do not use SplFileInfo as a parent class for VersioncontrolItem, but maybe in near future when it's considered a need(maybe performance)
+- add author to operation class(most DVCS needs it)
+- api class dropped, its methods would be on the module file (so. we've got backend objects. pretty easy to retrieve via discovery hook and subsequent instantiation, probably.)
+- at the beginning we should have attributes as private as possible and in the process open it as it's needed, taking more time for it before a release
+
+
