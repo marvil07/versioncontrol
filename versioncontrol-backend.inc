@@ -412,96 +412,6 @@ function versioncontrol_update_operation_labels($operation, $labels) {
   return $operation;
 }
 
-/**
- * Check and if necessary correct item arrays so that item type and
- * the number of source items correspond to specified actions.
- */
-function _versioncontrol_sanitize_item($repository, $item) {
-  if (isset($item['action'])) {
-    // Make sure the number of source items corresponds with the action.
-    switch ($item['action']) {
-      // No source items for "added" actions.
-      case VERSIONCONTROL_ACTION_ADDED:
-        if (count($item['source_items']) > 0) {
-          _versioncontrol_bad_item_warning($repository, $item, 'At least one source item exists although the "added" action was set (which mandates an empty \'source_items\' array.');
-          $item['source_items'] = array(reset($item['source_items'])); // first item
-          $item['source_items'] = array();
-        }
-        break;
-      // Exactly one source item for actions other than "added", "merged" or "other".
-      case VERSIONCONTROL_ACTION_MODIFIED:
-      case VERSIONCONTROL_ACTION_MOVED:
-      case VERSIONCONTROL_ACTION_COPIED:
-      case VERSIONCONTROL_ACTION_DELETED:
-        if (count($item['source_items']) > 1) {
-          _versioncontrol_bad_item_warning($repository, $item, 'More than one source item exists although a "modified", "moved", "copied" or "deleted" action was set (which allows only one of those).');
-          $item['source_items'] = array(reset($item['source_items'])); // first item
-        }
-        // fall through
-      case VERSIONCONTROL_ACTION_MERGED:
-        if (empty($item['source_items'])) {
-          _versioncontrol_bad_item_warning($repository, $item, 'No source item exists although a "modified", "moved", "copied", "merged" or "deleted" action was set (which requires at least or exactly one of those).');
-        }
-        break;
-      default:
-        break;
-    }
-    // For a "delete" action, make sure the item type is also a "deleted" one.
-    // That's quite a minor error, so don't complain but rather fix it quietly.
-    if ($item['action'] == VERSIONCONTROL_ACTION_DELETED) {
-      if ($item['type'] == VERSIONCONTROL_ITEM_FILE) {
-        $item['type'] = VERSIONCONTROL_ITEM_FILE_DELETED;
-      }
-      else if ($item['type'] == VERSIONCONTROL_ITEM_DIRECTORY) {
-        $item['type'] = VERSIONCONTROL_ITEM_DIRECTORY_DELETED;
-      }
-    }
-  }
-  return $item;
-}
-
-/**
- * Print out a "Bad item received from VCS backend" warning to watchdog.
- */
-function _versioncontrol_bad_item_warning($repository, $item, $message) {
-  watchdog('special', "<p>Bad item received from VCS backend: !message</p>
-    <pre>Item array: !item\nRepository array: !repository</pre>", array(
-      '!message' => $message,
-      '!item' => print_r($item, TRUE),
-      '!repository' => print_r($repository, TRUE),
-    ), WATCHDOG_ERROR
-  );
-}
-
-/**
- * Insert an item entry into the {versioncontrol_item_revisions} table,
- * or retrieve the same one that's already there.
- *
- * @return
- *   The @p $item variable, enhanced with the newly added property
- *   'item_revision_id' specifying the database identifier for that revision.
- *   If the 'type' property of the passed item is different from the one in
- *   the database, then the new value will be written to the database.
- */
-function _versioncontrol_ensure_item_revision($repository, $item) {
-  $result = db_query(
-    "SELECT item_revision_id, type
-     FROM {versioncontrol_item_revisions}
-     WHERE repo_id = %d AND path = '%s' AND revision = '%s'",
-    $repository['repo_id'], $item['path'], $item['revision']
-  );
-  while ($item_revision = db_fetch_object($result)) {
-    // Replace / fill in properties that were not in the WHERE condition.
-    $item['item_revision_id'] = $item_revision->item_revision_id;
-
-    if ($item['type'] == $item_revision->type) {
-      return $item; // no changes needed - otherwise, replace the existing item.
-    }
-  }
-  // The item doesn't yet exist in the database, so create it.
-  return _versioncontrol_insert_item_revision($repository, $item);
-}
-
 function _versioncontrol_insert_item_revision($repository, $item) {
   $item['repo_id'] = $repository['repo_id']; // for drupal_write_record() only
 
@@ -531,32 +441,6 @@ function _versioncontrol_insert_operation_item($operation, $item, $type) {
   db_query("INSERT INTO {versioncontrol_operation_items}
             (vc_op_id, item_revision_id, type) VALUES (%d, %d, %d)",
             $operation['vc_op_id'], $item['item_revision_id'], $type);
-}
-
-/**
- * Insert an item entry into the {versioncontrol_source_items} table.
- * Both target and source items are expected to have an 'item_revision_id'
- * property already. For "added" actions, it's also possible to pass 0 as the
- * @p $source_item parameter instead of a full item array.
- */
-function _versioncontrol_insert_source_revision($item, $source_item, $action) {
-  if ($action == VERSIONCONTROL_ACTION_ADDED && $source_item === 0) {
-    $source_item = array('item_revision_id' => 0);
-  }
-  // Before inserting that item entry, make sure it doesn't exist already.
-  db_query("DELETE FROM {versioncontrol_source_items}
-            WHERE item_revision_id = %d AND source_item_revision_id = %d",
-            $item['item_revision_id'], $source_item['item_revision_id']);
-
-  $line_changes = !empty($item['line_changes']);
-  db_query("INSERT INTO {versioncontrol_source_items}
-            (item_revision_id, source_item_revision_id, action,
-             line_changes_recorded, line_changes_added, line_changes_removed)
-            VALUES (%d, %d, %d, %d, %d, %d)",
-            $item['item_revision_id'], $source_item['item_revision_id'],
-            $action, ($line_changes ? 1 : 0),
-            ($line_changes ? $item['line_changes']['added'] : 0),
-            ($line_changes ? $item['line_changes']['removed'] : 0));
 }
 
 /**
