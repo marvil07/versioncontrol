@@ -412,23 +412,6 @@ function versioncontrol_repository_title_callback($repository) {
 }
 
 /**
- * Menu wildcard loader for '%versioncontrol_user_accounts':
- * Load all VCS accounts of a given user (in the format that
- * VersioncontrolAccount::getAccounts() returns) and return either that
- * or FALSE if no VCS accounts exist for this user.
- *
- * @param $uid
- *   Drupal user id of the user whose VCS accounts should be loaded.
- * @param $include_unauthorized
- *   Will be passed on to VersioncontrolAccount::getAccounts(), see the
- *   API documentation of that function.
- */
-function versioncontrol_user_accounts_load($uid, $include_unauthorized = FALSE) {
-  $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($uid)), $include_unauthorized);
-  return empty($accounts) ? FALSE : $accounts;
-}
-
-/**
  * Title callback for the "user/%versioncontrol_user_accounts/edit/versioncontrol" tab.
  */
 function versioncontrol_user_accounts_title_callback($accounts) {
