@@ -2,11 +2,8 @@
 require_once 'VersioncontrolLabel.php';
 
 /**
- * XXX detailed description
+ * Represents a branch of code
  *
- * @author    XXX
- * @version   XXX
- * @copyright XXX
  */
 class VersioncontrolBranch extends VersioncontrolLabel {
     // Attributes

@@ -2,11 +2,8 @@
 require_once 'VersioncontrolLabel.php';
 
 /**
- * XXX detailed description
+ * Represents a tag of code(not changing state)
  *
- * @author    XXX
- * @version   XXX
- * @copyright XXX
  */
 class VersioncontrolTag extends VersioncontrolLabel {
     // Attributes
