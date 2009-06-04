@@ -1,17 +1,15 @@
 <?php
+// $Id$
 
 /**
- * XXX detailed description
+ * Backend base class
  *
- * @author    XXX
- * @version   XXX
- * @copyright XXX
  * @abstract
  */
 abstract class VersioncontrolBackend {
     // Attributes
     /**
-     * XXX
+     * simple name
      *
      * @var    string
      * @access public
@@ -19,7 +17,7 @@ abstract class VersioncontrolBackend {
     public $name;
 
     /**
-     * XXX
+     * simple description
      *
      * @var    string
      * @access public
@@ -27,7 +25,7 @@ abstract class VersioncontrolBackend {
     public $description;
 
     /**
-     * XXX
+     * what the backend can do, probably deprecated after interfaces approach
      *
      * @var    array
      * @access public
