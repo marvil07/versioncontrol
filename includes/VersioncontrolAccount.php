@@ -161,53 +161,203 @@ class VersioncontrolAccount {
   }
 
   /**
-    * XXX
-    * 
-    * @access public
-    */
-  public function usernameSuggestion()
-    {
-      trigger_error('Not Implemented!', E_USER_WARNING);
+   * Return the most accurate guess on what the VCS username for a Drupal user
+   * might look like in the given repository.
+   *
+   * @access public
+   * @param $repository
+   *   The repository where the the VCS account exists or will be located.
+   * @param $user
+   *  The Drupal user who wants to register an account.
+   */
+  public function usernameSuggestion($repository, $user) {
+    if (versioncontrol_backend_implements($repository['vcs'], 'account_username_suggestion')) {
+      return _versioncontrol_call_backend($repository['vcs'],
+        'account_username_suggestion', array($repository, $user)
+      );
+    }
+    return strtr(drupal_strtolower($user->name),
+      array(' ' => '', '@' => '', '.' => '', '-' => '', '_' => '', '.' => '')
+    );
   }
 
   /**
-    * XXX
-    * 
-    * @access public
-    */
-  public function isUsernameValid()
-    {
-      trigger_error('Not Implemented!', E_USER_WARNING);
+   * Determine if the given repository allows a username to exist.
+   *
+   * @access public
+   * @param $vcs
+   *   The repository where the the VCS account exists or will be located.
+   * @param $username
+   *  The username to check. It is passed by reference so if the username is
+   *  valid but needs minor adaptions (such as cutting away unneeded parts) then
+   *  it the backend can modify it before returning the result.
+   *
+   * @return
+   *   TRUE if the username is valid, FALSE if not.
+   */
+  public function isUsernameValid($repository, &$username) {
+    if (versioncontrol_backend_implements($repository['vcs'], 'is_account_username_valid')) {
+      // Because $username is a by-reference argument, make it a direct call.
+      $function = 'versioncontrol_'. $repository['vcs'] .'_is_account_username_valid';
+      return $function($repository, $username);
+    }
+    else if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+
+  /**
+   * Update a VCS user account in the database, and call the necessary
+   * module hooks. The @p $repository and @p $uid parameters must stay the same
+   * values as the one given on account creation, whereas @p $username and
+   * @p $additional_data may change.
+   *
+   * @access public
+   * @param $uid
+   *   The Drupal user id corresponding to the VCS username.
+   * @param $username
+   *   The VCS specific username (a string).
+   * @param $repository
+   *   The repository where the user has its VCS account.
+   * @param $additional_data
+   *   An array of additional author information. Modules can fill this array
+   *   by implementing hook_versioncontrol_account_submit().
+   */
+  public function update($repository, $uid, $username, $additional_data = array()) {
+    $old_username = versioncontrol_get_account_username_for_uid($repository['repo_id'], $uid, TRUE);
+    $username_changed = ($username != $old_username);
+
+    if ($username_changed) {
+      db_query("UPDATE {versioncontrol_accounts}
+                SET username = '%s'
+                WHERE uid = %d AND repo_id = %d",
+                $username, $uid, $repository['repo_id']
+      );
+    }
+
+    // Provide an opportunity for the backend to add its own stuff.
+    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+      _versioncontrol_call_backend(
+        $repository['vcs'], 'account',
+        array('update', $uid, $username, $repository, $additional_data)
+      );
+    }
+
+    // Update the operations table.
+    if ($username_changed) {
+      db_query("UPDATE {versioncontrol_operations}
+                SET uid = 0
+                WHERE uid = %d AND repo_id = %d",
+                $uid, $repository['repo_id']);
+      db_query("UPDATE {versioncontrol_operations}
+                SET uid = %d
+                WHERE username = '%s' AND repo_id = %d",
+                $uid, $username, $repository['repo_id']);
+    }
+
+    // Everything's done, let the world know about it!
+    module_invoke_all('versioncontrol_account',
+      'update', $uid, $username, $repository, $additional_data
+    );
+
+    watchdog('special',
+      'Version Control API: updated @username account in repository @repository',
+      array('@username' => $username, '@repository' => $repository['name']),
+      WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
+    );
+  }
+
+
+  /**
+   * Insert a VCS user account into the database,
+   * and call the necessary module hooks.
+   *
+   * @access public
+   * @param $repository
+   *   The repository where the user has its VCS account.
+   * @param $uid
+   *   The Drupal user id corresponding to the VCS username.
+   * @param $username
+   *   The VCS specific username (a string).
+   * @param $additional_data
+   *   An array of additional author information. Modules can fill this array
+   *   by implementing hook_versioncontrol_account_submit().
+   */
+  public function insert($repository, $uid, $username, $additional_data = array()) {
+    db_query(
+      "INSERT INTO {versioncontrol_accounts} (uid, repo_id, username)
+       VALUES (%d, %d, '%s')", $uid, $repository['repo_id'], $username
+    );
+
+    // Provide an opportunity for the backend to add its own stuff.
+    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+      _versioncontrol_call_backend(
+        $repository['vcs'], 'account',
+        array('insert', $uid, $username, $repository, $additional_data)
+      );
+    }
+
+    // Update the operations table.
+    db_query("UPDATE {versioncontrol_operations}
+              SET uid = %d
+              WHERE username = '%s' AND repo_id = %d",
+              $uid, $username, $repository['repo_id']);
+
+    // Everything's done, let the world know about it!
+    module_invoke_all('versioncontrol_account',
+      'insert', $uid, $username, $repository, $additional_data
+    );
+
+    watchdog('special',
+      'Version Control API: added @username account in repository @repository',
+      array('@username' => $username, '@repository' => $repository['name']),
+      WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
+    );
   }
 
   /**
-    * XXX
-    * 
+   * Delete a VCS user account from the database, set all commits with this
+   * account as author to user 0 (anonymous), and call the necessary hooks.
+   *
     * @access public
-    */
-  public function update()
-    {
-      trigger_error('Not Implemented!', E_USER_WARNING);
-  }
+   * @param $repository
+   *   The repository where the user has its VCS account.
+   * @param $uid
+   *   The Drupal user id corresponding to the VCS username.
+   * @param $username
+   *   The VCS specific username (a string).
+   */
+  public function delete($repository, $uid, $username) {
+    // Update the operations table.
+    db_query('UPDATE {versioncontrol_operations}
+              SET uid = 0
+              WHERE uid = %d AND repo_id = %d',
+              $uid, $repository['repo_id']);
 
-  /**
-    * XXX
-    * 
-    * @access public
-    */
-  public function insert()
-    {
-      trigger_error('Not Implemented!', E_USER_WARNING);
-  }
+    // Announce deletion of the account before anything has happened.
+    module_invoke_all('versioncontrol_account',
+      'delete', $uid, $username, $repository, array()
+    );
 
-  /**
-    * XXX
-    * 
-    * @access public
-    */
-  public function delete()
-    {
-      trigger_error('Not Implemented!', E_USER_WARNING);
+    // Provide an opportunity for the backend to delete its own stuff.
+    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+      _versioncontrol_call_backend(
+        $repository['vcs'], 'account',
+        array('delete', $uid, $username, $repository, array())
+      );
+    }
+
+    db_query('DELETE FROM {versioncontrol_accounts}
+              WHERE uid = %d AND repo_id = %d',
+              $uid, $repository['repo_id']);
+
+    watchdog('special',
+      'Version Control API: deleted @username account in repository @repository',
+      array('@username' => $username, '@repository' => $repository['name']),
+      WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
+    );
   }
 
   /**
