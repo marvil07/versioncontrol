@@ -14,6 +14,8 @@
 
 //TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
 require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolRepository.php';
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolOperation.php';
 
 /**
  * Form callback for "admin/project/versioncontrol-settings/general":
@@ -107,7 +109,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   while ($repo_id = db_result($result)) {
     $repo_ids[] = $repo_id;
   }
-  $repositories = versioncontrol_get_repositories(array('repo_ids' => $repo_ids));
+  $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
 
   $filter_form = versioncontrol_admin_account_list_filter_form($form_state, $repositories);
   $filter_form['#id'] = 'versioncontrol-account-filter-form';
@@ -158,7 +160,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   }
 
   // Retrieve total, first and last commits of each user.
-  $statistics = versioncontrol_get_operation_statistics(array(
+  $statistics = VersioncontrolOperation::getStatistics(array(
     'types' => array(VERSIONCONTROL_OPERATION_COMMIT),
     'uids' => array_keys($users),
   ), array(
@@ -557,7 +559,7 @@ function versioncontrol_admin_account_export_display_form(&$form_state, $reposit
 function versioncontrol_admin_repository_list(&$form_state) {
   $form = array();
   $backends = versioncontrol_get_backends();
-  $repositories = versioncontrol_get_repositories();
+  $repositories = VersioncontrolRepository::getRepositories();
 
   if (empty($repositories)) {
     $form['empty'] = array(

@@ -144,7 +144,7 @@ class VersioncontrolAccount {
     }
     $repo_ids = array_unique($repo_ids);
 
-    $repositories = versioncontrol_get_repositories(array('repo_ids' => $repo_ids));
+    $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
     $accounts = array();
 
     foreach ($account_rows as $account) {

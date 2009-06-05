@@ -699,6 +699,7 @@ class VersioncontrolOperation {
      * actual query, although in practice you probably won't need them anymore.
      *
      * @access private
+     * @static
      * @return
      *   A query information array with keys 'from', 'where' and 'params', or an
      *   empty array if the constraints were invalid or will return an empty result
@@ -707,14 +708,14 @@ class VersioncontrolOperation {
      *   and the 'params' element is an array with query parameter values for the
      *   returned WHERE clause.
      */
-    private function _constructQuery(&$constraints, &$tables) {
+    private static function _constructQuery(&$constraints, &$tables) {
       // Let modules alter the query by transforming custom constraints into
       // stuff that Version Control API can understand.
       drupal_alter('versioncontrol_operation_constraints', $constraints);
 
       $and_constraints = array();
       $params = array();
-      $constraint_info = _versioncontrol_operation_constraint_info();
+      $constraint_info = self::_constraintInfo();
       $join_callbacks = array();
 
       foreach ($constraints as $key => $constraint_value) {
@@ -782,8 +783,9 @@ class VersioncontrolOperation {
      * elements 'callback' and 'cardinality'.
      *
      * @access private
+     * @static
      */
-    private function _constraintInfo() {
+    private static function _constraintInfo() {
       static $constraint_info = array();
 
       if (empty($constraint_info)) {
@@ -1129,7 +1131,7 @@ class VersioncontrolOperation {
 
     // Construct the actual query, and let other modules provide "native"
     // custom constraints as well.
-    $query_info = _versioncontrol_construct_operation_query(
+    $query_info = self::_constructQuery(
       $constraints, $tables
     );
     if (empty($query_info)) { // query won't yield any results

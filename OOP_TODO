@@ -2,6 +2,7 @@ on code
 -------
 
 - refactor all methods in each class, to avoid calling now deleted funcitons and call each class where is necesary.
+- avoid implicit data(ej. do not pass repository array, now it should be an object, to a repository method)
 - unify get<some entity>, format<some entity>, load<some entity> in one <some entity> method if applies
 - remove fetch*() methods because with objects we can do that on demand whenever the API user needs the information.
 
