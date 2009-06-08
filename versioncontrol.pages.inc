@@ -18,6 +18,7 @@ define('VERSIONCONTROL_REGISTER_DEMO', -1);
 
 //TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
 require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
+require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolRepository.php';
 
 /**
  * Form callback for "versioncontrol/register[/$register_uid[/$register_at_repo_id]]":
@@ -50,7 +51,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
   }
 
   $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($register_uid)), TRUE);
-  $repositories = versioncontrol_get_repositories();
+  $repositories = VersioncontrolRepository::getRepositories();
 
   // Construct the '#options' array.
   $account_usernames = array();
