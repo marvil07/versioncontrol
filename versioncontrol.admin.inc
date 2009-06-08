@@ -359,7 +359,7 @@ function versioncontrol_admin_account_import_form(&$form_state) {
       $selected_backends[] = $vcs;
     }
   }
-  $repositories = versioncontrol_get_repositories(array('vcs' => $selected_backends));
+  $repositories = VersioncontrolRepository::getRepositories(array('vcs' => $selected_backends));
 
   if (empty($repositories)) {
     $form['no_repositories'] = array(
@@ -463,7 +463,7 @@ function versioncontrol_admin_account_export_form(&$form_state) {
       $selected_backends[] = $vcs;
     }
   }
-  $repositories = versioncontrol_get_repositories(array('vcs' => $selected_backends));
+  $repositories = VersioncontrolRepository::getRepositories(array('vcs' => $selected_backends));
 
   if (empty($repositories)) {
     $form['no_repositories'] = array(
@@ -799,7 +799,7 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
   if (!empty($form['#repository']) && $form_state['values']['repo_name'] == $form['#original_name']) {
     return;
   }
-  $same_repositories = versioncontrol_get_repositories(array(
+  $same_repositories = VersioncontrolRepository::getRepositories(array(
     'names' => array($form_state['values']['repo_name']),
   ));
   if (!empty($same_repositories)) {
