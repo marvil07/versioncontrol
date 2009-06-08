@@ -6,7 +6,7 @@ require_once 'VersioncontrolBackend.php';
  * Contain fundamental information about the repository.
  *
  */
-class VersioncontrolRepository {
+class VersioncontrolRepository implements ArrayAccess {
   // Attributes
   /**
    * db identifier
@@ -698,6 +698,19 @@ class VersioncontrolRepository {
        WHERE '. $primary_key_name .' = %d', $params
     );
   }
-}
 
-?>
+  //ArrayAccess interface implementation
+  public function offsetExists($offset) {
+    return isset($this->$offset);
+  }
+  public function offsetGet($offset) {
+    return $this->$offset;
+  }
+  public function offsetSet($offset, $value) {
+    $this->$offset = $value;
+  }
+  public function offsetUnset($offset) {
+    unset($this->$offset);
+  }
+
+}
