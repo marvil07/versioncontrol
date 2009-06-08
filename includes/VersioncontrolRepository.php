@@ -59,6 +59,18 @@ class VersioncontrolRepository {
   // Associations
   // Operations
   /**
+   * Constructor
+   */
+  public function __construct($id, $name, $root, $authorization_method, $url_backend, $urls) {
+    $this->id = $id;
+    $this->name = $name;
+    $this->root = $root;
+    $this->authorization_method = $authorization_method;
+    $this->url_backend = $url_backend;
+    $this->urls = $urls;
+  }
+
+  /**
    * Menu wildcard loader for repository ids ('%versioncontrol_repository').
    * Use this only for menu paths - if you want to retrieve a repository with
    * your own code, use versioncontrol_get_repository() instead.

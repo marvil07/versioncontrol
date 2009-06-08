@@ -25,7 +25,26 @@ class VersioncontrolAccount {
     */
   public $uid;
 
+  /**
+   * Repo user id
+   *
+   * @var    VersioncontrolRepository
+   * @access public
+   */
+  public $repository;
+
   // Operations
+  /**
+   * Constructor
+   */
+  public function __construct($vcs_username, $uid, $repo_id) {
+    $this->vcs_username = $vcs_username;
+    $this->uid = $uid;
+    $repository = new VersioncontrolRepository();
+    $repository->id = $repo_id;
+    $this->repository = $repository;
+  }
+
   /**
     * Retrieve a set of Drupal uid / VCS username mappings
     * that match the given constraints.

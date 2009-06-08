@@ -67,6 +67,16 @@ class VersioncontrolItem {
 
     // Associations
     // Operations
+  /**
+   * Constructor
+   */
+  public function __construct($id, $path, $deleted, $revision) {
+    $this->id = $id;
+    $this->path = $path;
+    $this->deleted = $deleted;
+    $this->revision = $revision;
+  }
+
     /**
      * Return TRUE if the given item is an existing or an already deleted file,
      * or FALSE if it's not.
