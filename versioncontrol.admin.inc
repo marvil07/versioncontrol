@@ -854,7 +854,8 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     )));
   }
   else {
-    $repository = versioncontrol_insert_repository($repository, $repository_urls);
+    $vcs_repository = new VersioncontrolRepository(null, $repository['name'], $form['#vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository_urls);
+    $repository = $vcs_repository->insert($repository_urls);
     db_query("INSERT INTO {versioncontrol_repository_metadata}
               (repo_id, registration_message)
               VALUES (%d, '%s')",

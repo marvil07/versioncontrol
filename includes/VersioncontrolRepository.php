@@ -25,6 +25,14 @@ class VersioncontrolRepository implements ArrayAccess {
   public $name;
 
   /**
+   * VCS string identifier
+   *
+   * @var    string
+   * @access public
+   */
+  public $vcs;
+
+  /**
    * where it is
    *
    * @var    string
@@ -61,9 +69,10 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($id, $name, $root, $authorization_method, $url_backend, $urls) {
+  public function __construct($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls) {
     $this->id = $id;
     $this->name = $name;
+    $this->vcs = $vcs;
     $this->root = $root;
     $this->authorization_method = $authorization_method;
     $this->url_backend = $url_backend;
@@ -474,44 +483,44 @@ class VersioncontrolRepository implements ArrayAccess {
    * @return
    *   The finalized repository array, including the 'repo_id' element.
    */
-  public function insert($repository, $repository_urls) {
-    if (isset($repository['repo_id'])) {
+  public function insert($repository_urls) {
+    if (isset($this->id)) {
       // This is a new repository, it's not supposed to have a repo_id yet.
-      unset($repository['repo_id']);
+      unset($this->id);
     }
-    drupal_write_record('versioncontrol_repositories', $repository);
+    drupal_write_record('versioncontrol_repositories', $this);
     // drupal_write_record() has now added the 'repo_id' to the $repository array.
 
-    $repository_urls['repo_id'] = $repository['repo_id']; // for drupal_write_record()
+    $repository_urls['repo_id'] = $this->id; // for drupal_write_record()
     drupal_write_record('versioncontrol_repository_urls', $repository_urls);
     unset($repository_urls['repo_id']);
 
     // Auto-add repository info from $repository['[xxx]_specific'] into the database.
     $backends = versioncontrol_get_backends();
-    $vcs = $repository['vcs'];
+    $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
                            $backends[$vcs]['flags']);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $elements = $repository[$vcs .'_specific'];
-      $elements['repo_id'] = $repository['repo_id'];
-      _versioncontrol_db_insert_additions($table_name, $elements);
+      $elements['repo_id'] = $this->id;
+      $this->_dbInsertAdditions($table_name, $elements);
     }
 
     // Provide an opportunity for the backend to add its own stuff.
     if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('insert', $repository));
+      _versioncontrol_call_backend($vcs, 'repository', array('insert', $this));
     }
 
     // Everything's done, let the world know about it!
-    module_invoke_all('versioncontrol_repository', 'insert', $repository);
+    module_invoke_all('versioncontrol_repository', 'insert', $this);
 
     watchdog('special',
       'Version Control API: added repository @repository',
-      array('@repository' => $repository['name']),
+      array('@repository' => $this->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-repositories')
     );
-    return $repository;
+    return $this;
   }
 
   /**
