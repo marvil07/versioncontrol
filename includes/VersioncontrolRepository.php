@@ -252,6 +252,52 @@ class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
+   * Fetch VCS specific repository data additions, either by ourselves (if the
+   * VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES flag has been set by the backend)
+   * and/or by calling [vcs_backend]_alter_repositories().
+   *
+   * @access private
+   * @static
+   * @param $repositories_by_backend
+   * @param $backends
+   * @param $constraints
+   */
+  private function _amend_repositories($repositories_by_backend, $backends, $constraints = array()) {
+    foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
+      $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
+                             $backends[$vcs]['flags']);
+
+      if ($is_autoadd) {
+        $repo_ids = array();
+        foreach ($vcs_repositories as $repo_id => $repository) {
+          $repo_ids[] = $repo_id;
+        }
+        $additions = _versioncontrol_db_get_additions(
+          'versioncontrol_'. $vcs .'_repositories', 'repo_id', $repo_ids
+        );
+
+        foreach ($additions as $repo_id => $addition) {
+          if (isset($vcs_repositories[$repo_id])) {
+            $vcs_repositories[$repo_id][$vcs .'_specific'] = $addition;
+          }
+        }
+      }
+
+      $vcs_specific_constraints = isset($constraints[$vcs .'_specific'])
+                                  ? $constraints[$vcs .'_specific']
+                                  : array();
+
+      // Provide an opportunity for the backend to add its own stuff.
+      if (versioncontrol_backend_implements($vcs, 'alter_repositories')) {
+        $function = 'versioncontrol_'. $vcs .'_alter_repositories';
+        $function($vcs_repositories, $vcs_specific_constraints);
+      }
+      $repositories_by_backend[$vcs] = $vcs_repositories;
+    }
+    return $repositories_by_backend;
+  }
+
+  /**
    * Retrieve known branches and/or tags in a repository as a set of label arrays.
    *
    * @access public
