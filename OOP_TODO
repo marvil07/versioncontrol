@@ -31,5 +31,6 @@ do not forget
 - add author to operation class(most DVCS needs it)
 - api class dropped, its methods would be on the module file (so. we've got backend objects. pretty easy to retrieve via discovery hook and subsequent instantiation, probably.)
 - at the beginning we should have attributes as private as possible and in the process open it as it's needed, taking more time for it before a release
+  - later discusion last week result in "use protected in all places" (but later I found exceptions like repository cache :p)
 
 

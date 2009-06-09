@@ -64,12 +64,45 @@ class VersioncontrolRepository implements ArrayAccess {
    */
   public $urls;
 
+  /**
+   * cache for already loaded repositories
+   *
+   * @var    array
+   * @access private
+   */
+  private static $repository_cache = array();
+
   // Associations
   // Operations
   /**
    * Constructor
    */
-  public function __construct($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls) {
+  public function __construct() {
+    $argv = func_get_args();
+    switch (func_num_args()) {
+    case 1:
+      self::__construct_by_id($argv[0]);
+      break;
+    case 6:
+      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5]);
+      break;
+    case 7:
+      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6]);
+      break;
+    }
+  }
+
+  /**
+   * minimal constructor
+   */
+  private function __construct_by_id($repo_id) {
+    $this->id = $id;
+  }
+
+  /**
+   * minimal constructor
+   */
+  private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array()) {
     $this->id = $id;
     $this->name = $name;
     $this->vcs = $vcs;
@@ -91,7 +124,7 @@ class VersioncontrolRepository implements ArrayAccess {
    * @static
    */
   public static function load($repo_id) {
-    $repository = versioncontrol_get_repository($repo_id);
+    $repository = self::getRepository($repo_id);
     return empty($repository) ? FALSE : $repository;
   }
 
@@ -133,7 +166,7 @@ class VersioncontrolRepository implements ArrayAccess {
    *   If no repository corresponds to the given repository id, NULL is returned.
    */
   public static function getRepository($repo_id) {
-    $repos = versioncontrol_get_repositories(array('repo_ids' => array($repo_id)));
+    $repos = self::getRepositories(array('repo_ids' => array($repo_id)));
 
     foreach ($repos as $repo_id => $repository) {
       return $repository;
@@ -189,8 +222,6 @@ class VersioncontrolRepository implements ArrayAccess {
    *   an empty array is returned.
    */
   public static function getRepositories($constraints = array()) {
-    static $repository_cache = array();
-
     $backends = versioncontrol_get_backends();
     $auth_methods = versioncontrol_get_authorization_methods();
 
@@ -235,7 +266,7 @@ class VersioncontrolRepository implements ArrayAccess {
       $repositories_by_backend[$repository['vcs']][$repository['repo_id']] = $repository;
     }
 
-    $repositories_by_backend = _versioncontrol_amend_repositories(
+    $repositories_by_backend = self::_amend_repositories(
       $repositories_by_backend, $backends
     );
 
@@ -243,7 +274,11 @@ class VersioncontrolRepository implements ArrayAccess {
     $result_repositories = array();
     foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
       foreach ($vcs_repositories as $repository) {
-        $result_repositories[$repository['repo_id']] = $repository;
+        $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend']);
+        //FIXME: another idea for this?
+        $vcs_specific_key = $repository['vcs'] .'_specific';
+        $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
+        $result_repositories[$repository['repo_id']] = $vcs_repository;
       }
     }
 
