@@ -24,15 +24,31 @@ class VersioncontrolLabel {
      */
     public $name;
 
+    /**
+     * The repository where the label is located.
+     *
+     * @var    VersioncontrolRepository
+     * @access public
+     */
+    public $repository;
+
     // Associations
     // Operations
+
+    /**
+     * Constructor
+     */
+    public function __construct($name, $id=NULL, $repository=NULL) {
+      $this->name = $name;
+      $this->id = $id;
+      $this->repository = $repository;
+    }
+
     /**
      * Insert a label entry into the {versioncontrol_labels} table,
      * or retrieve the same one that's already there.
      *
      * @access public
-     * @param $repository
-     *   The repository where the label is located.
      * @param $label
      *   A structured array describing the branch or tag that should be inserted
      *   into the database. A label array contains (at least) the following keys:
@@ -51,14 +67,14 @@ class VersioncontrolLabel {
      *   with a similar 'name' but different 'type' properties, those are considered
      *   to be different and will both go into the database side by side.
      */
-    public function ensure($repository, $label) {
+    public function ensure($label) {
       if (!empty($label['label_id'])) { // already in the database
         return $label;
       }
       $result = db_query(
         "SELECT label_id, repo_id, name, type FROM {versioncontrol_labels}
           WHERE repo_id = %d AND name = '%s' AND type = %d",
-        $repository['repo_id'], $label['name'], $label['type']
+        $this->repository['repo_id'], $label['name'], $label['type']
       );
       while ($row = db_fetch_object($result)) {
         // Replace / fill in properties that were not in the WHERE condition.
@@ -66,16 +82,16 @@ class VersioncontrolLabel {
         return $label;
       }
       // The item doesn't yet exist in the database, so create it.
-      return _versioncontrol_insert_label($repository, $label);
+      return $this->_insert($label);
     }
 
     /**
      * Insert label to db
-     * 
+     *
      * @access private
      */
-    private function _insert($repository, $label) {
-      $label['repo_id'] = $repository['repo_id']; // for drupal_write_record() only
+    private function _insert($label) {
+      $label['repo_id'] = $this->repository['repo_id']; // for drupal_write_record() only
 
       if (isset($label['label_id'])) {
         // The label already exists in the database, update the record.
