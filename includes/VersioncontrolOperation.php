@@ -7,7 +7,11 @@
 class VersioncontrolOperation {
     // Attributes
     /**
-     * db identifier
+     * db identifier (before vc_op_id)
+     *
+     * The Drupal-specific operation identifier (a simple integer)
+     * which is unique among all operations (commits, branch ops, tag ops)
+     * in all repositories.
      *
      * @var    int
      * @access public
@@ -69,7 +73,7 @@ class VersioncontrolOperation {
     /**
      * The repository where this operation occurs,
      * given as a structured array, like the return value
-     * of versioncontrol_get_repository().
+     * of Versioncontrolrepository::getRepository().
      *
      * @var    VersioncontrolRepository
      * @access public
@@ -280,7 +284,7 @@ class VersioncontrolOperation {
       );
       // Construct the actual query, and let other modules provide "native"
       // custom constraints as well.
-      $query_info = _versioncontrol_construct_operation_query(
+      $query_info = self::_constructQuery(
         $constraints, $tables
       );
       if (empty($query_info)) {
@@ -556,21 +560,22 @@ class VersioncontrolOperation {
      *   versioncontrol_get_operations() and versioncontrol_get_operation_items().)
      *   In case of an error, NULL is returned instead of the operation array.
      */
-    public function insert($operation, &$operation_items) {
-      $operation = _versioncontrol_fill_operation($operation, TRUE);
+    public function insert(&$operation_items) {
+      $operation = $this->_fill(TRUE);
 
-      if (!isset($operation['repository'])) {
+      if (!isset($this->repository)) {
         return NULL;
       }
 
       // Ok, everything's there, insert the operation into the database.
-      $operation['repo_id'] = $operation['repository']['repo_id']; // for drupal_write_record()
-      drupal_write_record('versioncontrol_operations', $operation);
+      // FIXME unify repo_id with id
+      $this->repo_id = $operation->repository->id; // for drupal_write_record()
+      $dwret = drupal_write_record('versioncontrol_operations', $this);
       unset($operation['repo_id']);
       // drupal_write_record() has now added the 'vc_op_id' to the $operation array.
 
       // Insert labels that are attached to the operation.
-      $operation['labels'] = _versioncontrol_set_operation_labels($operation, $operation['labels']);
+      $operation['labels'] = $this->_setLabels($operation['labels']);
 
       $vcs = $operation['repository']['vcs'];
 
