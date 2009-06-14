@@ -827,8 +827,8 @@ class VersioncontrolOperation {
     }
 
     /**
-     * Fill in various operation properties into the given operation array
-     * (commit, branch op or tag op), in case those values are not given.
+     * Fill in various operation members into the object(commit, branch op or tag
+     * op), in case those values are not given.
      *
      * @access private
      * @param $operation
@@ -836,35 +836,31 @@ class VersioncontrolOperation {
      * @param $include_unauthorized
      *   If FALSE, the 'uid' property will receive a value of 0 for known
      *   but unauthorized users. If TRUE, all known users are mapped to their uid.
-     *
-     * @return
-     *   The completed commit, branch operation or tag operation array.
-     *   Check on isset($operation['repository']) before proceeding.
      */
-    private function _fill(&$operation, $include_unauthorized = FALSE) {
+    private function _fill($include_unauthorized = FALSE) {
       // If not already there, retrieve the full repository object.
-      if (!isset($operation['repository']) && isset($operation['repo_id'])) {
-        $operation['repository'] = versioncontrol_get_repository($operation['repo_id']);
-        unset($operation['repo_id']);
+      // FIXME: take one always set member, not sure if root is one | set other condition here
+      if (!isset($this->repository->root) && isset($this->repository->id)) {
+        $this->repository = VersioncontrolRepository::getRepository($this->repository->id);
+        unset($this->repository->id);
       }
 
       // If not already there, retrieve the Drupal user id of the committer.
-      if (!isset($operation['uid'])) {
+      if (!isset($this->author)) {
         $uid = versioncontrol_get_account_uid_for_username(
-          $operation['repository']['repo_id'], $operation['username'], $include_unauthorized
+          $this->repository->id, $this->username, $include_unauthorized
         );
         // If no uid could be retrieved, blame the commit on user 0 (anonymous).
-        $operation['uid'] = isset($uid) ? $uid : 0;
+        $this->author = isset($this->author) ? $this->author : 0;
       }
 
       // For insertions (which have 'date' set, as opposed to write access checks),
       // fill in the log message if it's unset. We don't want to do this for
       // write access checks because empty messages are denied access,
       // which requires distinguishing between unset and empty.
-      if (isset($operation['date']) && !isset($operation['message'])) {
-        $operation['message'] = '';
+      if (isset($this->date) && !isset($this->message)) {
+        $this->message = '';
       }
-      return $operation;
     }
 
     /**
