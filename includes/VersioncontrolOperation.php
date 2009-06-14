@@ -23,7 +23,10 @@ class VersioncontrolOperation {
     public $committer;
 
     /**
-     * when it was done
+     * The time when the operation was performed, given as
+     * Unix timestamp. (For commits, this is the time when the revision
+     * was committed, whereas for branch/tag operations it is the time
+     * when the files were branched or tagged.)
      *
      * @var    timestamp
      * @access public
@@ -31,7 +34,13 @@ class VersioncontrolOperation {
     public $date;
 
     /**
-     * vcs identifier
+     * The VCS specific repository-wide revision identifier,
+     * like '' in CVS, '27491' in Subversion or some SHA-1 key in various
+     * distributed version control systems. If there is no such revision
+     * (which may be the case for version control systems that don't support
+     * atomic commits) then the 'revision' element is an empty string.
+     * For branch and tag operations, this element indicates the
+     * (repository-wide) revision of the files that were branched or tagged.
      *
      * @var    string
      * @access public
@@ -39,7 +48,9 @@ class VersioncontrolOperation {
     public $revision;
 
     /**
-     * comment about the operation
+     * The log message for the commit, tag or branch operation.
+     * If a version control system doesn't support messages for the current
+     * operation type, this element should be empty.
      *
      * @var    string
      * @access public
@@ -47,12 +58,73 @@ class VersioncontrolOperation {
     public $message;
 
     /**
-     * who write the change
+     * The system specific VCS username of the user who executed
+     * this operation(aka who write the change)
      *
      * @var    string
      * @access public
      */
     public $author;
+
+    /**
+     * The repository where this operation occurs,
+     * given as a structured array, like the return value
+     * of versioncontrol_get_repository().
+     *
+     * @var    VersioncontrolRepository
+     * @access public
+     */
+    public $repository;
+
+    /**
+     * The type of the operation - one of the
+     * VERSIONCONTROL_OPERATION_{COMMIT,BRANCH,TAG} constants.
+     *
+     * @var    string
+     * @access public
+     */
+    public $type;
+
+    /**
+     * An array of branches or tags that were affected by this
+     * operation. Branch and tag operations are known to only affect one
+     * branch or tag, so for these there will be only one element (with 0
+     * as key) in 'labels'. Commits might affect any number of branches,
+     * including none. Commits that emulate branches and/or tags (like
+     * in Subversion, where they're not a native concept) can also include
+     * add/delete/move operations for labels, as detailed below.
+     * Mind that the main development branch - e.g. 'HEAD', 'trunk'
+     * or 'master' - is also considered a branch. Each element in 'labels'
+     * is a structured array with the following keys:
+     * FIXME: VersioncontrolLabel's array?
+     *
+     *        - 'name': The branch or tag name (a string).
+     *        - 'type': Whether this label is a branch (indicated by the
+     *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
+     *             (VERSIONCONTROL_OPERATION_TAG).
+     *        - 'action': Specifies what happened to this label in this operation.
+     *             For plain commits, this is always VERSIONCONTROL_ACTION_MODIFIED.
+     *             For branch or tag operations (or commits that emulate those),
+     *             it can be either VERSIONCONTROL_ACTION_ADDED or
+     *             VERSIONCONTROL_ACTION_DELETED.
+     *
+     * @var    array
+     * @access public
+     */
+    public $labels;
+
+    /**
+     * Constructor
+     */
+    public function __construct($type, $commiter, $date, $revision, $message, $author=NULL, $repository=NULL) {
+      $this->type = $type;
+      $this->commiter = $commiter;
+      $this->date = $date;
+      $this->revision = $revision;
+      $this->message = $message;
+      $this->author = $author;
+      $this->repository = $repository;
+    }
 
     // Associations
     // Operations
@@ -456,59 +528,6 @@ class VersioncontrolOperation {
      * successfully executed.
      *
      * @access public
-     * @param $operation
-     *   A single operation array like the ones returned by
-     *   versioncontrol_get_operations(), but leaving out on a few details that
-     *   will instead be determined by this function. Here's the allowed elements:
-     *
-     *   - 'type': The type of the operation - one of the
-     *        VERSIONCONTROL_OPERATION_{COMMIT,BRANCH,TAG} constants.
-     *   - 'repository': The repository where this operation occurs,
-     *        given as a structured array, like the return value
-     *        of versioncontrol_get_repository().
-     *        You can either pass this or 'repo_id'.
-     *   - 'repo_id': The repository where this operation occurs, given as a simple
-     *        integer id. You can either pass this or 'repository'.
-     *   - 'date': The time when the operation was performed, given as
-     *        Unix timestamp. (For commits, this is the time when the revision
-     *        was committed, whereas for branch/tag operations it is the time
-     *        when the files were branched or tagged.)
-     *   - 'uid': The Drupal user id of the committer. Passing this is optional -
-     *        if it isn't set, this function will determine the uid.
-     *   - 'username': The system specific VCS username of the user who executed
-     *        this operation. For distributed version control systems, this should
-     *        be the author, not the committer.
-     *   - 'message': The log message for the commit, tag or branch operation.
-     *        If a version control system doesn't support messages for the current
-     *        operation type, this element should be empty.
-     *   - 'revision': The VCS specific repository-wide revision identifier,
-     *        like '' in CVS, '27491' in Subversion or some SHA-1 key in various
-     *        distributed version control systems. If there is no such revision
-     *        (which may be the case for version control systems that don't support
-     *        atomic commits) then the 'revision' element is an empty string.
-     *        For branch and tag operations, this element indicates the
-     *        (repository-wide) revision of the files that were branched or tagged.
-     *
-     *   - 'labels': An array of branches or tags that were affected by this
-     *        operation. Branch and tag operations are known to only affect one
-     *        branch or tag, so for these there will be only one element (with 0
-     *        as key) in 'labels'. Commits might affect any number of branches,
-     *        including none. Commits that emulate branches and/or tags (like
-     *        in Subversion, where they're not a native concept) can also include
-     *        add/delete/move operations for labels, as detailed below.
-     *        Mind that the main development branch - e.g. 'HEAD', 'trunk'
-     *        or 'master' - is also considered a branch. Each element in 'labels'
-     *        is a structured array with the following keys:
-     *
-     *        - 'name': The branch or tag name (a string).
-     *        - 'type': Whether this label is a branch (indicated by the
-     *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *             (VERSIONCONTROL_OPERATION_TAG).
-     *        - 'action': Specifies what happened to this label in this operation.
-     *             For plain commits, this is always VERSIONCONTROL_ACTION_MODIFIED.
-     *             For branch or tag operations (or commits that emulate those),
-     *             it can be either VERSIONCONTROL_ACTION_ADDED or
-     *             VERSIONCONTROL_ACTION_DELETED.
      *
      * @param $operation_items
      *   A structured array containing the exact details of happened to each
