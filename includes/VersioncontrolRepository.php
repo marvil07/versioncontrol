@@ -14,7 +14,7 @@ class VersioncontrolRepository implements ArrayAccess {
    * @var    int
    * @access public
    */
-  public $id;
+  public $repo_id;
 
   /**
    * repository name inside drupal
@@ -96,14 +96,14 @@ class VersioncontrolRepository implements ArrayAccess {
    * minimal constructor
    */
   private function __construct_by_id($repo_id) {
-    $this->id = $id;
+    $this->repo_id = $id;
   }
 
   /**
    * minimal constructor
    */
   private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array()) {
-    $this->id = $id;
+    $this->repo_id = $id;
     $this->name = $name;
     $this->vcs = $vcs;
     $this->root = $root;
@@ -565,14 +565,14 @@ class VersioncontrolRepository implements ArrayAccess {
    *   The finalized repository array, including the 'repo_id' element.
    */
   public function insert($repository_urls) {
-    if (isset($this->id)) {
+    if (isset($this->repo_id)) {
       // This is a new repository, it's not supposed to have a repo_id yet.
-      unset($this->id);
+      unset($this->repo_id);
     }
     drupal_write_record('versioncontrol_repositories', $this);
     // drupal_write_record() has now added the 'repo_id' to the $repository array.
 
-    $repository_urls['repo_id'] = $this->id; // for drupal_write_record()
+    $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
     drupal_write_record('versioncontrol_repository_urls', $repository_urls);
     unset($repository_urls['repo_id']);
 
@@ -584,7 +584,7 @@ class VersioncontrolRepository implements ArrayAccess {
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $elements = $repository[$vcs .'_specific'];
-      $elements['repo_id'] = $this->id;
+      $elements['repo_id'] = $this->repo_id;
       $this->_dbInsertAdditions($table_name, $elements);
     }
 

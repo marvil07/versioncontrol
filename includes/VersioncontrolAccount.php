@@ -41,7 +41,7 @@ class VersioncontrolAccount {
     $this->vcs_username = $vcs_username;
     $this->uid = $uid;
     $repository = new VersioncontrolRepository();
-    $repository->id = $repo_id;
+    $repository->repo_id = $repo_id;
     $this->repository = $repository;
   }
 

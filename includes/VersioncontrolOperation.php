@@ -568,8 +568,7 @@ class VersioncontrolOperation {
       }
 
       // Ok, everything's there, insert the operation into the database.
-      // FIXME unify repo_id with id
-      $this->repo_id = $operation->repository->id; // for drupal_write_record()
+      $this->repo_id = $operation->repository->repo_id; // for drupal_write_record()
       $dwret = drupal_write_record('versioncontrol_operations', $this);
       unset($operation['repo_id']);
       // drupal_write_record() has now added the 'vc_op_id' to the $operation array.
@@ -845,15 +844,15 @@ class VersioncontrolOperation {
     private function _fill($include_unauthorized = FALSE) {
       // If not already there, retrieve the full repository object.
       // FIXME: take one always set member, not sure if root is one | set other condition here
-      if (!isset($this->repository->root) && isset($this->repository->id)) {
-        $this->repository = VersioncontrolRepository::getRepository($this->repository->id);
-        unset($this->repository->id);
+      if (!isset($this->repository->root) && isset($this->repository->repo_id)) {
+        $this->repository = VersioncontrolRepository::getRepository($this->repository->repo_id);
+        unset($this->repository->repo_id);
       }
 
       // If not already there, retrieve the Drupal user id of the committer.
       if (!isset($this->author)) {
         $uid = versioncontrol_get_account_uid_for_username(
-          $this->repository->id, $this->username, $include_unauthorized
+          $this->repository->repo_id, $this->username, $include_unauthorized
         );
         // If no uid could be retrieved, blame the commit on user 0 (anonymous).
         $this->author = isset($this->author) ? $this->author : 0;
