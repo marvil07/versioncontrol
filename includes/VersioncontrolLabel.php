@@ -5,7 +5,7 @@ require_once 'VersioncontrolRepository.php';
  * The parent of branches and tags classes
  *
  */
-class VersioncontrolLabel {
+class VersioncontrolLabel implements ArrayAccess {
     // Attributes
     /**
      * The label identifier (a simple integer), used for unique
@@ -106,6 +106,18 @@ class VersioncontrolLabel {
       return $label;
     }
 
-}
+  //ArrayAccess interface implementation
+  public function offsetExists($offset) {
+    return isset($this->$offset);
+  }
+  public function offsetGet($offset) {
+    return $this->$offset;
+  }
+  public function offsetSet($offset, $value) {
+    $this->$offset = $value;
+  }
+  public function offsetUnset($offset) {
+    unset($this->$offset);
+  }
 
-?>
+}

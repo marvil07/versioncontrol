@@ -29,7 +29,7 @@ define('VERSIONCONTROL_ITEM_DIRECTORY_DELETED', 4);
  * applicable. Most item revisions, but probably not all of them, are recorded
  * in the database.
  */
-class VersioncontrolItem {
+class VersioncontrolItem implements ArrayAccess {
     // Attributes
     /**
      * db identifier
@@ -905,6 +905,18 @@ class VersioncontrolItem {
       return _versioncontrol_insert_item_revision($repository, $item);
     }
 
-}
+  //ArrayAccess interface implementation
+  public function offsetExists($offset) {
+    return isset($this->$offset);
+  }
+  public function offsetGet($offset) {
+    return $this->$offset;
+  }
+  public function offsetSet($offset, $value) {
+    $this->$offset = $value;
+  }
+  public function offsetUnset($offset) {
+    unset($this->$offset);
+  }
 
-?>
+}

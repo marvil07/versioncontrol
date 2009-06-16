@@ -7,7 +7,7 @@ require_once 'VersioncontrolRepository.php';
  *
  * This class provides the way to manage users accounts.
  */
-class VersioncontrolAccount {
+class VersioncontrolAccount implements ArrayAccess {
   // Attributes
   /**
     * VCS's username
@@ -396,6 +396,20 @@ class VersioncontrolAccount {
   public static function userAccountsLoad($uid, $include_unauthorized = FALSE) {
     $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($uid)), $include_unauthorized);
     return empty($accounts) ? FALSE : $accounts;
+  }
+
+  //ArrayAccess interface implementation
+  public function offsetExists($offset) {
+    return isset($this->$offset);
+  }
+  public function offsetGet($offset) {
+    return $this->$offset;
+  }
+  public function offsetSet($offset, $value) {
+    $this->$offset = $value;
+  }
+  public function offsetUnset($offset) {
+    unset($this->$offset);
   }
 
 }

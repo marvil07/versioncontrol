@@ -4,7 +4,7 @@
  * Stuff that happened in a repository at a specific time
  *
  */
-class VersioncontrolOperation {
+class VersioncontrolOperation implements ArrayAccess {
     // Attributes
     /**
      * db identifier (before vc_op_id)
