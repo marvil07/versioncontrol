@@ -583,7 +583,8 @@ class VersioncontrolRepository implements ArrayAccess {
                            $backends[$vcs]['flags']);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $elements = $repository[$vcs .'_specific'];
+      $vcs_specific = $vcs .'_specific';
+      $elements = $this->$vcs_specific;
       $elements['repo_id'] = $this->repo_id;
       $this->_dbInsertAdditions($table_name, $elements);
     }
