@@ -54,8 +54,15 @@ function versioncontrol_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'username' => array(
-        'description' => 'VCS specific username of the user who executed this operation. For distributed version control systems, this should be the author, not the committer.',
+      'author' => array(
+        'description' => 'VCS specific username of the user who is the original author of this operation. For centralized version control systems this and committer are the same.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'committer' => array(
+        'description' => 'VCS specific username of the user who executed this operation. For distributed version control systems, this should be the author, not the committer. For centralized version control systems this and author are the same.',
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
@@ -577,5 +584,30 @@ function versioncontrol_update_6101() {
   $ret[] = update_sql("
     UPDATE {blocks} SET delta = 'site_active_developers'
     WHERE delta = '0' AND module = 'versioncontrol'");
+  return $ret;
+}
+
+/**
+ * Update 6200 (from 6.x-1.0 to 6.x-2.0):
+ * Adding author and commiter instead of only username
+ */
+function versioncontrol_update_6200() {
+  $ret = array();
+  $author_spec = array(
+    'description' => 'VCS specific username of the user who is the original author of this operation. For centralized version control systems this and committer are the same.',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE,
+    'default' => '',
+  );
+  $committer_spec = array(
+    'description' => 'VCS specific username of the user who executed this operation. For distributed version control systems, this should be the author, not the committer. For centralized version control systems this and author are the same.',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE,
+    'default' => '',
+  );
+  db_change_field($ret, 'versioncontrol_operations', 'username', 'author', $author_spec);
+  db_add_field($ret, 'versioncontrol_operations', 'committer', $committer_spec);
   return $ret;
 }
