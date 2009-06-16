@@ -6,9 +6,13 @@ require_once 'VersioncontrolLabel.php';
  *
  */
 class VersioncontrolBranch extends VersioncontrolLabel {
-    // Attributes
-    // Associations
-    // Operations
-}
+  // Operations
+  /**
+   * Constructor
+   */
+  public function __construct($name, $id=NULL, $repository=NULL) {
+    parent::__construct($name, $id=NULL, $repository=NULL);
+    $this->type = VERSIONCONTROL_LABEL_BRANCH;
+  }
 
-?>
+}

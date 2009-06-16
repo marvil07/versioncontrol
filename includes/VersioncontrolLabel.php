@@ -2,6 +2,16 @@
 require_once 'VersioncontrolRepository.php';
 
 /**
+ * @name VCS label types
+ * Use same values as VERSIONCONTROL_OPERATION_* for backward compatibility
+ * TODO: change all involved label['type'] usages
+ */
+//@{
+define('VERSIONCONTROL_LABEL_BRANCH', 2);
+define('VERSIONCONTROL_LABEL_TAG',    3);
+//@}
+
+/**
  * The parent of branches and tags classes
  *
  */
@@ -31,6 +41,16 @@ class VersioncontrolLabel implements ArrayAccess {
      * @access public
      */
     public $repository;
+
+    /**
+     *  Whether this label is a branch (indicated by the
+     *  VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
+     *  (VERSIONCONTROL_OPERATION_TAG).
+     *
+     * @var    int
+     * @access public
+     */
+    public $type;
 
     // Associations
     // Operations
