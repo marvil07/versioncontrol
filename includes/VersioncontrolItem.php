@@ -839,18 +839,18 @@ class VersioncontrolItem implements ArrayAccess {
      * Check and if necessary correct item arrays so that item type and
      * the number of source items correspond to specified actions.
      *
-     * @access private
+     * @access public
      */
-    private function _sanitize($repository, $item) {
-      if (isset($item['action'])) {
+    public function sanitize() {
+      if (isset($this->action)) {
         // Make sure the number of source items corresponds with the action.
-        switch ($item['action']) {
+        switch ($this->action) {
           // No source items for "added" actions.
           case VERSIONCONTROL_ACTION_ADDED:
-            if (count($item['source_items']) > 0) {
-              _versioncontrol_bad_item_warning($repository, $item, 'At least one source item exists although the "added" action was set (which mandates an empty \'source_items\' array.');
-              $item['source_items'] = array(reset($item['source_items'])); // first item
-              $item['source_items'] = array();
+            if (count($this->source_items) > 0) {
+              _versioncontrol_bad_item_warning($this->repository, $this, 'At least one source item exists although the "added" action was set (which mandates an empty \'source_items\' array.');
+              $this->source_items = array(reset($this->source_items)); // first item
+              $this->source_items = array();
             }
             break;
           // Exactly one source item for actions other than "added", "merged" or "other".
@@ -858,14 +858,14 @@ class VersioncontrolItem implements ArrayAccess {
           case VERSIONCONTROL_ACTION_MOVED:
           case VERSIONCONTROL_ACTION_COPIED:
           case VERSIONCONTROL_ACTION_DELETED:
-            if (count($item['source_items']) > 1) {
-              _versioncontrol_bad_item_warning($repository, $item, 'More than one source item exists although a "modified", "moved", "copied" or "deleted" action was set (which allows only one of those).');
-              $item['source_items'] = array(reset($item['source_items'])); // first item
+            if (count($this->source_items) > 1) {
+              _versioncontrol_bad_item_warning($this->repository, $this, 'More than one source item exists although a "modified", "moved", "copied" or "deleted" action was set (which allows only one of those).');
+              $item->source_items = array(reset($item->source_items)); // first item
             }
             // fall through
           case VERSIONCONTROL_ACTION_MERGED:
-            if (empty($item['source_items'])) {
-              _versioncontrol_bad_item_warning($repository, $item, 'No source item exists although a "modified", "moved", "copied", "merged" or "deleted" action was set (which requires at least or exactly one of those).');
+            if (empty($this->source_items)) {
+              _versioncontrol_bad_item_warning($this->repository, $this, 'No source item exists although a "modified", "moved", "copied", "merged" or "deleted" action was set (which requires at least or exactly one of those).');
             }
             break;
           default:
@@ -873,16 +873,15 @@ class VersioncontrolItem implements ArrayAccess {
         }
         // For a "delete" action, make sure the item type is also a "deleted" one.
         // That's quite a minor error, so don't complain but rather fix it quietly.
-        if ($item['action'] == VERSIONCONTROL_ACTION_DELETED) {
-          if ($item['type'] == VERSIONCONTROL_ITEM_FILE) {
-            $item['type'] = VERSIONCONTROL_ITEM_FILE_DELETED;
+        if ($this->action == VERSIONCONTROL_ACTION_DELETED) {
+          if ($this->type == VERSIONCONTROL_ITEM_FILE) {
+            $this->type = VERSIONCONTROL_ITEM_FILE_DELETED;
           }
-          else if ($item['type'] == VERSIONCONTROL_ITEM_DIRECTORY) {
-            $item['type'] = VERSIONCONTROL_ITEM_DIRECTORY_DELETED;
+          else if ($this->type == VERSIONCONTROL_ITEM_DIRECTORY) {
+            $this->type = VERSIONCONTROL_ITEM_DIRECTORY_DELETED;
           }
         }
       }
-      return $item;
     }
 
     /**
