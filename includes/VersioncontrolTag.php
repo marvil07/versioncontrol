@@ -11,8 +11,8 @@ class VersioncontrolTag extends VersioncontrolLabel {
   /**
    * Constructor
    */
-  public function __construct($name, $id=NULL, $repository=NULL) {
-    parent::__construct($name, $id=NULL, $repository=NULL);
+  public function __construct($type, $name, $action, $label_id=NULL, $repository=NULL) {
+    parent::__construct($type, $name, $action, $label_id, $repository);
     $this->type = VERSIONCONTROL_LABEL_TAG;
   }
 

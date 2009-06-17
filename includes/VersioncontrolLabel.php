@@ -24,7 +24,7 @@ class VersioncontrolLabel implements ArrayAccess {
      * @var    int
      * @access public
      */
-    public $id;
+    public $label_id;
 
     /**
      * The branch or tag name.
@@ -52,15 +52,28 @@ class VersioncontrolLabel implements ArrayAccess {
      */
     public $type;
 
+    /**
+     * @name VCS actions
+     * for a single item (file or directory) in a commit, or for branches and tags.
+     * either VERSIONCONTROL_ACTION_{ADDED,MODIFIED,MOVED,COPIED,MERGED,DELETED,
+     * REPLACED,OTHER}
+     *
+     * @var    array
+     * @access public
+     */
+    public $action;
+
     // Associations
     // Operations
 
     /**
      * Constructor
      */
-    public function __construct($name, $id=NULL, $repository=NULL) {
+    public function __construct($type, $name, $action, $label_id=NULL, $repository=NULL) {
+      $this->type = $type;
       $this->name = $name;
-      $this->id = $id;
+      $this->action = $action;
+      $this->label_id = $label_id;
       $this->repository = $repository;
     }
 
