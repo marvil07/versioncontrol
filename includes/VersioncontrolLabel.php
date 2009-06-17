@@ -15,7 +15,7 @@ define('VERSIONCONTROL_LABEL_TAG',    3);
  * The parent of branches and tags classes
  *
  */
-class VersioncontrolLabel implements ArrayAccess {
+abstract class VersioncontrolLabel implements ArrayAccess {
     // Attributes
     /**
      * The label identifier (a simple integer), used for unique
