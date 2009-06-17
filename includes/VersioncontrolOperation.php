@@ -323,18 +323,13 @@ class VersioncontrolOperation implements ArrayAccess {
         }
 
         // Construct the operation array - nearly done already.
-        $operations[$row->vc_op_id] = array(
-          'vc_op_id'   => $row->vc_op_id,
-          'type'       => $row->type,
-          'repo_id'    => $row->repo_id,
-          // 'repo_id' is replaced by 'repository' further down
-          'date'       => $row->date,
-          'uid'        => $row->uid,
-          'username'   => $row->username,
-          'message'    => $row->message,
-          'revision'   => $row->revision,
-          'labels'     => array(),
-        );
+        $operations[$row->vc_op_id] = new VersioncontrolOperation($row->type,
+          $row->committer, $row->date, $row->revision, $row->message,
+          $row->author, $row->vc_op_id);
+        // 'repo_id' is replaced by 'repository' further down
+        $operations[$row->vc_op_id]->repo_id = $row->repo_id;
+        $operations[$row->vc_op_id]->labels = array();
+        $operations[$row->vc_op_id]->uid = $row->uid;
         $op_ids[] = $row->vc_op_id;
         $op_id_placeholders[] = '%d';
       }
@@ -343,7 +338,7 @@ class VersioncontrolOperation implements ArrayAccess {
       }
 
       // Add the corresponding repository array to each operation.
-      $repositories = versioncontrol_get_repositories(array('repo_ids' => $repo_ids));
+      $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
       foreach ($operations as $vc_op_id => $operation) {
         $operations[$vc_op_id]['repository'] = $repositories[$operation['repo_id']];
         unset($operations[$vc_op_id]['repo_id']);
@@ -361,7 +356,7 @@ class VersioncontrolOperation implements ArrayAccess {
                             ('. implode(',', $op_id_placeholders) .')', $op_ids);
 
       while ($row = db_fetch_object($result)) {
-        $operations[$row->vc_op_id]['labels'][] = array(
+        $operations[$row->vc_op_id]->labels[] = array(
           'label_id' => $row->label_id,
           'name' => $row->name,
           'type' => $row->type,
