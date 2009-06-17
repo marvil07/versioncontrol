@@ -890,23 +890,23 @@ class VersioncontrolItem implements ArrayAccess {
      * property already. For "added" actions, it's also possible to pass 0 as the
      * @p $source_item parameter instead of a full item array.
      *
-     * @access private
+     * @access public
      */
-    private function _insertSourceRevision($item, $source_item, $action) {
+    public function insertSourceRevision($source_item, $action) {
       if ($action == VERSIONCONTROL_ACTION_ADDED && $source_item === 0) {
         $source_item = array('item_revision_id' => 0);
       }
       // Before inserting that item entry, make sure it doesn't exist already.
       db_query("DELETE FROM {versioncontrol_source_items}
                 WHERE item_revision_id = %d AND source_item_revision_id = %d",
-                $item['item_revision_id'], $source_item['item_revision_id']);
+                $this->item_revision_id, $source_item['item_revision_id']);
 
       $line_changes = !empty($item['line_changes']);
       db_query("INSERT INTO {versioncontrol_source_items}
                 (item_revision_id, source_item_revision_id, action,
                  line_changes_recorded, line_changes_added, line_changes_removed)
                 VALUES (%d, %d, %d, %d, %d, %d)",
-                $item['item_revision_id'], $source_item['item_revision_id'],
+                $this->item_revision_id, $source_item['item_revision_id'],
                 $action, ($line_changes ? 1 : 0),
                 ($line_changes ? $item['line_changes']['added'] : 0),
                 ($line_changes ? $item['line_changes']['removed'] : 0));
