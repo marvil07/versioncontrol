@@ -943,6 +943,25 @@ class VersioncontrolItem implements ArrayAccess {
       return _versioncontrol_insert_item_revision($repository, $item);
     }
 
+    /**
+     * Insert an item revision entry into the {versioncontrol_items_revisions} table.
+     * FIXME: ?
+     */
+    public function insert() {
+      $this->repo_id = $this->repository->repo_id; // for drupal_write_record() only
+
+      if (isset($this->item_revision_id)) {
+        // The item already exists in the database, update the record.
+        drupal_write_record('versioncontrol_item_revisions', $this, 'item_revision_id');
+      }
+      else {
+        // The label does not yet exist, create it.
+        // drupal_write_record() also adds the 'item_revision_id' to the $item array.
+        drupal_write_record('versioncontrol_item_revisions', $this);
+      }
+      unset($this->repo_id);
+    }
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
