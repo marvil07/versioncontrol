@@ -118,12 +118,12 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Return TRUE if the given item is an existing or an already deleted file,
      * or FALSE if it's not.
-     * 
+     *
      * @access public
      */
-    public function isFile($item) {
-      if ($item['type'] == VERSIONCONTROL_ITEM_FILE
-          || $item['type'] == VERSIONCONTROL_ITEM_FILE_DELETED) {
+    public function isFile() {
+      if ($this->type == VERSIONCONTROL_ITEM_FILE
+          || $this->type == VERSIONCONTROL_ITEM_FILE_DELETED) {
         return TRUE;
       }
       return FALSE;
@@ -132,12 +132,12 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Return TRUE if the given item is an existing or an already deleted directory,
      * or FALSE if it's not.
-     * 
+     *
      * @access public
      */
     public function isDirectory($item) {
-      if ($item['type'] == VERSIONCONTROL_ITEM_DIRECTORY
-          || $item['type'] == VERSIONCONTROL_ITEM_DIRECTORY_DELETED) {
+      if ($this->type == VERSIONCONTROL_ITEM_DIRECTORY
+          || $this->type == VERSIONCONTROL_ITEM_DIRECTORY_DELETED) {
         return TRUE;
       }
       return FALSE;
@@ -149,8 +149,8 @@ class VersioncontrolItem implements ArrayAccess {
      * @access public
      */
     public function isDeleted($item) {
-      if ($item['type'] == VERSIONCONTROL_ITEM_FILE_DELETED
-          || $item['type'] == VERSIONCONTROL_ITEM_DIRECTORY_DELETED) {
+      if ($this->type == VERSIONCONTROL_ITEM_FILE_DELETED
+          || $this->type == VERSIONCONTROL_ITEM_DIRECTORY_DELETED) {
         return TRUE;
       }
       return FALSE;
