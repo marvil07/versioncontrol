@@ -303,7 +303,7 @@ class VersioncontrolOperation implements ArrayAccess {
       }
 
       $query = 'SELECT DISTINCT(op.vc_op_id), op.type, op.date, op.uid,
-                op.username, op.message, op.revision, r.repo_id, r.vcs
+                op.author, op.committer, op.message, op.revision, r.repo_id, r.vcs
                 FROM '. $query_info['from'] .
                 (empty($query_info['where']) ? '' : ' WHERE '. $query_info['where']) .'
                 ORDER BY op.date DESC, op.vc_op_id DESC';
