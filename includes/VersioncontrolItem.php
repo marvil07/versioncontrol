@@ -37,7 +37,7 @@ class VersioncontrolItem implements ArrayAccess {
      * @var    int
      * @access public
      */
-    public $id;
+    public $item_revision_id;
 
     /**
      * The path of the item.
@@ -65,16 +65,54 @@ class VersioncontrolItem implements ArrayAccess {
      */
     public $revision;
 
+    /**
+     * FIXME: ?
+     *
+     * @var    array
+     * @access public
+     */
+    public $source_items;
+
+    /**
+     * @name VCS actions
+     * for a single item (file or directory) in a commit, or for branches and tags.
+     * either VERSIONCONTROL_ACTION_{ADDED,MODIFIED,MOVED,COPIED,MERGED,DELETED,
+     * REPLACED,OTHER}
+     *
+     * @var    array
+     * @access public
+     */
+    public $action;
+
+    /**
+     * FIXME: ?
+     *
+     * @var    array
+     * @access public
+     */
+    public $lines_changes;
+
+    /**
+     * FIXME: ?
+     *
+     * @var    VersioncontrolRepository
+     * @access public
+     */
+    public $repository;
+
     // Associations
     // Operations
   /**
    * Constructor
    */
-  public function __construct($id, $path, $deleted, $revision) {
-    $this->id = $id;
+  public function __construct($type, $path, $revision, $action, $repository, $deleted=NULL, $item_revision_id=NULL) {
+    $this->type = $type;
     $this->path = $path;
-    $this->deleted = $deleted;
     $this->revision = $revision;
+    $this->action = $action;
+    $this->repository = $repository;
+    $this->deleted = $deleted;
+    $this->item_revision_id = $item_revision_id;
   }
 
     /**
