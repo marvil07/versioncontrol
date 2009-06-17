@@ -26,7 +26,7 @@ class VersioncontrolOperation implements ArrayAccess {
      * @var    int
      * @access public
      */
-    public $id;
+    public $vc_op_id;
 
     /**
      * who actually perform the change
@@ -130,14 +130,15 @@ class VersioncontrolOperation implements ArrayAccess {
     /**
      * Constructor
      */
-    public function __construct($type, $commiter, $date, $revision, $message, $author=NULL, $repository=NULL) {
+    public function __construct($type, $committer, $date, $revision, $message, $author=NULL, $repository=NULL, $vc_op_id=NULL) {
       $this->type = $type;
-      $this->commiter = $commiter;
+      $this->committer = $committer;
       $this->date = $date;
       $this->revision = $revision;
       $this->message = $message;
-      $this->author = $author;
+      $this->author = (is_null($author))? $committer: $author;
       $this->repository = $repository;
+      $this->vc_op_id = $vc_op_id;
     }
 
     // Associations
