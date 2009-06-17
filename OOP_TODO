@@ -1,6 +1,8 @@
 on code
 -------
 
+- make add/edit/delete repository works
+  - avoid notices on add
 - refactor all methods in each class, to avoid calling now deleted funcitons and call each class where is necesary.
 - avoid implicit data(ej. do not pass repository array, now it should be an object, to a repository method)
 - unify get<some entity>, format<some entity>, load<some entity> in one <some entity> method if applies
@@ -14,6 +16,7 @@ on code
 (I do not know how to represent interfaces on dia, so make it on code)
 
 Replace versioncontrol_backend_implements() approach with one interface per feature
+- start with the "simple" VersionControlRepositoryURLBackend interface proposed by jpetso
 
 on design
 ---------
@@ -28,9 +31,6 @@ do not forget
 - camelcase at conceptual boundaries
 - __USE__ gets, like php spl
 - for now  do not use SplFileInfo as a parent class for VersioncontrolItem, but maybe in near future when it's considered a need(maybe performance)
-- add author to operation class(most DVCS needs it)
 - api class dropped, its methods would be on the module file (so. we've got backend objects. pretty easy to retrieve via discovery hook and subsequent instantiation, probably.)
 - at the beginning we should have attributes as private as possible and in the process open it as it's needed, taking more time for it before a release
   - later discusion last week result in "use protected in all places" (but later I found exceptions like repository cache :p)
-
-
