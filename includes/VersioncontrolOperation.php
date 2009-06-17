@@ -563,45 +563,41 @@ class VersioncontrolOperation implements ArrayAccess {
      *   In case of an error, NULL is returned instead of the operation array.
      */
     public function insert(&$operation_items) {
-      $operation = $this->_fill(TRUE);
+      $this->_fill(TRUE);
 
       if (!isset($this->repository)) {
         return NULL;
       }
 
       // Ok, everything's there, insert the operation into the database.
-      $this->repo_id = $operation->repository->repo_id; // for drupal_write_record()
-      $dwret = drupal_write_record('versioncontrol_operations', $this);
-      unset($operation['repo_id']);
+      $this->repo_id = $this->repository->repo_id; // for drupal_write_record()
+      //FIXME $this->uid = 0;
+      drupal_write_record('versioncontrol_operations', $this);
+      unset($this->repo_id);
       // drupal_write_record() has now added the 'vc_op_id' to the $operation array.
 
       // Insert labels that are attached to the operation.
-      $operation['labels'] = $this->_setLabels($operation['labels']);
+      $this->_setLabels($this->labels);
 
-      $vcs = $operation['repository']['vcs'];
+      $vcs = $this->repository->vcs;
 
       // So much for the operation itself, now the more verbose part: items.
       ksort($operation_items); // similar paths should be next to each other
 
       foreach ($operation_items as $path => $item) {
-        $item = _versioncontrol_sanitize_item($operation['repository'], $item);
-        $item = _versioncontrol_ensure_item_revision(
-          $operation['repository'], $item
-        );
-        _versioncontrol_insert_operation_item(
-          $operation, $item, VERSIONCONTROL_OPERATION_MEMBER_ITEM
-        );
+        $item->sanitize();
+        $item->ensure();
+        $this->_insert_operation_item($item,
+          VERSIONCONTROL_OPERATION_MEMBER_ITEM);
         $item['selected_label'] = new stdClass();
         $item['selected_label']->get_from = 'operation';
-        $item['selected_label']->successor_item = &$operation;
+        $item['selected_label']->successor_item = &$this;
 
         // If we've got source items (which is the case for commit operations),
         // add them to the item revisions and source revisions tables as well.
         foreach ($item['source_items'] as $key => $source_item) {
-          $source_item = _versioncontrol_ensure_item_revision(
-            $operation['repository'], $source_item
-          );
-          _versioncontrol_insert_source_revision($item, $source_item, $item['action']);
+          $source_item->ensure();
+          $item->insertSourceRevision($source_item, $item['action']);
 
           // Cache other important items in the operations table for 'path' search
           // queries, because joining the source revisions table is too expensive.
@@ -610,8 +606,8 @@ class VersioncontrolOperation implements ArrayAccess {
             case VERSIONCONTROL_ACTION_COPIED:
             case VERSIONCONTROL_ACTION_MERGED:
               if ($item['path'] != $source_item['path']) {
-                _versioncontrol_insert_operation_item($operation,
-                  $source_item, VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM);
+                $this->_insert_operation_item($source_item,
+                  VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM);
               }
               break;
             default: // No additional caching for added, modified or deleted items.
@@ -627,19 +623,16 @@ class VersioncontrolOperation implements ArrayAccess {
         }
         // Plus a special case for the "added" action, as it needs an entry in the
         // source items table but contains no items in the 'source_items' property.
-        if ($item['action'] == VERSIONCONTROL_ACTION_ADDED) {
-          _versioncontrol_insert_source_revision($item, 0, $item['action']);
+        if ($item->action == VERSIONCONTROL_ACTION_ADDED) {
+          $item->insertSourceRevision(0, $item['action']);
         }
 
         // If we've got a replaced item (might happen for copy/move commits),
         // add it to the item revisions and source revisions table as well.
         if (isset($item['replaced_item'])) {
-          $item['replaced_item'] = _versioncontrol_ensure_item_revision(
-            $operation['repository'], $item['replaced_item']
-          );
-          _versioncontrol_insert_source_revision(
-            $item, $item['replaced_item'], VERSIONCONTROL_ACTION_REPLACED
-          );
+          $item['replaced_item']->ensure();
+          $item->insertSourceRevision($item['replaced_item'],
+            VERSIONCONTROL_ACTION_REPLACED);
           $item['replaced_item']['selected_label'] = new stdClass();
           $item['replaced_item']['selected_label']->get_from = 'other_item';
           $item['replaced_item']['selected_label']->other_item = &$item;
@@ -651,32 +644,34 @@ class VersioncontrolOperation implements ArrayAccess {
       // Notify the backend first.
       if (versioncontrol_backend_implements($vcs, 'operation')) {
         _versioncontrol_call_backend($vcs, 'operation', array(
-          'insert', $operation, $operation_items
+          'insert', $this, $operation_items
         ));
       }
       // Everything's done, let the world know about it!
       module_invoke_all('versioncontrol_operation',
-        'insert', $operation, $operation_items
+        'insert', $this, $operation_items
       );
 
       // This one too, as there is also an update function & hook for it.
       // Pretend that the labels didn't exist beforehand.
-      $labels = $operation['labels'];
-      $operation['labels'] = array();
+      $labels = $this->labels;
+      $this->labels = array();
       module_invoke_all('versioncontrol_operation_labels',
-        'insert', $operation, $labels
+        'insert', $this, $labels
       );
-      $operation['labels'] = $labels;
+      $this->labels = $labels;
 
       // Rules integration, because we like to enable people to be flexible.
+      // FIXME change callback
       if (module_exists('rules')) {
         rules_invoke_event('versioncontrol_operation_insert', array(
-          'operation' => $operation,
+          'operation' => $this,
           'items' => $operation_items,
         ));
       }
 
-      return $operation;
+      //FIXME avoid return, it's on the object
+      return $this;
     }
 
     /**
