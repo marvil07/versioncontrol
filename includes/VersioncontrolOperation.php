@@ -519,22 +519,18 @@ class VersioncontrolOperation implements ArrayAccess {
     }
 
     /**
-     * Replace the set of affected labels of the given @p $operation with the one
-     * in @p $labels. If any of the given labels does not yet exist in the
+     * Replace the set of affected labels of the actual object with the one in
+     * @p $labels. If any of the given labels does not yet exist in the
      * database, a database entry (including new 'label_id' array element) will
      * be written as well.
      *
      * @access public
-     * @return
-     *   The updated operation, containing the new set of labels
-     *   in $operation['labels'].
      */
-    public function updateLabels($operation, $labels) {
+    public function updateLabels($labels) {
       module_invoke_all('versioncontrol_operation_labels',
-        'update', $operation, $labels
+        'update', $this, $labels
       );
-      $operation['labels'] = _versioncontrol_set_operation_labels($operation, $labels);
-      return $operation;
+      $this->_setLabels($labels);
     }
 
     /**
@@ -894,23 +890,23 @@ class VersioncontrolOperation implements ArrayAccess {
 
     /**
      * Write @p $labels to the database as set of affected labels of the
-     * given @p $operation. Label ids are not required to exist yet.
+     * actual operation object. Label ids are not required to exist yet.
+     * After this the set of labels, all of them with 'label_id' filled in.
      *
      * @access private
      * @return
-     *   The set of labels, all of them with 'label_id' filled in.
      */
-    private function _setLabels($operation, $labels) {
+    private function _setLabels($labels) {
       db_query("DELETE FROM {versioncontrol_operation_labels}
-                WHERE vc_op_id = %d", $operation['vc_op_id']);
+                WHERE vc_op_id = %d", $this->vc_op_id);
 
       foreach ($labels as &$label) {
-        $label = versioncontrol_ensure_label($operation['repository'], $label);
+        $label->ensure();
         db_query("INSERT INTO {versioncontrol_operation_labels}
                   (vc_op_id, label_id, action) VALUES (%d, %d, %d)",
-                  $operation['vc_op_id'], $label['label_id'], $label['action']);
+                  $this->vc_op_id, $label->label_id, $label->action);
       }
-      return $labels;
+      $this->labels = $labels;
     }
 
     /**
