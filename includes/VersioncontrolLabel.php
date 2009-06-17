@@ -102,7 +102,7 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      */
     public function ensure() {
       if (!empty($this->label_id)) { // already in the database
-        return $this;
+        return;
       }
       $result = db_query(
         "SELECT label_id, repo_id, name, type FROM {versioncontrol_labels}
@@ -112,10 +112,10 @@ abstract class VersioncontrolLabel implements ArrayAccess {
       while ($row = db_fetch_object($result)) {
         // Replace / fill in properties that were not in the WHERE condition.
         $this->label_id = $row->label_id;
-        return $this;
+        return;
       }
       // The item doesn't yet exist in the database, so create it.
-      return $this->_insert();
+      $this->_insert();
     }
 
     /**
@@ -136,8 +136,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
         drupal_write_record('versioncontrol_labels', $this);
       }
       unset($this->repo_id);
-      // FIXME do not return anymore
-      return $this;
     }
 
   //ArrayAccess interface implementation
