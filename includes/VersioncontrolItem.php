@@ -914,32 +914,27 @@ class VersioncontrolItem implements ArrayAccess {
 
     /**
      * Insert an item entry into the {versioncontrol_item_revisions} table,
-     * or retrieve the same one that's already there.
+     * or retrieve the same one that's already there on the object.
      *
-     * @access private
-     * @return
-     *   The @p $item variable, enhanced with the newly added property
-     *   'item_revision_id' specifying the database identifier for that revision.
-     *   If the 'type' property of the passed item is different from the one in
-     *   the database, then the new value will be written to the database.
+     * @access public
      */
-    private function _ensure($repository, $item) {
+    public function ensure() {
       $result = db_query(
         "SELECT item_revision_id, type
          FROM {versioncontrol_item_revisions}
          WHERE repo_id = %d AND path = '%s' AND revision = '%s'",
-        $repository['repo_id'], $item['path'], $item['revision']
+        $this->repository->repo_id, $this->path, $this->revision
       );
       while ($item_revision = db_fetch_object($result)) {
         // Replace / fill in properties that were not in the WHERE condition.
-        $item['item_revision_id'] = $item_revision->item_revision_id;
+        $this->item_revision_id = $item_revision->item_revision_id;
 
-        if ($item['type'] == $item_revision->type) {
-          return $item; // no changes needed - otherwise, replace the existing item.
+        if ($this->type == $item_revision->type) {
+          return; // no changes needed - otherwise, replace the existing item.
         }
       }
       // The item doesn't yet exist in the database, so create it.
-      return _versioncontrol_insert_item_revision($repository, $item);
+      $this->insert();
     }
 
     /**
