@@ -914,20 +914,20 @@ class VersioncontrolOperation implements ArrayAccess {
     }
 
     /**
-     * Insert an item entry into the {versioncontrol_operation_items} table.
+     * Insert an operation item entry into the {versioncontrol_operation_items} table.
      * The item is expected to have an 'item_revision_id' property already.
-     * 
+     *
      * @access private
      */
-    private function _insert_item($operation, $item, $type) {
+    private function _insert_operation_item($item, $type) {
       // Before inserting that item entry, make sure it doesn't exist already.
       db_query("DELETE FROM {versioncontrol_operation_items}
                 WHERE vc_op_id = %d AND item_revision_id = %d",
-                $operation['vc_op_id'], $item['item_revision_id']);
+                $this->vc_op_id, $item->item_revision_id);
 
       db_query("INSERT INTO {versioncontrol_operation_items}
                 (vc_op_id, item_revision_id, type) VALUES (%d, %d, %d)",
-                $operation['vc_op_id'], $item['item_revision_id'], $type);
+                $this->vc_op_id, $item->item_revision_id, $type);
     }
 
     /**
