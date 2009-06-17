@@ -71,7 +71,7 @@ class VersioncontrolItem implements ArrayAccess {
      * @var    array
      * @access public
      */
-    public $source_items;
+    public $source_items = array();
 
     /**
      * @name VCS actions
@@ -90,7 +90,7 @@ class VersioncontrolItem implements ArrayAccess {
      * @var    array
      * @access public
      */
-    public $lines_changes;
+    public $lines_changes = array();
 
     /**
      * FIXME: ?
