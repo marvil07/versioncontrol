@@ -187,10 +187,10 @@ class VersioncontrolAccount implements ArrayAccess {
    * @param $user
    *  The Drupal user who wants to register an account.
    */
-  public function usernameSuggestion($repository, $user) {
-    if (versioncontrol_backend_implements($repository['vcs'], 'account_username_suggestion')) {
-      return _versioncontrol_call_backend($repository['vcs'],
-        'account_username_suggestion', array($repository, $user)
+  public function usernameSuggestion($user) {
+    if (versioncontrol_backend_implements($this->repository['vcs'], 'account_username_suggestion')) {
+      return _versioncontrol_call_backend($this->repository['vcs'],
+        'account_username_suggestion', array($this->repository, $user)
       );
     }
     return strtr(drupal_strtolower($user->name),
@@ -212,11 +212,11 @@ class VersioncontrolAccount implements ArrayAccess {
    * @return
    *   TRUE if the username is valid, FALSE if not.
    */
-  public function isUsernameValid($repository, &$username) {
-    if (versioncontrol_backend_implements($repository['vcs'], 'is_account_username_valid')) {
+  public function isUsernameValid(&$username) {
+    if (versioncontrol_backend_implements($this->repository->vcs, 'is_account_username_valid')) {
       // Because $username is a by-reference argument, make it a direct call.
-      $function = 'versioncontrol_'. $repository['vcs'] .'_is_account_username_valid';
-      return $function($repository, $username);
+      $function = 'versioncontrol_'. $this->repository->vcs .'_is_account_username_valid';
+      return $function($this->repository, $username);
     }
     else if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
       return FALSE;

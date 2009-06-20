@@ -428,8 +428,9 @@ function versioncontrol_account_edit_form(&$form_state, $uid, $repository, $vcs_
 
   if ($create_account || $admin_access) {
     if ($create_account) {
+      $vcs_account = new VersioncontrolAccount($vcs_username, $uid, $repository);
       // Have a nice default value for the new VCS username.
-      $vcs_username = versioncontrol_account_username_suggestion($repository, $user);
+      $vcs_username = $vcs_account->usernameSuggestion($user);
     }
 
     if ($admin_access) { // the admin version
@@ -502,7 +503,8 @@ function versioncontrol_account_edit_form_validate($form, &$form_state) {
   else {
     // Check for username validity - done by the backend, but with a fallback
     // for alphanum-only characters.
-    if (!versioncontrol_is_account_username_valid($repository, $username)) {
+    $vcs_account = new VersioncontrolAccount($username, $uid, $repository);
+    if (!$vcs_account->isUsernameValid($username)) {
       form_set_error('account_name',
         t('The specified @vcs username is invalid.', array('@vcs' => $vcs_name))
       );
