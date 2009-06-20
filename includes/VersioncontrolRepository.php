@@ -96,7 +96,7 @@ class VersioncontrolRepository implements ArrayAccess {
    * minimal constructor
    */
   private function __construct_by_id($repo_id) {
-    $this->repo_id = $id;
+    $this->repo_id = $repo_id;
   }
 
   /**
@@ -437,8 +437,8 @@ class VersioncontrolRepository implements ArrayAccess {
    * @param $uid
    *   The user id of the checked account.
    */
-  public function isAccountAuthorized($repository, $uid) {
-    if (!$uid || !isset($repository)) {
+  public function isAccountAuthorized($uid) {
+    if (!$uid) {
       return FALSE;
     }
     $approved = array();
@@ -448,7 +448,7 @@ class VersioncontrolRepository implements ArrayAccess {
 
       // If at least one hook_versioncontrol_is_account_authorized()
       // returns FALSE, the account is assumed not to be approved.
-      if ($function($repository, $uid) === FALSE) {
+      if ($function($this, $uid) === FALSE) {
         return FALSE;
       }
     }
