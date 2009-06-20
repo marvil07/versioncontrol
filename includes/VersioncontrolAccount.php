@@ -293,44 +293,39 @@ class VersioncontrolAccount implements ArrayAccess {
    * and call the necessary module hooks.
    *
    * @access public
-   * @param $repository
-   *   The repository where the user has its VCS account.
-   * @param $uid
-   *   The Drupal user id corresponding to the VCS username.
-   * @param $username
-   *   The VCS specific username (a string).
    * @param $additional_data
    *   An array of additional author information. Modules can fill this array
    *   by implementing hook_versioncontrol_account_submit().
    */
-  public function insert($repository, $uid, $username, $additional_data = array()) {
+  public function insert($additional_data = array()) {
     db_query(
       "INSERT INTO {versioncontrol_accounts} (uid, repo_id, username)
-       VALUES (%d, %d, '%s')", $uid, $repository['repo_id'], $username
+       VALUES (%d, %d, '%s')", $this->uid, $this->repository->repo_id, $this->vcs_username
     );
 
     // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
       _versioncontrol_call_backend(
-        $repository['vcs'], 'account',
-        array('insert', $uid, $username, $repository, $additional_data)
+        $this->repository->vcs, 'account',
+        array('insert', $this->uid, $this->vcs_username, $this->repository, $additional_data)
       );
     }
 
     // Update the operations table.
+    // FIXME differenciate author and commiter
     db_query("UPDATE {versioncontrol_operations}
               SET uid = %d
-              WHERE username = '%s' AND repo_id = %d",
-              $uid, $username, $repository['repo_id']);
+              WHERE author = '%s' AND repo_id = %d",
+              $this->uid, $this->vcs_username, $this->repository->repo_id);
 
     // Everything's done, let the world know about it!
     module_invoke_all('versioncontrol_account',
-      'insert', $uid, $username, $repository, $additional_data
+      'insert', $this->uid, $this->vcs_username, $this->repository, $additional_data
     );
 
     watchdog('special',
-      'Version Control API: added @username account in repository @repository',
-      array('@username' => $username, '@repository' => $repository['name']),
+      'Version Control API: added @vcs_username account in repository @repository',
+      array('@vcs_username' => $this->vcs_username, '@repository' => $this->repository->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
     );
   }

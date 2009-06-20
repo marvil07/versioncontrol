@@ -550,7 +550,8 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
   }
 
   if (empty($form['#original_username'])) {
-    versioncontrol_insert_account($repository, $uid, $username, $additional_data);
+    $vcs_account = new VersioncontrolAccount($username, $uid, $repository);
+    $vcs_account->insert($additional_data);
     $message = drupal_set_message(t(
       'The @vcs account %username has been registered.',
       array('@vcs' => $vcs_name, '%username' => $username)
