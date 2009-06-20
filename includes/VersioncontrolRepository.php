@@ -657,8 +657,8 @@ class VersioncontrolRepository implements ArrayAccess {
       array('repo_ids' => array($repository['repo_id'])), TRUE
     );
     foreach ($accounts as $uid => $usernames_by_repository) {
-      foreach ($usernames_by_repository as $repo_id => $username) {
-        versioncontrol_delete_account($repository, $uid, $username);
+      foreach ($usernames_by_repository as $repo_id => $account) {
+        versioncontrol_delete_account($repository, $uid, $account->vcs_username);
       }
     }
 

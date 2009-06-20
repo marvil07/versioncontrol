@@ -186,12 +186,12 @@ function versioncontrol_admin_account_list_form(&$form_state) {
 
     // Present a list of all VCS usernames and the repository where they're in.
     $repo_usernames = array();
-    foreach ($usernames_by_repository as $repo_id => $username) {
+    foreach ($usernames_by_repository as $repo_id => $account) {
       if (!isset($repositories[$repo_id])) { // happens if the backend isn't loaded
         continue;
       }
       $formatted_username = theme('versioncontrol_account_username',
-        $uid, $username, $repositories[$repo_id],
+        $uid, $account->vcs_username, $repositories[$repo_id],
         array('prefer_drupal_username' => FALSE)
       );
       $repo_name = module_exists('commitlog')
@@ -202,7 +202,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
         '!username' => $formatted_username,
         '!repository' => $repo_name,
         '!edit' => l(t('edit'),
-          'user/'. $uid .'/edit/versioncontrol/'. $repo_id .'/'. drupal_urlencode($username)
+          'user/'. $uid .'/edit/versioncontrol/'. $repo_id .'/'. drupal_urlencode($account->vcs_username)
         ),
       ));
     }

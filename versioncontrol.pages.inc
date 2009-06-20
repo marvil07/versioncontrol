@@ -56,8 +56,8 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
   // Construct the '#options' array.
   $account_usernames = array();
   foreach ($accounts as $uid => $usernames_by_repository) {
-    foreach ($usernames_by_repository as $repo_id => $username) {
-      $account_usernames[$repo_id][] = $username;
+    foreach ($usernames_by_repository as $repo_id => $account) {
+      $account_usernames[$repo_id][] = $account->vcs_username;
     }
   }
 
@@ -557,6 +557,13 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
     ));
   }
   else {
+    $constraints = array(
+      'uids' => array($uid),
+      'repo_ids' => array($repository->repo_id),
+      'usernames' => array($form['#original_username'])
+    );
+    $vcs_accounts = VersioncontrolAccount::getAccounts($constraints);
+    //FIXME actually update
     versioncontrol_update_account($repository, $uid, $username, $additional_data);
 
     // Regular users cannot change the username, and will probably get

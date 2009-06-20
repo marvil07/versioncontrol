@@ -165,13 +165,14 @@ class VersioncontrolAccount implements ArrayAccess {
     $accounts = array();
 
     foreach ($account_rows as $account) {
+      $account->repository = $repositories[$account->repository->repo_id];
       // Only include approved accounts, except in case the caller said otherwise.
       if ($include_unauthorized
-          || versioncontrol_is_account_authorized($repositories[$account->repo_id], $account->uid)) {
+          || $account->repository->isAccountAuthorized($account->uid)) {
         if (!isset($accounts[$account->uid])) {
           $accounts[$account->uid] = array();
         }
-        $accounts[$account->uid][$account->repo_id] = $account->username;
+        $accounts[$account->uid][$account->repository->repo_id] = $account;
       }
     }
     return $accounts;

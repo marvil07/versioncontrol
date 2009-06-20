@@ -141,8 +141,8 @@ function versioncontrol_user($type, &$edit, &$user, $category = NULL) {
       $repo_ids = array();
 
       foreach ($accounts as $uid => $usernames_by_repository) {
-        foreach ($usernames_by_repository as $repo_id => $username) {
-          $accounts_flat[] = array('uid' => $uid, 'username' => $username, 'repo_id' => $repo_id);
+        foreach ($usernames_by_repository as $repo_id => $account) {
+          $accounts_flat[] = array('uid' => $uid, 'username' => $account->vcs_username, 'repo_id' => $repo_id);
           $repo_ids[] = $repo_id;
         }
       }
