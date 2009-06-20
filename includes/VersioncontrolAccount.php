@@ -37,11 +37,9 @@ class VersioncontrolAccount implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($vcs_username, $uid, $repo_id) {
+  public function __construct($vcs_username, $uid, $repository=NULL) {
     $this->vcs_username = $vcs_username;
     $this->uid = $uid;
-    $repository = new VersioncontrolRepository();
-    $repository->repo_id = $repo_id;
     $this->repository = $repository;
   }
 
@@ -156,7 +154,7 @@ class VersioncontrolAccount implements ArrayAccess {
     $repo_ids = array();
     while ($account = db_fetch_object($result)) {
       $repo_ids[] = $account->repo_id;
-      $account_rows[] = $account;
+      $account_rows[] = new VersioncontrolAccount($account->username, $account->uid, new VersioncontrolRepository($account->repo_id));
     }
     if (empty($repo_ids)) {
       return array();
