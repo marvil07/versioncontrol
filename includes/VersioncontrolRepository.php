@@ -113,22 +113,6 @@ class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
-   * Menu wildcard loader for repository ids ('%versioncontrol_repository').
-   * Use this only for menu paths - if you want to retrieve a repository with
-   * your own code, use versioncontrol_get_repository() instead.
-   * (Yeah, I know duplicate functions are bad. Hopefully we can sort this out
-   * when repositories are made into real objects, as
-   * versioncontrol_get_repository() will be a static class method then.)
-   * 
-   * @access public
-   * @static
-   */
-  public static function load($repo_id) {
-    $repository = self::getRepository($repo_id);
-    return empty($repository) ? FALSE : $repository;
-  }
-
-  /**
    * Title callback for repository arrays.
    * 
    * @access public

@@ -396,6 +396,19 @@ function versioncontrol_perm() {
   );
 }
 
+/**
+ * Menu wildcard loader for repository ids ('%versioncontrol_repository').
+ * Use this only for menu paths - if you want to retrieve a repository with
+ * your own code, use versioncontrol_get_repository() instead.
+ * (Yeah, I know duplicate functions are bad. Hopefully we can sort this out
+ * when repositories are made into real objects, as
+ * versioncontrol_get_repository() will be a static class method then.)
+ */
+function versioncontrol_repository_load($repo_id) {
+  $repository = VersioncontrolRepository::getRepository($repo_id);
+  return empty($repository) ? FALSE : $repository;
+}
+
 
 // API functions start here.
 
