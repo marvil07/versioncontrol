@@ -68,7 +68,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
   $repository_names = array();
   foreach ($repositories as $repo_id => $repository) {
     if (isset($account_usernames[$repo_id])
-        && versioncontrol_is_account_authorized($repository, $register_uid)) {
+        && $repository->isAccountAuthorized($register_uid)) {
       // We only want repositories in the list of repositories that are open
       // for registrations where no (authorized) account exists yet.
       continue;
@@ -579,6 +579,6 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
 
   $form_state['redirect'] = versioncontrol_admin_access()
     ? 'admin/project/versioncontrol-accounts'
-    : 'user/'. $uid .'/edit/versioncontrol/'. $repository['repo_id']
+    : 'user/'. $uid .'/edit/versioncontrol/'. $repository->repo_id
         .'/'. drupal_urlencode($username);
 }

@@ -146,7 +146,7 @@ function versioncontrol_user($type, &$edit, &$user, $category = NULL) {
           $repo_ids[] = $repo_id;
         }
       }
-      $repositories = versioncontrol_get_repositories(array('repo_ids' => $repo_ids));
+      $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
 
       foreach ($accounts_flat as $account) {
         if (isset($repositories[$account['repo_id']])) {
