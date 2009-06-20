@@ -35,14 +35,6 @@ function versioncontrol_admin_settings(&$form_state) {
     '#weight' => -10,
   );
 
-  $form['versioncontrol_allow_unauthorized_access'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Allow repository access to unknown or unauthorized committers',
-    '#description' => 'If this is enabled, VCS users that are not registered or approved can nevertheless commit to repositories, assuming that no other commit restrictions apply. If it is disabled, only authorized users may commit. In any case, this setting only works if the appropriate pre-commit/pre-branch/pre-tag hook script is in place for the respective repository.',
-    '#default_value' => variable_get('versioncontrol_allow_unauthorized_access', 0),
-    '#weight' => -1,
-  );
-
   $form['versioncontrol_register_form'] = array(
     '#type' => 'fieldset',
     '#title' => t('Account registration form strings'),
@@ -87,7 +79,6 @@ function versioncontrol_admin_settings(&$form_state) {
 function versioncontrol_admin_settings_submit($form, &$form_state) {
   $value_names = array(
     'versioncontrol_email_address',
-    'versioncontrol_allow_unauthorized_access',
     'versioncontrol_registration_message_unauthorized',
     'versioncontrol_registration_message_authorized',
   );
@@ -647,7 +638,7 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
   $form = array();
   $form['#id'] = 'versioncontrol-repository-form';
 
-  if (!empty($repository)) {
+  if ($repository_exists) {
     $form['#repository'] = $repository;
   }
   $form['#vcs'] = $repository_exists ? $repository['vcs'] : $vcs;
@@ -722,6 +713,27 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
     '#description' => t('Message to show to users that are in the process of creating an account in this repository.'),
     '#default_value' => $current_registration_message,
   );
+
+  $backend_capabilities = $backends[$form['#vcs']]['capabilities'];
+
+  if (in_array(VERSIONCONTROL_CAPABILITY_COMMIT_RESTRICTIONS, $backend_capabilities)) {
+    $form['commit_restrictions'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Commit restrictions'),
+      '#collapsible' => TRUE,
+     '#collapsed' => TRUE,
+      '#weight' => 6,
+    );
+    $form['commit_restrictions']['allow_unauthorized_access'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Allow repository access to unknown or unauthorized committers',
+      '#description' => 'If this is enabled, users can commit to this repository even if no association of the VCS account to the Drupal user is known (assu
+      '#default_value' => $repository_exists
+                          ? $repository['data']['versioncontrol']['allow_unauthorized_access']
+                          : FALSE,
+      '#weight' => 0,
+    );
+  }
 
   if ($repository_exists) {
     $repo_urls = _versioncontrol_get_repository_urls($repository);
@@ -834,6 +846,14 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   else {
     $repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now
   }
+
+  // We also provide a 'data' array where other modules can put their own
+  // per-repository data that doesn't need to be stored in a separate db column.
+  $repository->data = array(
+    'versioncontrol' => array(
+      'allow_unauthorized_access' => (bool) $form_state['values']['allow_unauthorized_access'],
+    ),
+  );
 
   $registration_message = $form_state['values']['registration_message'];
 

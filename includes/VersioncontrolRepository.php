@@ -72,6 +72,12 @@ class VersioncontrolRepository implements ArrayAccess {
    */
   private static $repository_cache = array();
 
+  /**
+   * An array of additional per-repository settings, mostly populated by
+   * third-party modules. It is serialized on DB.
+   */
+  public $data = array();
+
   // Associations
   // Operations
   /**
@@ -89,6 +95,9 @@ class VersioncontrolRepository implements ArrayAccess {
     case 7:
       self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6]);
       break;
+    case 8:
+      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7]);
+      break;
     }
   }
 
@@ -102,7 +111,7 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * minimal constructor
    */
-  private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array()) {
+  private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array(), $data=array()) {
     $this->repo_id = $id;
     $this->name = $name;
     $this->vcs = $vcs;
@@ -110,6 +119,7 @@ class VersioncontrolRepository implements ArrayAccess {
     $this->authorization_method = $authorization_method;
     $this->url_backend = $url_backend;
     $this->urls = $urls;
+    $this->data= $data;
   }
 
   /**
@@ -240,6 +250,8 @@ class VersioncontrolRepository implements ArrayAccess {
         // don't include repositories for which no backend module exists
         continue;
       }
+      $repository['data'] = unserialize($repository['data']);
+
       if (!isset($auth_methods[$repository['authorization_method']])) {
         $repository['authorization_method'] = _versioncontrol_get_fallback_authorization_method();
       }
@@ -258,7 +270,7 @@ class VersioncontrolRepository implements ArrayAccess {
     $result_repositories = array();
     foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
       foreach ($vcs_repositories as $repository) {
-        $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend']);
+        $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository['data']);
         //FIXME: another idea for this?
         $vcs_specific_key = $repository['vcs'] .'_specific';
         $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
