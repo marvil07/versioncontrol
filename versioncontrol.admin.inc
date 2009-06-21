@@ -671,13 +671,10 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
     '#maxlength' => 255,
   );
 
-  $result = db_query('SELECT registration_message
-                      FROM {versioncontrol_repository_metadata}
-                      WHERE repo_id = %d', $repository['repo_id']);
-  while ($row = db_fetch_object($result)) {
-    $current_registration_message = $row->registration_message;
+  if ($repository_exists && isset($repository['data']['versioncontrol']['registration_message'])) {
+    $current_registration_message = $repository['data']['versioncontrol']['registration_message'];
   }
-  if (!isset($current_registration_message)) {
+  else {
     $presets = _versioncontrol_get_string_presets();
     $current_registration_message = $presets['versioncontrol_registration_message_repository'];
   }
@@ -726,8 +723,8 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
     );
     $form['commit_restrictions']['allow_unauthorized_access'] = array(
       '#type' => 'checkbox',
-      '#title' => 'Allow repository access to unknown or unauthorized committers',
-      '#description' => 'If this is enabled, users can commit to this repository even if no association of the VCS account to the Drupal user is known (assu
+      '#title' => t('Allow repository access to unknown or unauthorized committers'),
+      '#description' => 'If this is enabled, users can commit to this repository even if no association of the VCS account to the Drupal user is known (assuming that no other commit restrictions apply). If it is disabled, only known and authorized users may commit. This setting only works if the appropriate pre-commit/pre-branch/pre-tag hook script is set up for this repository.',
       '#default_value' => $repository_exists
                           ? $repository['data']['versioncontrol']['allow_unauthorized_access']
                           : FALSE,
@@ -851,11 +848,14 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   // per-repository data that doesn't need to be stored in a separate db column.
   $repository->data = array(
     'versioncontrol' => array(
-      'allow_unauthorized_access' => (bool) $form_state['values']['allow_unauthorized_access'],
+      'registration_message' => $form_state['values']['registration_message'],
     ),
   );
 
-  $registration_message = $form_state['values']['registration_message'];
+  if (isset($form_state['values']['allow_unauthorized_access'])) {
+    $repository->data['versioncontrol']['allow_unauthorized_access'] =
+      (bool) $form_state['values']['allow_unauthorized_access'];
+  }
 
   // Let other modules alter the repository array.
   foreach (module_implements('versioncontrol_repository_submit') as $module) {
@@ -865,22 +865,12 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
 
   if (!is_null($repository->repo_id)) {
     $repository->update($repository_urls);
-    db_query("UPDATE {versioncontrol_repository_metadata}
-              SET registration_message = '%s'
-              WHERE repo_id = %d",
-              $registration_message, $repository->repo_id);
-
     drupal_set_message(t('The %repository repository has been updated.', array(
       '%repository' => $repository->name,
     )));
   }
   else {
     $repository = $repository->insert($repository_urls);
-    db_query("INSERT INTO {versioncontrol_repository_metadata}
-              (repo_id, registration_message)
-              VALUES (%d, '%s')",
-              $repository->repo_id, $registration_message);
-
     drupal_set_message(t('The %repository repository has been added.', array(
       '%repository' => $repository->name
     )));

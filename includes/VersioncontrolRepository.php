@@ -153,6 +153,8 @@ class VersioncontrolRepository implements ArrayAccess {
    *        by implementing hook_versioncontrol_authorization_methods().
    *   - 'url_backend': The prefix (excluding the trailing underscore)
    *        for URL backend retrieval functions.
+   *   - 'data': An array where modules can store additional information about
+   *        the repository, for settings or other data.
    *   - '[xxx]_specific': An array of VCS specific additional repository
    *        information. How this array looks like is defined by the
    *        corresponding backend module (versioncontrol_[xxx]).
@@ -208,6 +210,9 @@ class VersioncontrolRepository implements ArrayAccess {
    *        by implementing hook_versioncontrol_authorization_methods().
    *   - 'url_backend': The prefix (excluding the trailing underscore)
    *        for URL backend retrieval functions.
+   *   - 'data': An array where modules can store additional information about
+   *        the repository, for settings or other data.
+   *
    *   - '[xxx]_specific': An array of VCS specific additional repository
    *        information. How this array looks like is defined by the
    *        corresponding backend module (versioncontrol_[xxx]).
@@ -458,32 +463,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * whereas all other values may change.
    *
    * @access public
-   * @param $repository
-   *   The repository array containing the new or existing repository.
-   *   It's a single repository array like the one returned by
-   *   versioncontrol_get_repository(), so it consists of the following elements:
-   *
-   *   - 'repo_id': The unique repository id.
-   *   - 'name': The user-visible name of the repository.
-   *   - 'vcs': The unique string identifier of the version control system
-   *        that powers this repository.
-   *   - 'root': The root directory of the repository. In most cases,
-   *        this will be a local directory (e.g. '/var/repos/drupal'),
-   *        but it may also be some specialized string for remote repository
-   *        access. How this string may look like depends on the backend.
-   *   - 'authorization_method': The string identifier of the repository's
-   *        authorization method, that is, how users may register accounts
-   *        in this repository. Modules can provide their own methods
-   *        by implementing hook_versioncontrol_authorization_methods().
-   *   - 'url_backend': The prefix (excluding the trailing underscore)
-   *        for URL backend retrieval functions.
-   *   - '[xxx]_specific': An array of VCS specific additional repository
-   *        information. How this array looks like is defined by the
-   *        corresponding backend module (versioncontrol_[xxx]).
-   *        If the backend has registered itself with the
-   *        VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES option, all items of
-   *        this array will automatically be inserted into the
-   *        {versioncontrol_[xxx]_commits} table.
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -528,31 +507,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * Insert a repository into the database, and call the necessary hooks.
    *
    * @access public
-   * @param $repository
-   *   The repository array containing the new or existing repository.
-   *   It's a single repository array like the one returned by
-   *   versioncontrol_get_repository(), so it consists of the following elements:
-   *
-   *   - 'name': The user-visible name of the repository.
-   *   - 'vcs': The unique string identifier of the version control system
-   *        that powers this repository.
-   *   - 'root': The root directory of the repository. In most cases,
-   *        this will be a local directory (e.g. '/var/repos/drupal'),
-   *        but it may also be some specialized string for remote repository
-   *        access. How this string may look like depends on the backend.
-   *   - 'authorization_method': The string identifier of the repository's
-   *        authorization method, that is, how users may register accounts
-   *        in this repository. Modules can provide their own methods
-   *        by implementing hook_versioncontrol_authorization_methods().
-   *   - 'url_backend': The prefix (excluding the trailing underscore)
-   *        for URL backend retrieval functions.
-   *   - '[xxx]_specific': An array of VCS specific additional repository
-   *        information. How this array looks like is defined by the
-   *        corresponding backend module (versioncontrol_[xxx]).
-   *        If the backend has registered itself with the
-   *        VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES option, all items of
-   *        this array will automatically be inserted into the
-   *        {versioncontrol_[xxx]_commits} table.
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -684,8 +638,6 @@ class VersioncontrolRepository implements ArrayAccess {
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
              $this->repo_id);
     db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
-             $this->repo_id);
-    db_query('DELETE FROM {versioncontrol_repository_metadata} WHERE repo_id = %d',
              $this->repo_id);
 
     watchdog('special',
