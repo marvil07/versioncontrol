@@ -709,7 +709,7 @@ function versioncontrol_account_status_form_alter_account_edit(&$form, $status_d
     $form['#send_application_mails'] = TRUE;
 
     if (!isset($form['overview'])) {
-      $repository = versioncontrol_get_repository($status_data['repo_id']);
+      $repository = VersioncontrolRepository::getRepository($status_data['repo_id']);
       $registration_message = isset($repository['data']['versioncontrol']['registration_message'])
         ? $repository['data']['versioncontrol']['registration_message']
         : '';
