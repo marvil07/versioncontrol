@@ -347,28 +347,28 @@ class VersioncontrolAccount implements ArrayAccess {
     db_query('UPDATE {versioncontrol_operations}
               SET uid = 0
               WHERE uid = %d AND repo_id = %d',
-              $uid, $repository['repo_id']);
+              $this->uid, $this->repository->repo_id);
 
     // Announce deletion of the account before anything has happened.
     module_invoke_all('versioncontrol_account',
-      'delete', $uid, $username, $repository, array()
+      'delete', $this->uid, $this->vcs_username, $this->repository, array()
     );
 
     // Provide an opportunity for the backend to delete its own stuff.
-    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
       _versioncontrol_call_backend(
-        $repository['vcs'], 'account',
-        array('delete', $uid, $username, $repository, array())
+        $this->repository->vcs, 'account',
+        array('delete', $this->uid, $this->vcs_username, $this->repository, array())
       );
     }
 
     db_query('DELETE FROM {versioncontrol_accounts}
               WHERE uid = %d AND repo_id = %d',
-              $uid, $repository['repo_id']);
+              $this->uid, $this->repository->repo_id);
 
     watchdog('special',
       'Version Control API: deleted @username account in repository @repository',
-      array('@username' => $username, '@repository' => $repository['name']),
+      array('@username' => $this->vcs_username, '@repository' => $this->repository->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
     );
   }

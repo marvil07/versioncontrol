@@ -600,22 +600,22 @@ class VersioncontrolRepository implements ArrayAccess {
    *   It's a single repository array like the one returned by
    *   versioncontrol_get_repository().
    */
-  public function delete($repository) {
+  public function delete() {
     // Delete operations.
-    $operations = versioncontrol_get_operations(array('repo_ids' => array($repository['repo_id'])));
+    $operations = VersioncontrolOperation::getOperations(array('repo_ids' => array($this->repo_id)));
     foreach ($operations as $operation) {
-      versioncontrol_delete_operation($operation);
+      $operation->delete();
     }
     unset($operations); // conserve memory, this might get quite large
 
     // Delete labels.
     db_query('DELETE FROM {versioncontrol_labels}
-              WHERE repo_id = %d', $repository['repo_id']);
+              WHERE repo_id = %d', $this->repo_id);
 
     // Delete item revisions and related source item entries.
     $result = db_query('SELECT item_revision_id
                         FROM {versioncontrol_item_revisions}
-                        WHERE repo_id = %d', $repository['repo_id']);
+                        WHERE repo_id = %d', $this->repo_id);
     $item_ids = array();
     $placeholders = array();
 
@@ -631,29 +631,29 @@ class VersioncontrolRepository implements ArrayAccess {
       db_query('DELETE FROM {versioncontrol_source_items}
                 WHERE source_item_revision_id IN '. $placeholders, $item_ids);
       db_query('DELETE FROM {versioncontrol_item_revisions}
-                WHERE repo_id = %d', $repository['repo_id']);
+                WHERE repo_id = %d', $this->repo_id);
     }
     unset($item_ids); // conserve memory, this might get quite large
     unset($placeholders); // ...likewise
 
     // Delete accounts.
     $accounts = VersioncontrolAccount::getAccounts(
-      array('repo_ids' => array($repository['repo_id'])), TRUE
+      array('repo_ids' => array($this->repo_id)), TRUE
     );
     foreach ($accounts as $uid => $usernames_by_repository) {
       foreach ($usernames_by_repository as $repo_id => $account) {
-        versioncontrol_delete_account($repository, $uid, $account->vcs_username);
+        $account->delete();
       }
     }
 
     // Announce deletion of the repository before anything has happened.
-    module_invoke_all('versioncontrol_repository', 'delete', $repository);
+    module_invoke_all('versioncontrol_repository', 'delete', $this);
 
-    $vcs = $repository['vcs'];
+    $vcs = $this->vcs;
 
     // Provide an opportunity for the backend to delete its own stuff.
     if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('delete', $repository));
+      _versioncontrol_call_backend($vcs, 'repository', array('delete', $this));
     }
 
     // Auto-delete repository info from $repository['[xxx]_specific'] from the database.
@@ -664,20 +664,20 @@ class VersioncontrolRepository implements ArrayAccess {
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      _versioncontrol_db_delete_additions($table_name, 'repo_id', $repository['repo_id']);
+      _versioncontrol_db_delete_additions($table_name, 'repo_id', $this->repo_id);
     }
 
     // Phew, everything's cleaned up. Finally, delete the repository.
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
-             $repository['repo_id']);
+             $this->repo_id);
     db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
-             $repository['repo_id']);
+             $this->repo_id);
     db_query('DELETE FROM {versioncontrol_repository_metadata} WHERE repo_id = %d',
-             $repository['repo_id']);
+             $this->repo_id);
 
     watchdog('special',
       'Version Control API: deleted repository @repository',
-      array('@repository' => $repository['name']),
+      array('@repository' => $this->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-repositories')
     );
   }
@@ -787,5 +787,50 @@ class VersioncontrolRepository implements ArrayAccess {
   public function offsetUnset($offset) {
     unset($this->$offset);
   }
+
+}
+
+/**
+ * Generate and execute a DELETE query for the given table
+ * based on name and value of the primary key.
+ * In order to avoid unnecessary complexity, the primary key may not consist
+ * of multiple columns and has to be a numeric value.
+ */
+function _versioncontrol_db_delete_additions($table_name, $primary_key_name, $primary_key) {
+  db_query('DELETE FROM {'. $table_name .'}
+            WHERE '. $primary_key_name .' = %d', $primary_key);
+}
+
+/**
+ * Generate and execute a SELECT query for the given table base on the name
+ * and given values of this table's primary key. This function basically
+ * accomplishes the retrieval part of Version Control API's 'autoadd' feature.
+ * In order to avoid unnecessary complexity, the primary key may not consist
+ * of multiple columns and has to be a numeric value.
+ */
+function _versioncontrol_db_get_additions($table_name, $primary_key_name, $keys) {
+  $placeholders = array();
+
+  foreach ($keys as $key) {
+    $placeholders[] = '%d';
+  }
+
+  $result = db_query('SELECT * FROM {'. $table_name .'}
+                      WHERE '. $primary_key_name .' IN ('.
+                      implode(',', $placeholders) .')', $keys);
+
+  $additions = array();
+  while ($addition = db_fetch_array($result)) {
+    $primary_key = $addition[$primary_key_name];
+    unset($addition[$primary_key_name]);
+
+    foreach ($addition as $key => $value) {
+      if (!is_numeric($addition[$key])) {
+        $addition[$key] = unserialize($addition[$key]);
+      }
+    }
+    $additions[$primary_key] = $addition;
+  }
+  return $additions;
 
 }

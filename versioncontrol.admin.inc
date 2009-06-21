@@ -891,8 +891,8 @@ function versioncontrol_admin_repository_delete_confirm(&$form_state, $repositor
  * Delete the repository when the confirmation form is submitted.
  */
 function versioncontrol_admin_repository_delete_confirm_submit($form, &$form_state) {
-  $repository = versioncontrol_get_repository($form['#repo_id']);
-  versioncontrol_delete_repository($repository);
+  $repository = VersioncontrolRepository::getRepository($form['#repo_id']);
+  $repository->delete();
   drupal_set_message(t('The %repository repository has been deleted.', array(
     '%repository' => $repository['name'],
   )));

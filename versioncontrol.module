@@ -1923,40 +1923,6 @@ function versioncontrol_user_autocomplete($repo_id, $string = '') {
 
 
 /**
- * Generate and execute a SELECT query for the given table base on the name
- * and given values of this table's primary key. This function basically
- * accomplishes the retrieval part of Version Control API's 'autoadd' feature.
- * In order to avoid unnecessary complexity, the primary key may not consist
- * of multiple columns and has to be a numeric value.
- */
-function _versioncontrol_db_get_additions($table_name, $primary_key_name, $keys) {
-  $placeholders = array();
-
-  foreach ($keys as $key) {
-    $placeholders[] = '%d';
-  }
-
-  $result = db_query('SELECT * FROM {'. $table_name .'}
-                      WHERE '. $primary_key_name .' IN ('.
-                      implode(',', $placeholders) .')', $keys);
-
-  $additions = array();
-  while ($addition = db_fetch_array($result)) {
-    $primary_key = $addition[$primary_key_name];
-    unset($addition[$primary_key_name]);
-
-    foreach ($addition as $key => $value) {
-      if (!is_numeric($addition[$key])) {
-        $addition[$key] = unserialize($addition[$key]);
-      }
-    }
-    $additions[$primary_key] = $addition;
-  }
-  return $additions;
-}
-
-
-/**
  * Return preset values for strings that are used in the user interface.
  */
 function _versioncontrol_get_string_presets() {

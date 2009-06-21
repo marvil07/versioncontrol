@@ -423,8 +423,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Retrieve all items that were affected by an operation.
      *
      * @access public
-     * @param $operation
-     *   The operations whose items should be retrieved.
      * @param $fetch_source_items
      *   If TRUE, source and replaced items will be retrieved as well,
      *   and stored as additional properties inside each item array.
@@ -475,7 +473,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *        in an element with key 'added', and the number of removed lines in
      *        the 'removed' key.
      */
-    public function getItems($operation, $fetch_source_items = NULL) {
+    public function getItems($fetch_source_items = NULL) {
       $items = array();
       $result = db_query(
         'SELECT ir.item_revision_id, ir.path, ir.revision, ir.type
@@ -483,7 +481,7 @@ class VersioncontrolOperation implements ArrayAccess {
           INNER JOIN {versioncontrol_item_revisions} ir
            ON opitem.item_revision_id = ir.item_revision_id
          WHERE opitem.vc_op_id = %d AND opitem.type = %d',
-        $operation['vc_op_id'], VERSIONCONTROL_OPERATION_MEMBER_ITEM);
+        $this->vc_op_id, VERSIONCONTROL_OPERATION_MEMBER_ITEM);
 
       while ($item_revision = db_fetch_object($result)) {
         $items[$item_revision->path] = array(
@@ -495,19 +493,19 @@ class VersioncontrolOperation implements ArrayAccess {
         );
         $items[$item_revision->path]['selected_label'] = new stdClass();
         $items[$item_revision->path]['selected_label']->get_from = 'operation';
-        $items[$item_revision->path]['selected_label']->operation = &$operation;
+        $items[$item_revision->path]['selected_label']->operation = &$this;
 
-        if ($operation['type'] == VERSIONCONTROL_OPERATION_COMMIT) {
-          $items[$item_revision->path]['commit_operation'] = $operation;
+        if ($this->type == VERSIONCONTROL_OPERATION_COMMIT) {
+          $items[$item_revision->path]['commit_operation'] = $this;
         }
       }
 
       if (!isset($fetch_source_items)) {
         // By default, fetch source items for commits but not for branch or tag ops.
-        $fetch_source_items = ($operation['type'] == VERSIONCONTROL_OPERATION_COMMIT);
+        $fetch_source_items = ($this->type == VERSIONCONTROL_OPERATION_COMMIT);
       }
       if ($fetch_source_items) {
-        versioncontrol_fetch_source_items($operation['repository'], $items);
+        versioncontrol_fetch_source_items($this->repository, $items);
       }
       ksort($items); // similar paths should be next to each other
       return $items;
@@ -683,34 +681,34 @@ class VersioncontrolOperation implements ArrayAccess {
      *   The commit, branch operation or tag operation array containing
      *   the operation that should be deleted.
      */
-    public function delete($operation) {
-      $operation_items = versioncontrol_get_operation_items($operation);
+    public function delete() {
+      $operation_items = $this->getItems();
 
       // As versioncontrol_update_operation_labels() provides an update hook for
       // operation labels, we should also have a delete hook for completeness.
       module_invoke_all('versioncontrol_operation_labels',
-                        'delete', $operation, array());
+                        'delete', $this, array());
       // Announce deletion of the operation before anything has happened.
       // Calls hook_versioncontrol_commit(), hook_versioncontrol_branch_operation()
       // or hook_versioncontrol_tag_operation().
       module_invoke_all('versioncontrol_operation',
-                        'delete', $operation, $operation_items);
+                        'delete', $this, $operation_items);
 
-      $vcs = $operation['repository']['vcs'];
+      $vcs = $this->repository->vcs;
 
       // Provide an opportunity for the backend to delete its own stuff.
       if (versioncontrol_backend_implements($vcs, 'operation')) {
         _versioncontrol_call_backend($vcs, 'operation', array(
-          'delete', $operation, $operation_items
+          'delete', $this, $operation_items
         ));
       }
 
       db_query('DELETE FROM {versioncontrol_operation_labels}
-                WHERE vc_op_id = %d', $operation['vc_op_id']);
+                WHERE vc_op_id = %d', $this->vc_op_id);
       db_query('DELETE FROM {versioncontrol_operation_items}
-                WHERE vc_op_id = %d', $operation['vc_op_id']);
+                WHERE vc_op_id = %d', $this->vc_op_id);
       db_query('DELETE FROM {versioncontrol_operations}
-                WHERE vc_op_id = %d', $operation['vc_op_id']);
+                WHERE vc_op_id = %d', $this->vc_op_id);
     }
 
     /**
