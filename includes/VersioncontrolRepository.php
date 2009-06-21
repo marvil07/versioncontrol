@@ -477,36 +477,37 @@ class VersioncontrolRepository implements ArrayAccess {
    *   An array of repository viewer URLs. How this array looks like is
    *   defined by the corresponding URL backend.
    */
-  public function update($repository, $repository_urls) {
-    drupal_write_record('versioncontrol_repositories', $repository, 'repo_id');
+  public function update($repository_urls) {
+    drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
-    $repository_urls['repo_id'] = $repository['repo_id']; // for drupal_write_record()
+    $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
     drupal_write_record('versioncontrol_repository_urls', $repository_urls, 'repo_id');
     unset($repository_urls['repo_id']);
 
     // Auto-add commit info from $commit['[xxx]_specific'] into the database.
     $backends = versioncontrol_get_backends();
-    $vcs = $repository['vcs'];
+    $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
                            $backends[$vcs]['flags']);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $elements = $repository[$vcs .'_specific'];
-      $elements['repo_id'] = $repository['repo_id'];
-      _versioncontrol_db_update_additions($table_name, 'repo_id', $elements);
+      $vcs_specific = $vcs .'_specific';
+      $elements = $this->$vcs_specific;
+      $elements['repo_id'] = $this->repo_id;
+      $this->_dbUpdateAdditions($table_name, 'repo_id', $elements);
     }
 
     // Provide an opportunity for the backend to add its own stuff.
     if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('update', $repository));
+      _versioncontrol_call_backend($vcs, 'repository', array('update', $this));
     }
 
     // Everything's done, let the world know about it!
-    module_invoke_all('versioncontrol_repository', 'update', $repository);
+    module_invoke_all('versioncontrol_repository', 'update', $this);
 
     watchdog('special',
       'Version Control API: updated repository @repository',
-      array('@repository' => $repository['name']),
+      array('@repository' => $this->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-repositories')
     );
   }
@@ -664,7 +665,7 @@ class VersioncontrolRepository implements ArrayAccess {
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      _versioncontrol_db_delete_additions($table_name, 'repo_id', $this->repo_id);
+      $this->_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
     }
 
     // Phew, everything's cleaned up. Finally, delete the repository.
@@ -788,17 +789,6 @@ class VersioncontrolRepository implements ArrayAccess {
     unset($this->$offset);
   }
 
-}
-
-/**
- * Generate and execute a DELETE query for the given table
- * based on name and value of the primary key.
- * In order to avoid unnecessary complexity, the primary key may not consist
- * of multiple columns and has to be a numeric value.
- */
-function _versioncontrol_db_delete_additions($table_name, $primary_key_name, $primary_key) {
-  db_query('DELETE FROM {'. $table_name .'}
-            WHERE '. $primary_key_name .' = %d', $primary_key);
 }
 
 /**

@@ -843,14 +843,14 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   }
 
   if (!empty($repository['repo_id'])) {
-    versioncontrol_update_repository($repository, $repository_urls);
+    $repository->update($repository_urls);
     db_query("UPDATE {versioncontrol_repository_metadata}
               SET registration_message = '%s'
               WHERE repo_id = %d",
-              $registration_message, $repository['repo_id']);
+              $registration_message, $repository->repo_id);
 
     drupal_set_message(t('The %repository repository has been updated.', array(
-      '%repository' => $repository['name'],
+      '%repository' => $repository->name,
     )));
   }
   else {
