@@ -1,10 +1,18 @@
 on code
 -------
 
-- make add/edit/delete repository works
-  - avoid notices on add
+- tests for Version Control core
+- follow sdboyer suggestions (http://groups.drupal.org/node/23015#comment-79517)
+  - Really, I don't think we're getting much with VersioncontrolAccount::userAccountsLoad(). If it's a menu loader function, just leave it as a function; unless/until the menu system supports doing things like this, then all we're really doing is introducing an extra couple method calls. Given that, at least right now, we're not storing any of that data into static vars in VersioncontrolAccount::getAccounts(). (Unless I missed it).
+  - Things like the static $successor_action_priority array in VersioncontrolItem::getItemHistory() should be declared as class constants.
+  - I don't think including the @access tag is necessary by drupal coding standards. If it helps your doxygen generation, tho, all good.
+  - There are prolly other ones, but one coding convention we have is to get rid of the prepended underscore on function names when they become methods, and just make em protected. f.e. VersioncontrolItem::_badItemWarning.
+  - I would have figured, based on last week's conversation, that it's not just VersioncontrolBackend that's abstract, but also VersioncontrolOperation, VersioncontrolItem, VersioncontrolRepository, etc; that these, too, will be extended by the backends as needed. Although that doesn't require them to be abstract, of course - just that they hold all the shared code that's common to all the vcses.
+- avoid notices on add repository (account status module?)
 - refactor all methods in each class, to avoid calling now deleted funcitons and call each class where is necesary.
-- avoid implicit data(ej. do not pass repository array, now it should be an object, to a repository method)
+ - read each method again on all classes   
+- while changing code:
+  - avoid implicit data(ej. do not pass repository array, now it should be an object, to a repository method)
 - unify get<some entity>, format<some entity>, load<some entity> in one <some entity> method if applies
 - remove fetch*() methods because with objects we can do that on demand whenever the API user needs the information.
 
