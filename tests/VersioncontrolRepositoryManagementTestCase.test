@@ -1,0 +1,41 @@
+<?php
+class VersioncontrolRepositoryManagementTestCase extends DrupalWebTestCase {
+
+  /**
+   * Implementation of getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Versioncontrol Repository Management funcional testing'),
+      'description' => t('Functional test for Repository management.'),
+      'group' => t('Version Control'),
+    );
+  }
+
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    // load core and fake test backend modules
+    parent::setUp('versioncontrol', 'versioncontrol_test');
+  }
+
+  public function testAddRepository() {
+    $user = $this->drupalCreateUser(array('administer version control systems'));
+    $this->drupalLogin($user);
+
+    // missing name
+    $edit = array();
+    $this->drupalPost('admin/project/versioncontrol-repositories/add-test', $edit, t('Save repository'));
+    $this->assertText('Repository name field is required.', 'Name field required failed');
+
+    // minimal repo
+    $edit = array(
+      'repo_name' => 'Test repo ' . $this->randomName(),
+      'root' => '/one/root',
+      );
+    $this->drupalPost('admin/project/versioncontrol-repositories/add-test', $edit, t('Save repository'));
+    $this->assertRaw(t('The %repository repository has been added.', array('%repository' => $edit['repo_name'])), 'Reposiory add failed.');
+  }
+
+}
