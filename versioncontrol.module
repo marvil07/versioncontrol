@@ -1287,12 +1287,12 @@ function versioncontrol_get_account_username_for_uid($repo_id, $uid, $include_un
  *   or if the commit cannot be viewed for any reason.
  */
 function versioncontrol_get_url_commit_view($operation) {
-  if (empty($operation['revision'])) {
+  if (empty($operation->revision)) {
     return '';
   }
-  $urls = _versioncontrol_get_repository_urls($operation['repository']);
+  $urls = _versioncontrol_get_repository_urls($operation->repository);
   return strtr($urls['commit_view'], array(
-    '%revision' => $operation['revision'],
+    '%revision' => $operation->revision,
   ));
 }
 
@@ -1452,22 +1452,22 @@ function versioncontrol_get_url_tracker($repository, $issue_id) {
 function _versioncontrol_get_repository_urls($repository) {
   static $urls_by_repository = array();
 
-  if (!isset($urls_by_repository[$repository['repo_id']])) {
+  if (!isset($urls_by_repository[$repository->repo_id])) {
     $result = db_query('SELECT * FROM {versioncontrol_repository_urls}
-                        WHERE repo_id = %d', $repository['repo_id']);
+                        WHERE repo_id = %d', $repository->repo_id);
 
     while ($urls = db_fetch_array($result)) {
       unset($urls['repo_id']);
-      $urls_by_repository[$repository['repo_id']] = $urls;
+      $urls_by_repository[$repository->repo_id] = $urls;
     }
   }
-  if (!isset($urls_by_repository[$repository['repo_id']])) {
+  if (!isset($urls_by_repository[$repository->repo_id])) {
     return array(
       'commit_view' => '', 'file_view' => '', 'directory_view' => '',
       'diff' => '', 'tracker' => '',
     );
   }
-  return $urls_by_repository[$repository['repo_id']];
+  return $urls_by_repository[$repository->repo_id];
 }
 
 
@@ -1490,9 +1490,9 @@ function _versioncontrol_get_repository_urls($repository) {
  *   be the same for both versions.
  */
 function versioncontrol_format_revision_identifier($repository, $revision, $format = 'full') {
-  if (versioncontrol_backend_implements($repository['vcs'], 'format_revision_identifier')) {
+  if (versioncontrol_backend_implements($repository->vcs, 'format_revision_identifier')) {
     return _versioncontrol_call_backend(
-      $repository['vcs'], 'format_revision_identifier', array($repository, $revision, $format)
+      $repository->vcs, 'format_revision_identifier', array($repository, $revision, $format)
     );
   }
   return $revision;
@@ -1515,10 +1515,10 @@ function versioncontrol_format_revision_identifier($repository, $revision, $form
  *   be the same for both versions.
  */
 function versioncontrol_format_operation_revision_identifier($operation, $format = 'full') {
-  if (empty($operation['revision'])) {
-    return '#'. $operation['vc_op_id'];
+  if (empty($operation->revision)) {
+    return '#'. $operation->vc_op_id;
   }
-  return versioncontrol_format_revision_identifier($operation['repository'], $operation['revision'], $format);
+  return versioncontrol_format_revision_identifier($operation->repository, $operation->revision, $format);
 }
 
 /**
