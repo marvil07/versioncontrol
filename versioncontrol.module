@@ -3100,7 +3100,7 @@ function versioncontrol_format_operation_revision_identifier($operation, $format
   if (empty($operation['revision'])) {
     return '#'. $operation['vc_op_id'];
   }
-  return versioncontrol_format_revision_identifier($operation['repository'], $operation['revision']);
+  return versioncontrol_format_revision_identifier($operation['repository'], $operation['revision'], $format);
 }
 
 /**
