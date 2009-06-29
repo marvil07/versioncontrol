@@ -1050,10 +1050,10 @@ function versioncontrol_fetch_source_items($repository, &$items) {
   foreach ($items as $key => $item) {
     // If we don't yet know the item_revision_id (required for db queries), try
     // to retrieve it. If we don't find it, we can't fetch this item's sources.
-    if (versioncontrol_fetch_item_revision_id($repository, $item)) {
+    if ($item->fetchItemRevisionId()) {
       $placeholders[] = '%d';
-      $ids[] = $item['item_revision_id'];
-      $item_keys[$item['item_revision_id']] = $key;
+      $ids[] = $item->item_revision_id;
+      $item_keys[$item->item_revision_id] = $key;
     }
   }
   if (empty($ids)) {
@@ -1315,7 +1315,8 @@ function versioncontrol_get_url_commit_view($operation) {
  */
 function versioncontrol_get_url_item_log_view($repository, &$item) {
   $urls = _versioncontrol_get_repository_urls($repository);
-  $label = versioncontrol_get_item_selected_label($repository, $item);
+  //FIXME refactor item method to oop
+  $label = $item->getSelectedLabel($repository, $item);
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
     $current_branch = $label['name'];
@@ -1364,12 +1365,12 @@ function versioncontrol_get_url_item_log_view($repository, &$item) {
  */
 function versioncontrol_get_url_item_view($repository, &$item) {
   $urls = _versioncontrol_get_repository_urls($repository);
-  $label = versioncontrol_get_item_selected_label($repository, $item);
+  $label = $item->getSelectedLabel($repository, $item);
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
     $current_branch = $label['name'];
   }
-  $view_url = versioncontrol_is_file_item($item)
+  $view_url = $item->isFile()
               ? $urls['file_view']
               : $urls['directory_view'];
 

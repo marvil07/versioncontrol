@@ -709,9 +709,8 @@ function _commitlog_affected_directory_item($operation, $operation_items) {
   // In order to retrieve the directory item, we ascend from any (...the first)
   // of the operation items so that revision, label and whatnot are preserved.
   // That should work just fine in most (if not all) cases.
-  return versioncontrol_get_parent_item(
-    $operation['repository'], reset($affected_items), $common_directory_path
-  );
+  $affected_item = reset($affected_items);
+  return $affected_item->getParentItem($common_directory_path);
 }
 
 function theme_commitlog_operation_location($operation, $operation_items, $directory_item = NULL, $format = 'html') {

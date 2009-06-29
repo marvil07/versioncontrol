@@ -100,6 +100,10 @@ class VersioncontrolItem implements ArrayAccess {
      */
     public $repository;
 
+    //TODO subclass per type?
+    public $selected_label;
+    public $commit_operation;
+
     // Associations
     // Operations
   /**
@@ -390,29 +394,24 @@ class VersioncontrolItem implements ArrayAccess {
      * properties, and if it's not then try to add it.
      *
      * @access public
-     * @param $repository
-     *   The repository where the item is located.
-     * @param $item
-     *   The item revision for which the 'item_revision_id' property should
-     *   be retrieved.
      *
      * @return
      *   TRUE if the 'item_revision_id' exists after calling this function,
      *   FALSE if not.
      */
-    public function fetchItemRevisionId($repository, &$item) {
-      if (!empty($item['item_revision_id'])) {
+    public function fetchItemRevisionId() {
+      if (!empty($this->item_revision_id)) {
         return TRUE;
       }
       $id = db_result(db_query(
         "SELECT item_revision_id FROM {versioncontrol_item_revisions}
           WHERE repo_id = %d AND path = '%s' AND revision = '%s'",
-        $repository['repo_id'], $item['path'], $item['revision']
+        $this->repository->repo_id, $this->path, $this->revision
       ));
       if (empty($id)) {
         return FALSE;
       }
-      $item['item_revision_id'] = $id;
+      $this->item_revision_id = $id;
       return TRUE;
     }
 
@@ -447,8 +446,9 @@ class VersioncontrolItem implements ArrayAccess {
      *   - 'type': Whether this label is a branch (indicated by the
      *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
      *        (VERSIONCONTROL_OPERATION_TAG).
+     *  FIXME remove params and do not return, oop
      */
-    public function itemSelectedLabel($repository, &$item) {
+    public function getSelectedLabel($repository, &$item) {
       // If the label is already retrieved, we can return it just that way.
       if (isset($item['selected_label']->label)) {
         return ($item['selected_label']->label === FALSE)
@@ -479,7 +479,7 @@ class VersioncontrolItem implements ArrayAccess {
         if (isset($selected_label['action'])) {
           unset($selected_label['action']);
         }
-        $item['selected_label']->label = versioncontrol_ensure_label($repository, $selected_label);
+        $item['selected_label']->label = $selected_label->ensure();
       }
       else {
         $item['selected_label']->label = FALSE;
@@ -550,37 +550,34 @@ class VersioncontrolItem implements ArrayAccess {
      *   If the given directory path does not correspond to a parent item,
      *   NULL is returned.
      */
-    public function getParentItem($repository, $item, $parent_path = NULL) {
-      $parent_item = array(
-        'type' => VERSIONCONTROL_ITEM_DIRECTORY,
-      );
-
+    public function getParentItem($parent_path = NULL) {
       if (!isset($parent_path)) {
-        $parent_item['path'] = dirname($item['path']);
+        $path = dirname($this->path);
       }
-      else if ($item['path'] == $parent_path) {
-        return $item;
+      else if ($this->path == $parent_path) {
+        return $this;
       }
-      else if ($parent_path == '/' || strpos($item['path'] .'/', $parent_path .'/') !== FALSE) {
-        $parent_item['path'] = $parent_path;
+      else if ($parent_path == '/' || strpos($this->path .'/', $parent_path .'/') !== FALSE) {
+        $path = $parent_path;
       }
       else {
         return NULL;
       }
 
-      $backend = versioncontrol_get_backend($repository);
+      $backend = versioncontrol_get_backend($this->repository);
 
+      $revision = '';
       if (in_array(VERSIONCONTROL_CAPABILITY_DIRECTORY_REVISIONS, $backend['capabilities'])) {
-        $parent_item['revision'] = $item['revision'];
-      }
-      else {
-        $parent_item['revision'] = '';
+        $revision = $this->revision;
       }
 
-      $parent_item['selected_label'] = new stdClass();
-      $parent_item['selected_label']->get_from = 'other_item';
-      $parent_item['selected_label']->other_item = &$item;
-      $parent_item['selected_label']->other_item_tags = array('same_revision');
+      $parent_item = new VersioncontrolItem(VERSIONCONTROL_ITEM_DIRECTORY,
+        $path, $revision, NULL, $this->repository);
+
+      $parent_item->selected_label = new stdClass();
+      $parent_item->selected_label->get_from = 'other_item';
+      $parent_item->selected_label->other_item = &$this;
+      $parent_item->selected_label->other_item_tags = array('same_revision');
 
       return $parent_item;
     }
