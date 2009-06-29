@@ -1,5 +1,9 @@
 <?php
 
+require_once 'VersioncontrolItem.php';
+require_once 'VersioncontrolBranch.php';
+require_once 'VersioncontrolTag.php';
+
 /**
  * @name VCS operations
  * a.k.a. stuff that is recorded for display purposes.
@@ -325,7 +329,7 @@ class VersioncontrolOperation implements ArrayAccess {
         // Construct the operation array - nearly done already.
         $operations[$row->vc_op_id] = new VersioncontrolOperation($row->type,
           $row->committer, $row->date, $row->revision, $row->message,
-          $row->author, $row->vc_op_id);
+          $row->author, NULL, $row->vc_op_id);
         // 'repo_id' is replaced by 'repository' further down
         $operations[$row->vc_op_id]->repo_id = $row->repo_id;
         $operations[$row->vc_op_id]->labels = array();
@@ -340,8 +344,8 @@ class VersioncontrolOperation implements ArrayAccess {
       // Add the corresponding repository array to each operation.
       $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
       foreach ($operations as $vc_op_id => $operation) {
-        $operations[$vc_op_id]['repository'] = $repositories[$operation['repo_id']];
-        unset($operations[$vc_op_id]['repo_id']);
+        $operations[$vc_op_id]->repository = $repositories[$operation->repo_id];
+        unset($operations[$vc_op_id]->repo_id);
       }
 
       // Add the corresponding labels to each operation.
@@ -356,12 +360,20 @@ class VersioncontrolOperation implements ArrayAccess {
                             ('. implode(',', $op_id_placeholders) .')', $op_ids);
 
       while ($row = db_fetch_object($result)) {
-        $operations[$row->vc_op_id]->labels[] = array(
-          'label_id' => $row->label_id,
-          'name' => $row->name,
-          'type' => $row->type,
-          'action' => $row->action,
-        );
+        switch($row->type) {
+        case VERSIONCONTROL_LABEL_TAG:
+          $operations[$row->vc_op_id]->labels[] = new VersioncontrolTag(
+            $row->name, $row->action, $row->label_id=NULL,
+            $operations[$row->vc_op_id]->repository
+          );
+          break;
+        case VERSIONCONTROL_LABEL_BRANCH:
+          $operations[$row->vc_op_id]->labels[] = new VersioncontrolBranch(
+            $row->name, $row->action, $row->label_id,
+            $operations[$row->vc_op_id]->repository
+          );
+          break;
+        }
       }
       return $operations;
     }
@@ -472,6 +484,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *        action - if so, this is an array containing the number of added lines
      *        in an element with key 'added', and the number of removed lines in
      *        the 'removed' key.
+     * FIXME refactor me to oo
      */
     public function getItems($fetch_source_items = NULL) {
       $items = array();
@@ -484,19 +497,14 @@ class VersioncontrolOperation implements ArrayAccess {
         $this->vc_op_id, VERSIONCONTROL_OPERATION_MEMBER_ITEM);
 
       while ($item_revision = db_fetch_object($result)) {
-        $items[$item_revision->path] = array(
-          'path' => $item_revision->path,
-          'revision' => $item_revision->revision,
-          'type' => $item_revision->type,
-          'item_revision_id' => $item_revision->item_revision_id,
-          'selected_label' => new stdClass(),
-        );
-        $items[$item_revision->path]['selected_label'] = new stdClass();
-        $items[$item_revision->path]['selected_label']->get_from = 'operation';
-        $items[$item_revision->path]['selected_label']->operation = &$this;
+        $items[$item_revision->path] = new VersioncontrolItem($item_revision->type, $item_revision->path, $item_revision->revision, NULL, $this->repository, NULL, $item_revision->item_revision_id);
+        $items[$item_revision->path]->selected_label = new stdClass();
+        $items[$item_revision->path]->selected_label->get_from = 'operation';
+        $items[$item_revision->path]->selected_label->operation = &$this;
 
+        //TODO inherit from operation class insteadof types?
         if ($this->type == VERSIONCONTROL_OPERATION_COMMIT) {
-          $items[$item_revision->path]['commit_operation'] = $this;
+          $items[$item_revision->path]->commit_operation = $this;
         }
       }
 
