@@ -44,8 +44,8 @@ abstract class VersioncontrolLabel implements ArrayAccess {
 
     /**
      *  Whether this label is a branch (indicated by the
-     *  VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *  (VERSIONCONTROL_OPERATION_TAG).
+     *  VERSIONCONTROL_LABEL_BRANCH constant) or a tag
+     *  (VERSIONCONTROL_LABEL_TAG).
      *
      * @var    int
      * @access public
