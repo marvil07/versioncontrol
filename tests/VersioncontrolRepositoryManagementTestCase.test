@@ -1,12 +1,14 @@
 <?php
 class VersioncontrolRepositoryManagementTestCase extends DrupalWebTestCase {
 
+  protected $admin_user;
+
   /**
    * Implementation of getInfo().
    */
   public static function getInfo() {
     return array(
-      'name' => t('Versioncontrol Repository Management funcional testing'),
+      'name' => t('Version Control Repository Management funcional testing'),
       'description' => t('Functional test for Repository management.'),
       'group' => t('Version Control'),
     );
@@ -18,13 +20,14 @@ class VersioncontrolRepositoryManagementTestCase extends DrupalWebTestCase {
   function setUp() {
     // load core and fake test backend modules
     parent::setUp('versioncontrol', 'versioncontrol_test');
+
+    // Create and login the admin user
+    $this->admin_user = $this->drupalCreateUser(array('administer version control systems'));
+    $this->drupalLogin($this->admin_user);
   }
 
   public function testAddRepository() {
-    $user = $this->drupalCreateUser(array('administer version control systems'));
-    $this->drupalLogin($user);
-
-    // missing name
+    // check missing name
     $edit = array();
     $this->drupalPost('admin/project/versioncontrol-repositories/add-test', $edit, t('Save repository'));
     $this->assertText('Repository name field is required.', 'Name field required failed');
@@ -39,10 +42,7 @@ class VersioncontrolRepositoryManagementTestCase extends DrupalWebTestCase {
   }
 
   public function testDeleteRepository() {
-    $user = $this->drupalCreateUser(array('administer version control systems'));
-    $this->drupalLogin($user);
-
-    // add a valid repo
+    // create a minimal repo and delete it
     $edit = array(
       'repo_name' => 'Test repo ' . $this->randomName(),
       'root' => '/one/root',
