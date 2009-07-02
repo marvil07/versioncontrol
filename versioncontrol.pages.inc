@@ -120,6 +120,11 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
     }
   }
 
+  if (!isset($first_repo_id)) {
+    // when there are no repos, this var is not set
+    $first_repo_id = NULL;
+  }
+
   return drupal_get_form('versioncontrol_account_register_form',
     $register_uid, $repository_names, $first_repo_id
   );
