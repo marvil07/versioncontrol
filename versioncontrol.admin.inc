@@ -814,19 +814,6 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
  * Add or update the repository when the add/edit form is submitted.
  */
 function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
-  // Take the existing repository and modify it with the given form values,
-  // or construct a new one altogether.
-  $repository = isset($form['#repository']) ? $form['#repository'] : array(
-    'vcs' => $form['#vcs'],
-    'url_backend' => 'versioncontrol_default_urls', // hardcoded for now
-  );
-
-  $repository['name']                 = $form_state['values']['repo_name'];
-  $repository['root']                 = $form_state['values']['root'];
-  $repository['authorization_method'] = $form_state['values']['authorization_method'];
-
-  $registration_message = $form_state['values']['registration_message'];
-
   $repository_urls = array();
   $repository_url_keys = array(
     'commit_view', 'file_log_view', 'file_view', 'directory_view',
@@ -836,13 +823,24 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     $repository_urls[$key] = $form_state['values'][$key];
   }
 
+  // Take the existing repository and modify it with the given form values,
+  // or construct a new one altogether.
+  if (isset($form['#repository'])) {
+    $repository = $form['#repository'];
+  }
+  else {
+    $repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now
+  }
+
+  $registration_message = $form_state['values']['registration_message'];
+
   // Let other modules alter the repository array.
   foreach (module_implements('versioncontrol_repository_submit') as $module) {
     $function = $module .'_versioncontrol_repository_submit';
     $function($repository, $form, $form_state);
   }
 
-  if (!empty($repository['repo_id'])) {
+  if (!is_null($repository->repo_id)) {
     $repository->update($repository_urls);
     db_query("UPDATE {versioncontrol_repository_metadata}
               SET registration_message = '%s'
@@ -854,15 +852,14 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     )));
   }
   else {
-    $vcs_repository = new VersioncontrolRepository(null, $repository['name'], $form['#vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository_urls);
-    $repository = $vcs_repository->insert($repository_urls);
+    $repository = $repository->insert($repository_urls);
     db_query("INSERT INTO {versioncontrol_repository_metadata}
               (repo_id, registration_message)
               VALUES (%d, '%s')",
-              $repository['repo_id'], $registration_message);
+              $repository->repo_id, $registration_message);
 
     drupal_set_message(t('The %repository repository has been added.', array(
-      '%repository' => $repository['name']
+      '%repository' => $repository->name
     )));
   }
 

@@ -542,7 +542,7 @@ function versioncontrol_account_status_versioncontrol_repository_submit(&$reposi
   foreach ($value_names as $name) {
     $strings[$name] = $form_state['values']['versioncontrol_account_status_'. $name];
   }
-  $repository['versioncontrol_account_status']['strings'] = $strings;
+  $repository->versioncontrol_account_status['strings'] = $strings;
 }
 
 /**
