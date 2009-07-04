@@ -827,6 +827,9 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   // or construct a new one altogether.
   if (isset($form['#repository'])) {
     $repository = $form['#repository'];
+    $repository->name                 = $form_state['values']['repo_name'];
+    $repository->root                 = $form_state['values']['root'];
+    $repository->authorization_method = $form_state['values']['authorization_method'];
   }
   else {
     $repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now

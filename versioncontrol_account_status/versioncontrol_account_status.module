@@ -583,12 +583,12 @@ function versioncontrol_account_status_versioncontrol_repository($op, $repositor
   if (!isset($repository['versioncontrol_account_status'])) {
     return;
   }
-  $strings = $repository['versioncontrol_account_status']['strings'];
+  $strings = $repository->versioncontrol_account_status['strings'];
 
   switch ($op) {
     case 'update':
     case 'insert':
-      _versioncontrol_account_status_set_strings($repository['repo_id'], $strings);
+      _versioncontrol_account_status_set_strings($repository->repo_id, $strings);
       break;
 
     case 'delete':
@@ -996,7 +996,7 @@ function _versioncontrol_account_status_send_application_mails($status_data, $is
 
   $params = array(
     'applicant_user' => $applicant,
-    'repository' => versioncontrol_get_repository($status_data['repo_id']),
+    'repository' => VersioncontrolRepository::getRepository($status_data['repo_id']),
     'motivation_message' => $status_data['motivation'],
     'status' => $status_data['status'],
     'is_reapplication' => $is_reapplication,
