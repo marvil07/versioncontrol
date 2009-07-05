@@ -238,24 +238,24 @@ function versioncontrol_account_register_form_submit($form, &$form_state) {
 function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_username = NULL) {
   $selected_usernames = array();
 
-  foreach ($accounts as $only_uid => $usernames_by_repository) {
+  foreach ($accounts as $only_uid => $vcs_accounts_by_repository) {
     // The caller (menu system) ensures that there is only one uid.
     $uid = $only_uid;
 
-    foreach ($usernames_by_repository as $repo_id => $username) {
+    foreach ($vcs_accounts_by_repository as $repo_id => $vcs_account) {
       if (isset($url_repo_id) && $repo_id != $url_repo_id) {
         unset($accounts[$uid][$repo_id]);
         continue; // disregard repositories that don't match the URL constraints
       }
-      $usernames = array($username);
+      $vcs_accounts = array($vcs_account);
 
-      foreach ($usernames as $key => $username) {
-        if (isset($url_username) && $username != $url_username) {
-          unset($accounts[$uid][$repo_id]);
+      foreach ($vcs_accounts as $key => $vcs_account) {
+        if (isset($url_username) && $vcs_account != $url_username) {
+          unset($vcs_accounts[$uid][$repo_id]);
           continue; // disregard usernames that don't match the URL constraints
         }
         $any_repo_id = $repo_id;
-        $selected_usernames[] = $username;
+        $selected_usernames[] = $vcs_account->vcs_username;
       }
     }
   }
