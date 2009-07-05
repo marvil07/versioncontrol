@@ -371,7 +371,7 @@ function versioncontrol_user_accounts_title_callback($accounts) {
       $usernames[] = $username;
     }
   }
-  $repositories = versioncontrol_get_repositories(array(
+  $repositories = VersioncontrolRepository::getRepositories(array(
     'repo_ids' => array_keys(reset($accounts)), // a.k.a. list of account repo_ids
   ));
   $vcses = array();
@@ -1250,7 +1250,7 @@ function versioncontrol_get_account_uid_for_username($repo_id, $username, $inclu
                       $username, $repo_id);
 
   while ($account = db_fetch_object($result)) {
-    $repository = versioncontrol_get_repository($account->repo_id);
+    $repository = VersioncontrolRepository::getRepository($account->repo_id);
     // Only include approved accounts, except in case the caller said otherwise.
     if ($include_unauthorized || versioncontrol_is_account_authorized($repository, $account->uid)) {
       return $account->uid;
@@ -1284,7 +1284,7 @@ function versioncontrol_get_account_username_for_uid($repo_id, $uid, $include_un
                       $uid, $repo_id);
 
   while ($account = db_fetch_object($result)) {
-    $repository = versioncontrol_get_repository($account->repo_id);
+    $repository = VersioncontrolRepository::getRepository($account->repo_id);
     // Only include approved accounts, except in case the caller said otherwise.
     if ($include_unauthorized || versioncontrol_is_account_authorized($repository, $account->uid)) {
       return $account->username;
@@ -1845,7 +1845,7 @@ function theme_versioncontrol_user_statistics_item_list($statistics, $more_link 
  */
 function theme_versioncontrol_user_statistics_account($user_stats) {
   if (isset($user_stats->repo_id) && isset($user_stats->username)) {
-    $repository = versioncontrol_get_repository($user_stats->repo_id);
+    $repository = VersioncontrolRepository::getRepository($user_stats->repo_id);
     return theme('versioncontrol_account_username',
       $user_stats->uid, $user_stats->username, $repository,
       array('include_repository_name' => TRUE)
@@ -1932,7 +1932,7 @@ function versioncontrol_user_autocomplete($repo_id, $string = '') {
 
   while ($user = db_fetch_object($result)) {
     if (!isset($repository)) {
-      $repository = versioncontrol_get_repository($repo_id);
+      $repository = VersioncontrolRepository::getRepository($repo_id);
     }
     if (versioncontrol_is_account_authorized($repository, $user->uid)) {
       $matches[$user->name] = check_plain($user->name);

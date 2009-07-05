@@ -265,7 +265,7 @@ function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_userna
     return;
   }
   elseif (count($selected_usernames) == 1) {
-    $repository = versioncontrol_get_repository($any_repo_id);
+    $repository = VersioncontrolRepository::getRepository($any_repo_id);
     return drupal_get_form('versioncontrol_account_edit_form',
       $uid, $repository, reset($selected_usernames)
     );
@@ -287,7 +287,7 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
   $form = array();
   $form['#id'] = 'versioncontrol-account-list-form';
 
-  $repositories = versioncontrol_get_repositories(array(
+  $repositories = VersioncontrolRepository::getRepositories(array(
     'repo_ids' => array_keys(reset($accounts)),
   ));
 

@@ -398,7 +398,7 @@ function versioncontrol_admin_account_import_form(&$form_state) {
  * Only actually validates that the repo backend is correctly configured.
  */
 function versioncontrol_admin_account_import_form_validate($form, &$form_state) {
-  if (is_null(versioncontrol_get_repository($form_state['values']['repo_id']))) {
+  if (is_null(VersioncontrolRepository::getRepository($form_state['values']['repo_id']))) {
     form_error($form['data'], t('The selected repository could not be found.'));
   }
 }
@@ -408,7 +408,7 @@ function versioncontrol_admin_account_import_form_validate($form, &$form_state) 
  * Call the [vcs_backend]_admin_import_accounts() with the given data.
  */
 function versioncontrol_admin_account_import_form_submit($form, &$form_state) {
-  $repository = versioncontrol_get_repository($form_state['values']['repo_id']);
+  $repository = VersioncontrolRepository::getRepository($form_state['values']['repo_id']);
   _versioncontrol_call_backend($repository['vcs'], 'import_accounts', array(
     $repository, $form_state['values']['data']
   ));

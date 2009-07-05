@@ -1008,7 +1008,7 @@ function _versioncontrol_account_status_send_status_update_mails($status_data, $
   $params = array(
     'admin_user' => drupal_clone($user),
     'applicant_user' => $applicant,
-    'repository' => versioncontrol_get_repository($status_data['repo_id']),
+    'repository' => VersioncontrolRepository::getRepository($status_data['repo_id']),
     'admin_message' => $admin_message,
     'status' => $status_data['status'],
   );
