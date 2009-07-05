@@ -3,7 +3,6 @@ on code
 
 - tests for Version Control core
 - follow sdboyer suggestions (http://groups.drupal.org/node/23015#comment-79517)
-  - Really, I don't think we're getting much with VersioncontrolAccount::userAccountsLoad(). If it's a menu loader function, just leave it as a function; unless/until the menu system supports doing things like this, then all we're really doing is introducing an extra couple method calls. Given that, at least right now, we're not storing any of that data into static vars in VersioncontrolAccount::getAccounts(). (Unless I missed it).
   - Things like the static $successor_action_priority array in VersioncontrolItem::getItemHistory() should be declared as class constants.
   - I don't think including the @access tag is necessary by drupal coding standards. If it helps your doxygen generation, tho, all good.
   - There are prolly other ones, but one coding convention we have is to get rid of the prepended underscore on function names when they become methods, and just make em protected. f.e. VersioncontrolItem::_badItemWarning.

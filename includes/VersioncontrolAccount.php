@@ -373,25 +373,6 @@ class VersioncontrolAccount implements ArrayAccess {
     );
   }
 
-  /**
-    * Menu wildcard loader for '%versioncontrol_user_accounts':
-    * Load all VCS accounts of a given user (in the format that
-    * VersioncontrolAccount::getAccounts() returns) and return either that
-    * or FALSE if no VCS accounts exist for this user.
-    *
-    * @access public
-    * @static
-    * @param $uid
-    *   Drupal user id of the user whose VCS accounts should be loaded.
-    * @param $include_unauthorized
-    *   Will be passed on to VersioncontrolAccount::getAccounts(), see the
-    *   API documentation of that function.
-    */
-  public static function userAccountsLoad($uid, $include_unauthorized = FALSE) {
-    $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($uid)), $include_unauthorized);
-    return empty($accounts) ? FALSE : $accounts;
-  }
-
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
