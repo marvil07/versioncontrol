@@ -1090,24 +1090,25 @@ function versioncontrol_fetch_source_items($repository, &$items) {
 
   while ($item_revision = db_fetch_object($result)) {
     $successor_key = $item_keys[$item_revision->item_revision_id];
-    if (!isset($items[$successor_key]['source_items'])) {
-      $items[$successor_key]['source_items'] = array();
+    if (!isset($items[$successor_key]->source_items)) {
+      $items[$successor_key]->source_items = array();
     }
 
-    $item = array(
-      'path' => $item_revision->path,
-      'revision' => $item_revision->revision,
-      'type' => $item_revision->type,
-      'item_revision_id' => $item_revision->source_item_revision_id,
+    $item = new VersioncontrolItem(
+      $item_revision->type,
+      $item_revision->path,
+      $item_revision->revision,
+      null,
+      null
     );
-    $item['selected_label'] = new stdClass();
-    $item['selected_label']->get_from = 'other_item';
-    $item['selected_label']->other_item = &$items[$successor_key];
-    $item['selected_label']->other_item_tags = array('successor_item');
+    $item->selected_label = new stdClass();
+    $item->selected_label->get_from = 'other_item';
+    $item->selected_label->other_item = &$items[$successor_key];
+    $item->selected_label->other_item_tags = array('successor_item');
 
     // Insert the item and its associated action into the successor item.
     if ($item_revision->action == VERSIONCONTROL_ACTION_REPLACED) {
-      $items[$successor_key]['replaced_item'] = $item;
+      $items[$successor_key]->replaced_item = $item;
     }
     else if ($item_revision->action == VERSIONCONTROL_ACTION_ADDED) {
       $items[$successor_key]['action'] = $item_revision->action;
@@ -1115,15 +1116,15 @@ function versioncontrol_fetch_source_items($repository, &$items) {
       // instead of adding it to the source items.
     }
     else {
-      $items[$successor_key]['action'] = $item_revision->action;
-      $items[$successor_key]['source_items'][$item['path']] = $item;
+      $items[$successor_key]->action = $item_revision->action;
+      $items[$successor_key]->source_items[$item->path] = $item;
     }
 
     // Add the lines-changed information if it has been recorded.
     // Only a single source item entry should hold this information,
     // so no emphasis is placed on merging it across multiple source items.
     if ($item_revision->line_changes_recorded) {
-      $items[$successor_key]['line_changes'] = array(
+      $items[$successor_key]->line_changes = array(
         'added' => $item_revision->line_changes_added,
         'removed' => $item_revision->line_changes_removed,
       );

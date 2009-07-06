@@ -601,9 +601,9 @@ class VersioncontrolOperation implements ArrayAccess {
 
         // If we've got source items (which is the case for commit operations),
         // add them to the item revisions and source revisions tables as well.
-        foreach ($item['source_items'] as $key => $source_item) {
+        foreach ($item->source_items as $key => $source_item) {
           $source_item->ensure();
-          $item->insertSourceRevision($source_item, $item['action']);
+          $item->insertSourceRevision($source_item, $item->action);
 
           // Cache other important items in the operations table for 'path' search
           // queries, because joining the source revisions table is too expensive.
@@ -611,7 +611,7 @@ class VersioncontrolOperation implements ArrayAccess {
             case VERSIONCONTROL_ACTION_MOVED:
             case VERSIONCONTROL_ACTION_COPIED:
             case VERSIONCONTROL_ACTION_MERGED:
-              if ($item['path'] != $source_item['path']) {
+              if ($item->path != $source_item->path) {
                 $this->_insert_operation_item($source_item,
                   VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM);
               }
@@ -620,12 +620,12 @@ class VersioncontrolOperation implements ArrayAccess {
               break;
           }
 
-          $source_item['selected_label'] = new stdClass();
-          $source_item['selected_label']->get_from = 'other_item';
-          $source_item['selected_label']->other_item = &$item;
-          $source_item['selected_label']->other_item_tags = array('successor_item');
+          $source_item->selected_label = new stdClass();
+          $source_item->selected_label->get_from = 'other_item';
+          $source_item->selected_label->other_item = &$item;
+          $source_item->selected_label->other_item_tags = array('successor_item');
 
-          $item['source_items'][$key] = $source_item;
+          $item->source_items[$key] = $source_item;
         }
         // Plus a special case for the "added" action, as it needs an entry in the
         // source items table but contains no items in the 'source_items' property.
@@ -635,14 +635,14 @@ class VersioncontrolOperation implements ArrayAccess {
 
         // If we've got a replaced item (might happen for copy/move commits),
         // add it to the item revisions and source revisions table as well.
-        if (isset($item['replaced_item'])) {
-          $item['replaced_item']->ensure();
-          $item->insertSourceRevision($item['replaced_item'],
+        if (isset($item->replaced_item)) {
+          $item->replaced_item->ensure();
+          $item->insertSourceRevision($item->replaced_item,
             VERSIONCONTROL_ACTION_REPLACED);
-          $item['replaced_item']['selected_label'] = new stdClass();
-          $item['replaced_item']['selected_label']->get_from = 'other_item';
-          $item['replaced_item']['selected_label']->other_item = &$item;
-          $item['replaced_item']['selected_label']->other_item_tags = array('successor_item');
+          $item->replaced_item->selected_label = new stdClass();
+          $item->replaced_item->selected_label->get_from = 'other_item';
+          $item->replaced_item->selected_label->other_item = &$item;
+          $item->replaced_item->selected_label->other_item_tags = array('successor_item');
         }
         $operation_items[$path] = $item;
       }

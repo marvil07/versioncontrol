@@ -947,7 +947,7 @@ function theme_commitlog_operation_items($operation, $operation_items, $format =
     // make a displayable string out of those.
     if (!empty($item['source_items'])) {
       $oldrev_string = theme('commitlog_item_revision',
-        $operation->repository, reset($item['source_items']), $format
+        $operation->repository, reset($item->source_items), $format
       );
 
       $olditems = array();
@@ -1136,7 +1136,7 @@ function theme_commitlog_diff_link($operation, $item) {
   // Also, a diff only makes sense if the item was actually modified.
   if (in_array($item['action'], array(VERSIONCONTROL_ACTION_MODIFIED, VERSIONCONTROL_ACTION_MERGED))) {
     // Ok, everything's alright, let's get that diff link.
-    $source_item = reset($item['source_items']);
+    $source_item = reset($item->source_items);
     $diff_url = versioncontrol_get_url_diff(
       $operation->repository, $item, $source_item
     );
