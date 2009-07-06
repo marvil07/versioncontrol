@@ -1335,8 +1335,7 @@ function versioncontrol_get_url_commit_view($operation) {
  */
 function versioncontrol_get_url_item_log_view($repository, &$item) {
   $urls = _versioncontrol_get_repository_urls($repository);
-  //FIXME refactor item method to oop
-  $label = $item->getSelectedLabel($repository, $item);
+  $label = $item->getSelectedLabel();
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
     $current_branch = $label['name'];
@@ -1385,10 +1384,10 @@ function versioncontrol_get_url_item_log_view($repository, &$item) {
  */
 function versioncontrol_get_url_item_view($repository, &$item) {
   $urls = _versioncontrol_get_repository_urls($repository);
-  $label = $item->getSelectedLabel($repository, $item);
+  $label = $item->getSelectedLabel();
 
-  if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
-    $current_branch = $label['name'];
+  if (isset($label->type) && $label->type == VERSIONCONTROL_OPERATION_BRANCH) {
+    $current_branch = $label->name;
   }
   $view_url = $item->isFile()
               ? $urls['file_view']
@@ -1419,7 +1418,7 @@ function versioncontrol_get_url_item_view($repository, &$item) {
  */
 function versioncontrol_get_url_diff($repository, &$file_item_new, $file_item_old) {
   $urls = _versioncontrol_get_repository_urls($repository);
-  $label = versioncontrol_get_item_selected_label($repository, $file_item_new);
+  $label = $file_item_new->getSelectedLabel();
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
     $current_branch = $label['name'];

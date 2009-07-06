@@ -430,10 +430,6 @@ class VersioncontrolItem implements ArrayAccess {
      * far as it's accurate.
      *
      * @access public
-     * @param $repository
-     *   The repository where the item is located.
-     * @param $item
-     *   The item revision for which the label should be retrieved.
      *
      * @return
      *   In case no branch or tag applies to that item or could not be retrieved
@@ -448,50 +444,51 @@ class VersioncontrolItem implements ArrayAccess {
      *        (VERSIONCONTROL_OPERATION_TAG).
      *  FIXME remove params and do not return, oop
      */
-    public function getSelectedLabel($repository, &$item) {
+    public function getSelectedLabel() {
       // If the label is already retrieved, we can return it just that way.
-      if (isset($item['selected_label']->label)) {
-        return ($item['selected_label']->label === FALSE)
-                ? NULL : $item['selected_label']->label;
+      if (isset($this->selected_label->label)) {
+        return ($this->selected_label->label === FALSE)
+                ? NULL : $this->selected_label->label;
       }
-      if (!isset($item['selected_label']->get_from)) {
-        $item['selected_label']->label = FALSE;
+      if (!isset($this->selected_label->get_from)) {
+        $this->selected_label->label = FALSE;
         return NULL;
       }
-      $function_prefix = 'versioncontrol_'. $repository['vcs'];
+      $function_prefix = 'versioncontrol_'. $this->repository->vcs;
 
       // Otherwise, determine how we might be able to retrieve the selected label.
-      switch ($item['selected_label']->get_from) {
+      switch ($this->selected_label->get_from) {
         case 'operation':
           $function = $function_prefix .'_get_selected_label_from_operation';
-          $selected_label = $function($item['selected_label']->operation, $item);
+          $selected_label = $function($this->selected_label->operation, $this);
           break;
         case 'other_item':
           $function = $function_prefix .'_get_selected_label_from_other_item';
-          $selected_label = $function($repository, $item, $item['selected_label']->other_item, $item['selected_label']->other_item_tags);
-          unset($item['selected_label']->other_item_tags);
+          $selected_label = $function($this->repository, $this, $this->selected_label->other_item, $this->selected_label->other_item_tags);
+          unset($this->selected_label->other_item_tags);
           break;
       }
 
       if (isset($selected_label)) {
         // Just to make sure that we only pass applicable info:
         // 'action' might make sense in an operation, but not in an item array.
-        if (isset($selected_label['action'])) {
-          unset($selected_label['action']);
+        if (isset($selected_label->action)) {
+          unset($selected_label->action);
         }
-        $item['selected_label']->label = $selected_label->ensure();
+        $selected_label->ensure();
+        $this->selected_label->label = $selected_label;
       }
       else {
-        $item['selected_label']->label = FALSE;
+        $this->selected_label->label = FALSE;
       }
 
       // Now that we've got the real label, we can get rid of the retrieval recipe.
-      if (isset($item['selected_label']->{$item['selected_label']->get_from})) {
-        unset($item['selected_label']->{$item['selected_label']->get_from});
+      if (isset($this->selected_label->{$this->selected_label->get_from})) {
+        unset($this->selected_label->{$this->selected_label->get_from});
       }
-      unset($item['selected_label']->get_from);
+      unset($this->selected_label->get_from);
 
-      return $item['selected_label']->label;
+      return $this->selected_label->label;
     }
 
     /**
