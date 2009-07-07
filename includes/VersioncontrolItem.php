@@ -473,7 +473,8 @@ class VersioncontrolItem implements ArrayAccess {
         // Just to make sure that we only pass applicable info:
         // 'action' might make sense in an operation, but not in an item array.
         if (isset($selected_label->action)) {
-          unset($selected_label->action);
+        //FIXME we are returning a label here, not an item; so, is it ok to have an action on label?
+        //  unset($selected_label->action);
         }
         $selected_label->ensure();
         $this->selected_label->label = $selected_label;
