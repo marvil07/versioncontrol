@@ -666,7 +666,7 @@ function theme_commitlog_operation_plaintext($variables) {
  */
 function commitlog_get_account_url($repository, $username) {
   return url('commitlog', array(
-    'query' => array('username' => $username, 'repo' => $repository->repo_id),
+    'query' => array('author' => $username, 'repo' => $repository->repo_id),
     'absolute' => TRUE,
   ));
 }

@@ -855,7 +855,7 @@ class VersioncontrolOperation implements ArrayAccess {
       // If not already there, retrieve the Drupal user id of the committer.
       if (!isset($this->author)) {
         $uid = versioncontrol_get_account_uid_for_username(
-          $this->repository->repo_id, $this->username, $include_unauthorized
+          $this->repository->repo_id, $this->author, $include_unauthorized
         );
         // If no uid could be retrieved, blame the commit on user 0 (anonymous).
         $this->author = isset($this->author) ? $this->author : 0;
