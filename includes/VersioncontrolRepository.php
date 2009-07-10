@@ -101,7 +101,7 @@ class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
-   * minimal constructor
+   * Usual constructor
    */
   private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array(), $data=array()) {
     $this->repo_id = $id;
@@ -116,39 +116,17 @@ class VersioncontrolRepository implements ArrayAccess {
 
   /**
    * Title callback for repository arrays.
-   * 
    */
-  public function titleCallback($repository) {
-    return check_plain($repository['name']);
+  public function titleCallback() {
+    return check_plain($repository->name);
   }
 
   /**
    * Convenience function for retrieving one single repository by repository id.
-   * 
+   *
    * @static
    * @return
-   *   A single repository array that consists of the following elements:
-   *
-   *   - 'repo_id': The unique repository id.
-   *   - 'name': The user-visible name of the repository.
-   *   - 'vcs': The unique string identifier of the version control system
-   *        that powers this repository.
-   *   - 'root': The root directory of the repository. In most cases,
-   *        this will be a local directory (e.g. '/var/repos/drupal'),
-   *        but it may also be some specialized string for remote repository
-   *        access. How this string may look like depends on the backend.
-   *   - 'authorization_method': The string identifier of the repository's
-   *        authorization method, that is, how users may register accounts
-   *        in this repository. Modules can provide their own methods
-   *        by implementing hook_versioncontrol_authorization_methods().
-   *   - 'url_backend': The prefix (excluding the trailing underscore)
-   *        for URL backend retrieval functions.
-   *   - 'data': An array where modules can store additional information about
-   *        the repository, for settings or other data.
-   *   - '[xxx]_specific': An array of VCS specific additional repository
-   *        information. How this array looks like is defined by the
-   *        corresponding backend module (versioncontrol_[xxx]).
-   *
+   *   A single VersioncontroRepository array.
    *   If no repository corresponds to the given repository id, NULL is returned.
    */
   public static function getRepository($repo_id) {
@@ -182,30 +160,8 @@ class VersioncontrolRepository implements ArrayAccess {
    *
    * @return
    *   An array of repositories where the key of each element is the
-   *   repository id. The corresponding value contains a structured array
-   *   with the following keys:
-   *
-   *   - 'repo_id': The unique repository id.
-   *   - 'name': The user-visible name of the repository.
-   *   - 'vcs': The unique string identifier of the version control system
-   *        that powers this repository.
-   *   - 'root': The root directory of the repository. In most cases,
-   *        this will be a local directory (e.g. '/var/repos/drupal'),
-   *        but it may also be some specialized string for remote repository
-   *        access. How this string may look like depends on the backend.
-   *   - 'authorization_method': The string identifier of the repository's
-   *        authorization method, that is, how users may register accounts
-   *        in this repository. Modules can provide their own methods
-   *        by implementing hook_versioncontrol_authorization_methods().
-   *   - 'url_backend': The prefix (excluding the trailing underscore)
-   *        for URL backend retrieval functions.
-   *   - 'data': An array where modules can store additional information about
-   *        the repository, for settings or other data.
-   *
-   *   - '[xxx]_specific': An array of VCS specific additional repository
-   *        information. How this array looks like is defined by the
-   *        corresponding backend module (versioncontrol_[xxx]).
-   *
+   *   repository id. The corresponding value contains a structured
+   *   VersioncontrolRepository array
    *   If not a single repository matches these constraints,
    *   an empty array is returned.
    */
@@ -286,7 +242,7 @@ class VersioncontrolRepository implements ArrayAccess {
    * @param $backends
    * @param $constraints
    */
-  private function _amend_repositories($repositories_by_backend, $backends, $constraints = array()) {
+  private static function _amend_repositories($repositories_by_backend, $backends, $constraints = array()) {
     foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
       $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
                              $backends[$vcs]['flags']);
@@ -296,7 +252,7 @@ class VersioncontrolRepository implements ArrayAccess {
         foreach ($vcs_repositories as $repo_id => $repository) {
           $repo_ids[] = $repo_id;
         }
-        $additions = _versioncontrol_db_get_additions(
+        $additions = self::_dbGetAdditions(
           'versioncontrol_'. $vcs .'_repositories', 'repo_id', $repo_ids
         );
 
@@ -341,22 +297,13 @@ class VersioncontrolRepository implements ArrayAccess {
    *        as wildcard.
    *
    * @return
-   *   An array of label arrays, where a label array consists of the following
-   *   array elements:
-   *
-   *   - 'label_id': The label identifier (a simple integer), used for unique
-   *        identification of branches and tags in the database.
-   *   - 'name': The branch or tag name (a string).
-   *   - 'type': Whether this label is a branch (indicated by the
-   *        VERSIONCONTROL_LABEL_BRANCH constant) or a tag
-   *        (VERSIONCONTROL_LABEL_TAG).
-   *
+   *   An array of VersioncontrolLabel objects
    *   If not a single known label in the given repository matches these
    *   constraints, an empty array is returned.
    */
-  public function getLabels($repository, $constraints = array()) {
+  public function getLabels($constraints = array()) {
     $and_constraints = array('repo_id = %d');
-    $params = array($repository['repo_id']);
+    $params = array($this->repo_id);
 
     // Filter by label id.
     if (isset($constraints['label_ids'])) {
@@ -407,20 +354,24 @@ class VersioncontrolRepository implements ArrayAccess {
     // Assemble the return value.
     $labels = array();
     while ($label = db_fetch_array($result)) {
-      $labels[] = $label;
+      switch ($label['type']) {
+      case VERSIONCONTROL_LABEL_BRANCH:
+        $labels[] = new VersioncontrolBranch($label['name'], null, $label['label_id'], $this);
+        break;
+      case VERSIONCONTROL_LABEL_TAG:
+        $labels[] = new VersioncontrolTag($label['name'], null, $label['label_id'], $this);
+        break;
+      }
     }
     return $labels;
   }
 
   /**
-   * Return TRUE if the account is authorized to commit to the given
+   * Return TRUE if the account is authorized to commit in the actual
    * repository, or FALSE otherwise. Only call this function on existing
    * accounts or uid 0, the return value for all other
    * uid/repository combinations is undefined.
    *
-   * @param $repository
-   *   The repository where the status should be checked. (Note that the user's
-   *   authorization status may differ for each repository.)
    * @param $uid
    *   The user id of the checked account.
    */
@@ -444,10 +395,9 @@ class VersioncontrolRepository implements ArrayAccess {
 
   /**
    * Update a repository in the database, and call the necessary hooks.
-   * The 'repo_id' and 'vcs' properties of the repository array must stay
+   * The 'repo_id' and 'vcs' properties of the repository object must stay
    * the same as the ones given on repository creation,
    * whereas all other values may change.
-   *
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -490,7 +440,6 @@ class VersioncontrolRepository implements ArrayAccess {
 
   /**
    * Insert a repository into the database, and call the necessary hooks.
-   *
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -544,11 +493,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * Delete a repository from the database, and call the necessary hooks.
    * Together with the repository, all associated commits and accounts are
    * deleted as well.
-   *
-   * @param $repository
-   *   The repository array containing the repository that is to be deleted.
-   *   It's a single repository array like the one returned by
-   *   versioncontrol_get_repository().
    */
   public function delete() {
     // Delete operations.
@@ -614,7 +558,7 @@ class VersioncontrolRepository implements ArrayAccess {
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $this->_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
+      self::_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
     }
 
     // Phew, everything's cleaned up. Finally, delete the repository.
@@ -642,12 +586,12 @@ class VersioncontrolRepository implements ArrayAccess {
    *   The plaintext result data which could be written into the password file
    *   as is.
    */
-  public function exportAccounts($repository) {
+  public function exportAccounts() {
     $accounts = VersioncontrolAccount::getAccounts(array(
-      'repo_ids' => array($repository['repo_id']),
+      'repo_ids' => array($this->repo_id),
     ));
-    return _versioncontrol_call_backend($repository['vcs'], 'export_accounts',
-                                        array($repository, $accounts));
+    return _versioncontrol_call_backend($repository->vcs, 'export_accounts',
+                                        array($this, $accounts));
   }
 
   /**
@@ -655,9 +599,8 @@ class VersioncontrolRepository implements ArrayAccess {
    * based on name and value of the primary key.
    * In order to avoid unnecessary complexity, the primary key may not consist
    * of multiple columns and has to be a numeric value.
-   * 
    */
-  private function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
+  private static function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
     db_query('DELETE FROM {'. $table_name .'}
               WHERE '. $primary_key_name .' = %d', $primary_key);
   }
@@ -666,7 +609,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * Generate and execute an INSERT query for the given table based on key names,
    * values and types of the given array elements. This function basically
    * accomplishes the insertion part of Version Control API's 'autoadd' feature.
-   * 
    */
   private function _dbInsertAdditions($table_name, $elements) {
     $keys = array();
@@ -717,6 +659,40 @@ class VersioncontrolRepository implements ArrayAccess {
     );
   }
 
+  /**
+   * Generate and execute a SELECT query for the given table base on the name
+   * and given values of this table's primary key. This function basically
+   * accomplishes the retrieval part of Version Control API's 'autoadd' feature.
+   * In order to avoid unnecessary complexity, the primary key may not consist
+   * of multiple columns and has to be a numeric value.
+   */
+  private static function _dbGetAdditions($table_name, $primary_key_name, $keys) {
+    $placeholders = array();
+
+    foreach ($keys as $key) {
+      $placeholders[] = '%d';
+    }
+
+    $result = db_query('SELECT * FROM {'. $table_name .'}
+    WHERE '. $primary_key_name .' IN ('.
+    implode(',', $placeholders) .')', $keys);
+
+    $additions = array();
+    while ($addition = db_fetch_array($result)) {
+      $primary_key = $addition[$primary_key_name];
+      unset($addition[$primary_key_name]);
+
+      foreach ($addition as $key => $value) {
+        if (!is_numeric($addition[$key])) {
+          $addition[$key] = unserialize($addition[$key]);
+        }
+      }
+      $additions[$primary_key] = $addition;
+    }
+    return $additions;
+
+  }
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
@@ -730,39 +706,5 @@ class VersioncontrolRepository implements ArrayAccess {
   public function offsetUnset($offset) {
     unset($this->$offset);
   }
-
-}
-
-/**
- * Generate and execute a SELECT query for the given table base on the name
- * and given values of this table's primary key. This function basically
- * accomplishes the retrieval part of Version Control API's 'autoadd' feature.
- * In order to avoid unnecessary complexity, the primary key may not consist
- * of multiple columns and has to be a numeric value.
- */
-function _versioncontrol_db_get_additions($table_name, $primary_key_name, $keys) {
-  $placeholders = array();
-
-  foreach ($keys as $key) {
-    $placeholders[] = '%d';
-  }
-
-  $result = db_query('SELECT * FROM {'. $table_name .'}
-                      WHERE '. $primary_key_name .' IN ('.
-                      implode(',', $placeholders) .')', $keys);
-
-  $additions = array();
-  while ($addition = db_fetch_array($result)) {
-    $primary_key = $addition[$primary_key_name];
-    unset($addition[$primary_key_name]);
-
-    foreach ($addition as $key => $value) {
-      if (!is_numeric($addition[$key])) {
-        $addition[$key] = unserialize($addition[$key]);
-      }
-    }
-    $additions[$primary_key] = $addition;
-  }
-  return $additions;
 
 }

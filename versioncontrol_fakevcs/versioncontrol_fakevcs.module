@@ -1175,11 +1175,11 @@ function versioncontrol_fakevcs_export_accounts($repository, $accounts) {
   }
   $accounts_flat = array();
   $uid_constraints = array();
-  $params = array($repository['repo_id']);
+  $params = array($repository->repo_id);
 
-  foreach ($accounts as $uid => $usernames_per_repository) {
-    foreach ($usernames_per_repository as $repo_id => $username) {
-      $accounts_flat[$uid] = array('uid' => $uid, 'username' => $username);
+  foreach ($accounts as $uid => $accounts_per_repository) {
+    foreach ($accountss_per_repository as $repo_id => $account) {
+      $accounts_flat[$uid] = array('uid' => $uid, 'username' => $account->username);
       $uid_constraints[] = 'uid = %d';
       $params[] = $uid;
     }
