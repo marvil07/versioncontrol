@@ -415,8 +415,6 @@ function versioncontrol_repository_load($repo_id) {
  * VersioncontrolAccount::getAccounts() returns) and return either that
  * or FALSE if no VCS accounts exist for this user.
  *
- * @access public
- * @static
  * @param $uid
  *   Drupal user id of the user whose VCS accounts should be loaded.
  * @param $include_unauthorized

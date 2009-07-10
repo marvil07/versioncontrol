@@ -13,7 +13,6 @@ class VersioncontrolAccount implements ArrayAccess {
     * VCS's username
     *
     * @var    string
-    * @access public
     */
   public $vcs_username;
 
@@ -21,7 +20,6 @@ class VersioncontrolAccount implements ArrayAccess {
     * Drupal user id
     *
     * @var    int
-    * @access public
     */
   public $uid;
 
@@ -29,7 +27,6 @@ class VersioncontrolAccount implements ArrayAccess {
    * Repo user id
    *
    * @var    VersioncontrolRepository
-   * @access public
    */
   public $repository;
 
@@ -47,7 +44,6 @@ class VersioncontrolAccount implements ArrayAccess {
     * Retrieve a set of Drupal uid / VCS username mappings
     * that match the given constraints.
     *
-    * @access public
     * @static      
     * @param $constraints
     *   An optional array of constraints. Possible array elements are:
@@ -182,7 +178,6 @@ class VersioncontrolAccount implements ArrayAccess {
    * Return the most accurate guess on what the VCS username for a Drupal user
    * might look like in the given repository.
    *
-   * @access public
    * @param $repository
    *   The repository where the the VCS account exists or will be located.
    * @param $user
@@ -202,7 +197,6 @@ class VersioncontrolAccount implements ArrayAccess {
   /**
    * Determine if the given repository allows a username to exist.
    *
-   * @access public
    * @param $vcs
    *   The repository where the the VCS account exists or will be located.
    * @param $username
@@ -232,7 +226,6 @@ class VersioncontrolAccount implements ArrayAccess {
    * values as the one given on account creation, whereas @p $username and
    * @p $additional_data may change.
    *
-   * @access public
    * @param $uid
    *   The Drupal user id corresponding to the VCS username.
    * @param $username
@@ -292,7 +285,6 @@ class VersioncontrolAccount implements ArrayAccess {
    * Insert a VCS user account into the database,
    * and call the necessary module hooks.
    *
-   * @access public
    * @param $additional_data
    *   An array of additional author information. Modules can fill this array
    *   by implementing hook_versioncontrol_account_submit().
@@ -334,7 +326,6 @@ class VersioncontrolAccount implements ArrayAccess {
    * Delete a VCS user account from the database, set all commits with this
    * account as author to user 0 (anonymous), and call the necessary hooks.
    *
-    * @access public
    * @param $repository
    *   The repository where the user has its VCS account.
    * @param $uid

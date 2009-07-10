@@ -12,7 +12,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * db identifier
    *
    * @var    int
-   * @access public
    */
   public $repo_id;
 
@@ -20,7 +19,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * repository name inside drupal
    *
    * @var    string
-   * @access public
    */
   public $name;
 
@@ -28,7 +26,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * VCS string identifier
    *
    * @var    string
-   * @access public
    */
   public $vcs;
 
@@ -36,7 +33,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * where it is
    *
    * @var    string
-   * @access public
    */
   public $root;
 
@@ -44,7 +40,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * how ot authenticate
    *
    * @var    string
-   * @access public
    */
   public $authorization_method;
 
@@ -52,7 +47,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * XXX
    *
    * @var    string
-   * @access public
    */
   public $url_backend;
 
@@ -60,7 +54,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * list of urls associated with this repository
    *
    * @var    array
-   * @access public
    */
   public $urls;
 
@@ -68,7 +61,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * cache for already loaded repositories
    *
    * @var    array
-   * @access private
    */
   private static $repository_cache = array();
 
@@ -125,7 +117,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Title callback for repository arrays.
    * 
-   * @access public
    */
   public function titleCallback($repository) {
     return check_plain($repository['name']);
@@ -134,7 +125,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Convenience function for retrieving one single repository by repository id.
    * 
-   * @access public
    * @static
    * @return
    *   A single repository array that consists of the following elements:
@@ -173,7 +163,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Retrieve a set of repositories that match the given constraints.
    *
-   * @access public
    * @static
    * @param $constraints
    *   An optional array of constraints. Possible array elements are:
@@ -292,7 +281,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES flag has been set by the backend)
    * and/or by calling [vcs_backend]_alter_repositories().
    *
-   * @access private
    * @static
    * @param $repositories_by_backend
    * @param $backends
@@ -336,7 +324,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Retrieve known branches and/or tags in a repository as a set of label arrays.
    *
-   * @access public
    * @param $repository
    *   The repository of which the labels should be retrieved.
    * @param $constraints
@@ -431,7 +418,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * accounts or uid 0, the return value for all other
    * uid/repository combinations is undefined.
    *
-   * @access public
    * @param $repository
    *   The repository where the status should be checked. (Note that the user's
    *   authorization status may differ for each repository.)
@@ -462,7 +448,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * the same as the ones given on repository creation,
    * whereas all other values may change.
    *
-   * @access public
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -506,7 +491,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Insert a repository into the database, and call the necessary hooks.
    *
-   * @access public
    *
    * @param $repository_urls
    *   An array of repository viewer URLs. How this array looks like is
@@ -561,7 +545,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * Together with the repository, all associated commits and accounts are
    * deleted as well.
    *
-   * @access public
    * @param $repository
    *   The repository array containing the repository that is to be deleted.
    *   It's a single repository array like the one returned by
@@ -652,7 +635,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * Export a repository's authenticated accounts to the version control system's
    * password file format.
    *
-   * @access public
    * @param $repository
    *   The repository array of the repository whose accounts should be exported.
    *
@@ -674,7 +656,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * In order to avoid unnecessary complexity, the primary key may not consist
    * of multiple columns and has to be a numeric value.
    * 
-   * @access private
    */
   private function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
     db_query('DELETE FROM {'. $table_name .'}
@@ -686,7 +667,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * values and types of the given array elements. This function basically
    * accomplishes the insertion part of Version Control API's 'autoadd' feature.
    * 
-   * @access private
    */
   private function _dbInsertAdditions($table_name, $elements) {
     $keys = array();
@@ -711,8 +691,6 @@ class VersioncontrolRepository implements ArrayAccess {
    * accomplishes the update part of Version Control API's 'autoadd' feature.
    * In order to avoid unnecessary complexity, the primary key may not consist
    * of multiple columns and has to be a numeric value.
-   * 
-   * @access private
    */
   private function _dbUpdateAdditions($table_name, $primary_key_name, $elements) {
     $set_statements = array();

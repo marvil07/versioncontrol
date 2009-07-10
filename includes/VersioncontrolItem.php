@@ -35,7 +35,6 @@ class VersioncontrolItem implements ArrayAccess {
      * db identifier
      *
      * @var    int
-     * @access public
      */
     public $item_revision_id;
 
@@ -43,7 +42,6 @@ class VersioncontrolItem implements ArrayAccess {
      * The path of the item.
      *
      * @var    string
-     * @access public
      */
     public $path;
 
@@ -51,7 +49,6 @@ class VersioncontrolItem implements ArrayAccess {
      * Deleted status
      *
      * @var    boolean
-     * @access public
      */
     public $deleted;
 
@@ -61,7 +58,6 @@ class VersioncontrolItem implements ArrayAccess {
      * always unique, so no additional information is needed.
      *
      * @var    string
-     * @access public
      */
     public $revision;
 
@@ -69,7 +65,6 @@ class VersioncontrolItem implements ArrayAccess {
      * FIXME: ?
      *
      * @var    array
-     * @access public
      */
     public $source_items = array();
 
@@ -80,7 +75,6 @@ class VersioncontrolItem implements ArrayAccess {
      * REPLACED,OTHER}
      *
      * @var    array
-     * @access public
      */
     public $action;
 
@@ -88,7 +82,6 @@ class VersioncontrolItem implements ArrayAccess {
      * FIXME: ?
      *
      * @var    array
-     * @access public
      */
     public $lines_changes = array();
 
@@ -96,7 +89,6 @@ class VersioncontrolItem implements ArrayAccess {
      * FIXME: ?
      *
      * @var    VersioncontrolRepository
-     * @access public
      */
     public $repository;
 
@@ -137,7 +129,6 @@ class VersioncontrolItem implements ArrayAccess {
      * Return TRUE if the given item is an existing or an already deleted file,
      * or FALSE if it's not.
      *
-     * @access public
      */
     public function isFile() {
       if ($this->type == VERSIONCONTROL_ITEM_FILE
@@ -150,8 +141,6 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Return TRUE if the given item is an existing or an already deleted directory,
      * or FALSE if it's not.
-     *
-     * @access public
      */
     public function isDirectory($item) {
       if ($this->type == VERSIONCONTROL_ITEM_DIRECTORY
@@ -163,8 +152,6 @@ class VersioncontrolItem implements ArrayAccess {
 
     /**
      * Return TRUE if the given item is marked as deleted, or FALSE if it exists.
-     * 
-     * @access public
      */
     public function isDeleted($item) {
       if ($this->type == VERSIONCONTROL_ITEM_FILE_DELETED
@@ -177,7 +164,6 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Retrieve the commit operation corresponding to each item in a list of items.
      *
-     * @access public
      * @param $repository
      *   The repository that the items are located in.
      * @param $items
@@ -277,7 +263,6 @@ class VersioncontrolItem implements ArrayAccess {
      * of it with a call of versioncontrol_get_parallel_items() (if the backend
      * supports this function).
      *
-     * @access public
      * @param $repository
      *   The repository that the item is located in.
      * @param $item
@@ -397,8 +382,6 @@ class VersioncontrolItem implements ArrayAccess {
      * Make sure that the 'item_revision_id' database identifier is among an item's
      * properties, and if it's not then try to add it.
      *
-     * @access public
-     *
      * @return
      *   TRUE if the 'item_revision_id' exists after calling this function,
      *   FALSE if not.
@@ -432,8 +415,6 @@ class VersioncontrolItem implements ArrayAccess {
      * The selected label is also meant to help with branch/tag-based navigation,
      * so item navigation functions will try to preserve it as good as possible, as
      * far as it's accurate.
-     *
-     * @access public
      *
      * @return
      *   In case no branch or tag applies to that item or could not be retrieved
@@ -501,7 +482,6 @@ class VersioncontrolItem implements ArrayAccess {
      * This function works just like preg_match(), with the single difference that
      * it also accepts a trailing slash for item paths if the item is a directory.
      *
-     * @access public
      * @return
      *   The number of times @p $path_regexp matches. That will be either 0 times
      *   (no match) or 1 time because preg_match() (which is what this function
@@ -519,8 +499,6 @@ class VersioncontrolItem implements ArrayAccess {
 
     /**
      * Print out a "Bad item received from VCS backend" warning to watchdog.
-     * 
-     * @access public
      */
     public function _badItemWarning($repository, $item, $message) {
       watchdog('special', "<p>Bad item received from VCS backend: !message</p>
@@ -535,7 +513,6 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Retrieve the parent (directory) item of a given item.
      *
-     * @access public
      * @param $repository
      *   The repository that the item is located in.
      * @param $item
@@ -592,7 +569,6 @@ class VersioncontrolItem implements ArrayAccess {
      * with versioncontrol_backend_implements($repository['vcs'], 'get_parallel_items')
      * if the particular backend actually implements it.
      *
-     * @access public
      * @param $repository
      *   The repository that the item is located in.
      * @param $item
@@ -653,7 +629,6 @@ class VersioncontrolItem implements ArrayAccess {
      * with versioncontrol_backend_implements($repository['vcs'], 'get_directory_contents')
      * if the particular backend actually implements it.
      *
-     * @access public
      * @param $repository
      *   The repository that the directory item is located in.
      * @param $directory_item
@@ -716,7 +691,6 @@ class VersioncontrolItem implements ArrayAccess {
      * with versioncontrol_backend_implements($repository['vcs'], 'export_file')
      * if the particular backend actually implements it.
      *
-     * @access public
      * @param $repository
      *   The repository that the file item is located in.
      * @param $file_item
@@ -755,7 +729,6 @@ class VersioncontrolItem implements ArrayAccess {
      * with versioncontrol_backend_implements($repository['vcs'], 'export_directory')
      * if the particular backend actually implements it.
      *
-     * @access public
      * @param $repository
      *   The repository that the directory item is located in.
      * @param $directory_item
@@ -804,7 +777,6 @@ class VersioncontrolItem implements ArrayAccess {
      * with versioncontrol_backend_implements($repository['vcs'], 'get_file_annotation')
      * if the particular backend actually implements it.
      *
-     * @access public
      * @param $repository
      *   The repository that the file item is located in.
      * @param $file_item
@@ -838,7 +810,6 @@ class VersioncontrolItem implements ArrayAccess {
      * Check and if necessary correct item arrays so that item type and
      * the number of source items correspond to specified actions.
      *
-     * @access public
      */
     public function sanitize() {
       if (isset($this->action)) {
@@ -889,7 +860,6 @@ class VersioncontrolItem implements ArrayAccess {
      * property already. For "added" actions, it's also possible to pass 0 as the
      * @p $source_item parameter instead of a full item array.
      *
-     * @access public
      */
     public function insertSourceRevision($source_item, $action) {
       if ($action == VERSIONCONTROL_ACTION_ADDED && $source_item === 0) {
@@ -914,8 +884,6 @@ class VersioncontrolItem implements ArrayAccess {
     /**
      * Insert an item entry into the {versioncontrol_item_revisions} table,
      * or retrieve the same one that's already there on the object.
-     *
-     * @access public
      */
     public function ensure() {
       $result = db_query(

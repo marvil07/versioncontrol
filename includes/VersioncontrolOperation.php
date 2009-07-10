@@ -28,7 +28,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * in all repositories.
      *
      * @var    int
-     * @access public
      */
     public $vc_op_id;
 
@@ -36,7 +35,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * who actually perform the change
      *
      * @var    string
-     * @access public
      */
     public $committer;
 
@@ -47,7 +45,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * when the files were branched or tagged.)
      *
      * @var    timestamp
-     * @access public
      */
     public $date;
 
@@ -61,7 +58,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * (repository-wide) revision of the files that were branched or tagged.
      *
      * @var    string
-     * @access public
      */
     public $revision;
 
@@ -71,7 +67,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * operation type, this element should be empty.
      *
      * @var    string
-     * @access public
      */
     public $message;
 
@@ -80,7 +75,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * this operation(aka who write the change)
      *
      * @var    string
-     * @access public
      */
     public $author;
 
@@ -90,7 +84,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * of Versioncontrolrepository::getRepository().
      *
      * @var    VersioncontrolRepository
-     * @access public
      */
     public $repository;
 
@@ -99,7 +92,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * VERSIONCONTROL_OPERATION_{COMMIT,BRANCH,TAG} constants.
      *
      * @var    string
-     * @access public
      */
     public $type;
 
@@ -127,7 +119,6 @@ class VersioncontrolOperation implements ArrayAccess {
      *             VERSIONCONTROL_ACTION_DELETED.
      *
      * @var    array
-     * @access public
      */
     public $labels;
 
@@ -166,7 +157,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Retrieve a set of commit, branch or tag operations that match
      * the given constraints.
      *
-     * @access public
      * @static
      * @param $constraints
      *   An optional array of constraints. Possible array elements are:
@@ -399,7 +389,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * (so only commits are returned). Parameters and result array are the same
      * as those from versioncontrol_get_operations().
      *
-     * @access public
      * @static
      */
     public static function getCommits($constraints = array(), $options = array()) {
@@ -417,7 +406,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Parameters and result array are the same as those
      * from versioncontrol_get_operations().
      * 
-     * @access public
      * @static
      */
     public static function getTags($constraints = array(), $options = array()) {
@@ -435,7 +423,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * are returned). Parameters and result array are the same as those
      * from versioncontrol_get_operations().
      *
-     * @access public
      * @static
      */
     public static function getBranches($constraints = array(), $options = array()) {
@@ -449,7 +436,6 @@ class VersioncontrolOperation implements ArrayAccess {
     /**
      * Retrieve all items that were affected by an operation.
      *
-     * @access public
      * @param $fetch_source_items
      *   If TRUE, source and replaced items will be retrieved as well,
      *   and stored as additional properties inside each item array.
@@ -539,8 +525,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * @p $labels. If any of the given labels does not yet exist in the
      * database, a database entry (including new 'label_id' array element) will
      * be written as well.
-     *
-     * @access public
      */
     public function updateLabels($labels) {
       module_invoke_all('versioncontrol_operation_labels',
@@ -553,8 +537,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Insert a commit, branch or tag operation into the database, and call the
      * necessary module hooks. Only call this function after the operation has been
      * successfully executed.
-     *
-     * @access public
      *
      * @param $operation_items
      *   A structured array containing the exact details of happened to each
@@ -699,7 +681,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Delete a commit, a branch operation or a tag operation from the database,
      * and call the necessary hooks.
      *
-     * @access public
      * @param $operation
      *   The commit, branch operation or tag operation array containing
      *   the operation that should be deleted.
@@ -739,7 +720,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * @p $tables arrays. Both of these are likely to be altered to match the
      * actual query, although in practice you probably won't need them anymore.
      *
-     * @access private
      * @static
      * @return
      *   A query information array with keys 'from', 'where' and 'params', or an
@@ -823,7 +803,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * The array value of each element is a description array containing the
      * elements 'callback' and 'cardinality'.
      *
-     * @access private
      * @static
      */
     private static function _constraintInfo() {
@@ -850,7 +829,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Fill in various operation members into the object(commit, branch op or tag
      * op), in case those values are not given.
      *
-     * @access private
      * @param $operation
      *   The plain operation array that might lack have some properties yet.
      * @param $include_unauthorized
@@ -885,8 +863,6 @@ class VersioncontrolOperation implements ArrayAccess {
 
     /**
      * Retrieve or set the list of access errors.
-     * 
-     * @access private
      */
     private function _accessErrors($new_messages = NULL) {
       if (isset($new_messages)) {
@@ -900,7 +876,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * actual operation object. Label ids are not required to exist yet.
      * After this the set of labels, all of them with 'label_id' filled in.
      *
-     * @access private
      * @return
      */
     private function _setLabels($labels) {
@@ -919,8 +894,6 @@ class VersioncontrolOperation implements ArrayAccess {
     /**
      * Insert an operation item entry into the {versioncontrol_operation_items} table.
      * The item is expected to have an 'item_revision_id' property already.
-     *
-     * @access private
      */
     private function _insert_operation_item($item, $type) {
       // Before inserting that item entry, make sure it doesn't exist already.
@@ -939,8 +912,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * to retrieve the list of error messages from the various access checks.
      * The error messages do not include trailing linebreaks, it is expected that
      * those are inserted by the caller.
-     *
-     * @access protected
      */
     protected function getAccessErrors() {
       return $this->_accessErrors();
@@ -951,7 +922,6 @@ class VersioncontrolOperation implements ArrayAccess {
      * Determine if a commit, branch or tag operation may be executed or not.
      * Call this function inside a pre-commit hook.
      *
-     * @access protected
      * @param $operation
      *   A single operation array like the ones returned by
      *   versioncontrol_get_operations(), but leaving out on a few details that
@@ -1088,7 +1058,6 @@ class VersioncontrolOperation implements ArrayAccess {
    * Retrieve the number of operations that match the given constraints,
    * plus some details about the first and last matching operation.
    *
-   * @access public
    * @static
    * @param $constraints
    *   An optional array of constraints. This array has the same format as the

@@ -22,7 +22,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * identification of branches and tags in the database.
      *
      * @var    int
-     * @access public
      */
     public $label_id;
 
@@ -30,7 +29,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * The branch or tag name.
      *
      * @var    string
-     * @access public
      */
     public $name;
 
@@ -38,7 +36,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * The repository where the label is located.
      *
      * @var    VersioncontrolRepository
-     * @access public
      */
     public $repository;
 
@@ -48,7 +45,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      *  (VERSIONCONTROL_LABEL_TAG).
      *
      * @var    int
-     * @access public
      */
     public $type;
 
@@ -59,7 +55,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * REPLACED,OTHER}
      *
      * @var    array
-     * @access public
      */
     public $action;
 
@@ -81,7 +76,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * Insert a label entry into the {versioncontrol_labels} table,
      * or retrieve the same one that's already there.
      *
-     * @access public
      * @param $label
      *   A structured array describing the branch or tag that should be inserted
      *   into the database. A label array contains (at least) the following keys:
@@ -120,8 +114,6 @@ abstract class VersioncontrolLabel implements ArrayAccess {
 
     /**
      * Insert label to db
-     *
-     * @access private
      */
     private function _insert() {
       $this->repo_id = $this->repository->repo_id; // for drupal_write_record() only

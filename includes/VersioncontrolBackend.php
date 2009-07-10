@@ -12,7 +12,6 @@ abstract class VersioncontrolBackend {
      * simple name
      *
      * @var    string
-     * @access public
      */
     public $name;
 
@@ -20,7 +19,6 @@ abstract class VersioncontrolBackend {
      * simple description
      *
      * @var    string
-     * @access public
      */
     public $description;
 
@@ -28,7 +26,6 @@ abstract class VersioncontrolBackend {
      * what the backend can do, probably deprecated after interfaces approach
      *
      * @var    array
-     * @access public
      */
     public $capabilities;
 
@@ -36,7 +33,6 @@ abstract class VersioncontrolBackend {
      * XXX
      *
      * @var    array
-     * @access public
      */
     public $flags;
 
