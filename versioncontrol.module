@@ -471,9 +471,10 @@ function versioncontrol_get_backends() {
 /**
  * Convenience function, retrieving the backend information array for a
  * single repository. So, the result is one of the elements in the result array
- * of versioncontrol_get_backends(). As versioncontrol_get_repositories() only
- * returns repositories for backends that actually exist, this function can be
- * trusted to always return a valid backend array.
+ * of versioncontrol_get_backends(). As
+ * VersioncontrolRepository::getRepositories() only returns repositories for
+ * backends that actually exist, this function can be trusted to always return
+ * a valid backend array.
  */
 function versioncontrol_get_backend($repository) {
   $backends = versioncontrol_get_backends();
@@ -1470,7 +1471,7 @@ function versioncontrol_get_url_tracker($repository, $issue_id) {
  *   - 'tracker': The issue/bug/case URL of the associated issue tracker.
  */
 function _versioncontrol_get_repository_urls($repository) {
-  static $urls_by_repository = array();
+  static $urls_by_repository;
 
   if (!isset($urls_by_repository[$repository->repo_id])) {
     $result = db_query('SELECT * FROM {versioncontrol_repository_urls}

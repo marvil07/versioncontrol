@@ -104,6 +104,20 @@ class VersioncontrolItem implements ArrayAccess {
     public $selected_label;
     public $commit_operation;
 
+    /**
+     * FIXME: ?
+     */
+    private static $successor_action_priority = array(
+      VERSIONCONTROL_ACTION_MOVED => 10,
+      VERSIONCONTROL_ACTION_MODIFIED => 10,
+      VERSIONCONTROL_ACTION_COPIED => 8,
+      VERSIONCONTROL_ACTION_MERGED => 9,
+      VERSIONCONTROL_ACTION_OTHER => 1,
+      VERSIONCONTROL_ACTION_DELETED => 1,
+      VERSIONCONTROL_ACTION_ADDED => 0, // does not happen, guard nonetheless
+      VERSIONCONTROL_ACTION_REPLACED => 0, // does not happen, guard nonetheless
+    );
+
     // Associations
     // Operations
   /**
@@ -311,16 +325,6 @@ class VersioncontrolItem implements ArrayAccess {
       // Find (recursively) all successor items within the successor item limit.
       $history_successor_items = array();
       $source_item = $item;
-      static $successor_action_priority = array(
-        VERSIONCONTROL_ACTION_MOVED => 10,
-        VERSIONCONTROL_ACTION_MODIFIED => 10,
-        VERSIONCONTROL_ACTION_COPIED => 8,
-        VERSIONCONTROL_ACTION_MERGED => 9,
-        VERSIONCONTROL_ACTION_OTHER => 1,
-        VERSIONCONTROL_ACTION_DELETED => 1,
-        VERSIONCONTROL_ACTION_ADDED => 0, // does not happen, guard nonetheless
-        VERSIONCONTROL_ACTION_REPLACED => 0, // does not happen, guard nonetheless
-      );
 
       while ((!isset($successor_item_limit) || ($successor_item_limit > 0))) {
         $source_items = array($source_item['path'] => $source_item);
@@ -337,9 +341,9 @@ class VersioncontrolItem implements ArrayAccess {
         $highest_priority_so_far = 0;
         foreach ($source_item['successor_items'] as $path => $succ_item) {
           if (!isset($successor_item)
-              || $successor_action_priority[$succ_item['action']] > $highest_priority_so_far) {
+              || self::$successor_action_priority[$succ_item['action']] > $highest_priority_so_far) {
             $successor_item = $succ_item;
-            $highest_priority_so_far = $successor_action_priority[$succ_item['action']];
+            $highest_priority_so_far = self::$successor_action_priority[$succ_item['action']];
           }
         }
         $history_successor_items[$successor_item['revision']] = $successor_item;

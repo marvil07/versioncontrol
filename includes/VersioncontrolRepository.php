@@ -235,8 +235,8 @@ class VersioncontrolRepository implements ArrayAccess {
     }
 
     $constraints_serialized = serialize($constraints);
-    if (isset($repository_cache[$constraints_serialized])) {
-      return $repository_cache[$constraints_serialized];
+    if (isset(self::$repository_cache[$constraints_serialized])) {
+      return self::$repository_cache[$constraints_serialized];
     }
 
     list($and_constraints, $params) =
@@ -283,7 +283,7 @@ class VersioncontrolRepository implements ArrayAccess {
       }
     }
 
-    $repository_cache[$constraints_serialized] = $result_repositories; // cache the results
+    self::$repository_cache[$constraints_serialized] = $result_repositories; // cache the results
     return $result_repositories;
   }
 

@@ -132,6 +132,21 @@ class VersioncontrolOperation implements ArrayAccess {
     public $labels;
 
     /**
+     * All possible operation constraints.
+     * Each constraint is identified by its key which denotes the array key within
+     * the $constraints parameter that is given to self::getOperations().
+     * The array value of each element is a description array containing the
+     * elements 'callback' and 'cardinality'.
+     *
+     */
+    private static $constraint_info = array();
+
+    /**
+     * FIXME: ?
+     */
+    private static $error_messages = array();
+
+    /**
      * Constructor
      */
     public function __construct($type, $committer, $date, $revision, $message, $author=NULL, $repository=NULL, $vc_op_id=NULL) {
@@ -812,25 +827,23 @@ class VersioncontrolOperation implements ArrayAccess {
      * @static
      */
     private static function _constraintInfo() {
-      static $constraint_info = array();
-
-      if (empty($constraint_info)) {
+      if (empty(self::$constraint_info)) {
         foreach (module_implements('versioncontrol_operation_constraint_info') as $module) {
           $function = $module .'_versioncontrol_operation_constraint_info';
           $constraints = $function();
 
           foreach ($constraints as $key => $info) {
-            $constraint_info[$key] = $info;
+            self::$constraint_info[$key] = $info;
             if (!isset($info['callback'])) {
-              $constraint_info[$key]['callback'] = $module .'_operation_constraint_'. $key;
+              self::$constraint_info[$key]['callback'] = $module .'_operation_constraint_'. $key;
             }
             if (!isset($info['cardinality'])) {
-              $constraint_info[$key]['cardinality'] = VERSIONCONTROL_CONSTRAINT_MULTIPLE;
+              self::$constraint_info[$key]['cardinality'] = VERSIONCONTROL_CONSTRAINT_MULTIPLE;
             }
           }
         }
       }
-      return $constraint_info;
+      return self::$constraint_info;
     }
 
     /**
@@ -876,12 +889,10 @@ class VersioncontrolOperation implements ArrayAccess {
      * @access private
      */
     private function _accessErrors($new_messages = NULL) {
-      static $error_messages = array();
-
       if (isset($new_messages)) {
-        $error_messages = $new_messages;
+        self::$error_messages = $new_messages;
       }
-      return $error_messages;
+      return self::$error_messages;
     }
 
     /**
@@ -932,7 +943,7 @@ class VersioncontrolOperation implements ArrayAccess {
      * @access protected
      */
     protected function getAccessErrors() {
-      return _versioncontrol_access_errors();
+      return $this->_accessErrors();
     }
 
 
@@ -1017,7 +1028,7 @@ class VersioncontrolOperation implements ArrayAccess {
             $type = t('tag');
             break;
         }
-        _versioncontrol_access_errors(array(t(
+        $this->_accessErrors(array(t(
     '** ERROR: Version Control API cannot determine a repository
     ** for the !commit-branch-or-tag information given by the VCS backend.',
           array('!commit-branch-or-tag' => $type)
@@ -1031,7 +1042,7 @@ class VersioncontrolOperation implements ArrayAccess {
       if (!$repo_data['allow_unauthorized_access']) {
 
         if (!versioncontrol_is_account_authorized($operation['repository'], $operation['uid'])) {
-          _versioncontrol_access_errors(array(t(
+          $this->_accessErrors(array(t(
             '** ERROR: !user does not have commit access to this repository.',
             array('!user' => $operation['username'])
           )));
@@ -1041,7 +1052,7 @@ class VersioncontrolOperation implements ArrayAccess {
 
       // Don't let people do empty log messages, that's as evil as it gets.
       if (isset($operation['message']) && empty($operation['message'])) {
-        _versioncontrol_access_errors(array(
+        $this->_accessErrors(array(
           t('** ERROR: You have to provide a log message.'),
         ));
         return FALSE;
@@ -1066,7 +1077,7 @@ class VersioncontrolOperation implements ArrayAccess {
 
       // Let the operation fail if there's more than zero error messages.
       if (!empty($error_messages)) {
-        _versioncontrol_access_errors($error_messages);
+        $this->_accessErrors($error_messages);
         return FALSE;
       }
       return TRUE;
