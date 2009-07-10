@@ -677,7 +677,10 @@ function versioncontrol_get_repository($repo_id) {
  *   an empty array is returned.
  */
 function versioncontrol_get_repositories($constraints = array()) {
-  static $repository_cache = array();
+  static $repository_cache;
+  if (!isset($repository_cache)) {
+    $repository_cache = array();
+  }
 
   $backends = versioncontrol_get_backends();
   $auth_methods = versioncontrol_get_authorization_methods();
@@ -1353,7 +1356,10 @@ function _versioncontrol_construct_operation_query(&$constraints, &$tables) {
  * elements 'callback' and 'cardinality'.
  */
 function _versioncontrol_operation_constraint_info() {
-  static $constraint_info = array();
+  static $constraint_info;
+  if (!isset($constraint_info)) {
+    $constraint_info = array();
+  }
 
   if (empty($constraint_info)) {
     foreach (module_implements('versioncontrol_operation_constraint_info') as $module) {
@@ -3032,7 +3038,10 @@ function versioncontrol_get_url_tracker($repository, $issue_id) {
  *   - 'tracker': The issue/bug/case URL of the associated issue tracker.
  */
 function _versioncontrol_get_repository_urls($repository) {
-  static $urls_by_repository = array();
+  static $urls_by_repository;
+  if (!isset($urls_by_repository)) {
+    $urls_by_repository = array();
+  }
 
   if (!isset($urls_by_repository[$repository['repo_id']])) {
     $result = db_query('SELECT * FROM {versioncontrol_repository_urls}

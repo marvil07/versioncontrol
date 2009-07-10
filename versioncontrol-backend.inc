@@ -161,6 +161,9 @@ function versioncontrol_get_access_errors() {
  */
 function _versioncontrol_access_errors($new_messages = NULL) {
   static $error_messages = array();
+  if (!isset($error_messages)) {
+    $error_messages = array();
+  }
 
   if (isset($new_messages)) {
     $error_messages = $new_messages;
