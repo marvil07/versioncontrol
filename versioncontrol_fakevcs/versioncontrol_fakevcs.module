@@ -192,13 +192,8 @@ function versioncontrol_fakevcs_format_revision_identifier($repository, $revisio
  *
  * @return
  *   NULL if the given item does not belong to any label or if the appropriate
- *   label cannot be retrieved. Otherwise a label array is returned, consisting
- *   of the following elements:
- *
- *   - 'name': The branch or tag name (a string).
- *   - 'type': Whether this label is a branch (indicated by the
- *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
- *        (VERSIONCONTROL_OPERATION_TAG).
+ *   label cannot be retrieved. Otherwise a VersioncontrolLabel array is
+ *   returned
  *
  *   In case the label array also contains the 'label_id' element (which
  *   happens when it's copied from the $operation['labels'] array) there will
@@ -259,13 +254,8 @@ function versioncontrol_fakevcs_get_selected_label_from_operation($operation, $t
  *
  * @return
  *   NULL if the given item does not belong to any label or if an appropriate
- *   label cannot be retrieved. Otherwise a label array is returned, consisting
- *   of the following elements:
- *
- *   - 'name': The branch or tag name (a string).
- *   - 'type': Whether this label is a branch (indicated by the
- *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
- *        (VERSIONCONTROL_OPERATION_TAG).
+ *   label cannot be retrieved. Otherwise a VersioncontrolLabel array is
+ *   returned, consisting
  *
  *   In case the label array also contains the 'label_id' element (which
  *   happens when it's copied from the $operation['labels'] array) there will
@@ -292,7 +282,7 @@ function versioncontrol_fakevcs_get_selected_label_from_other_item($repository, 
   if (in_array('successor_item', $other_item_tags)) {
     $label = versioncontrol_get_item_selected_label($repository, $other_item);
 
-    if (isset($label['type']) && $label['type'] == VERSIONCONTROL_OPERATION_BRANCH) {
+    if (isset($label['type']) && $label['type'] == VERSIONCONTROL_LABEL_BRANCH) {
       return $label;
     }
   }
@@ -375,13 +365,8 @@ function versioncontrol_fakevcs_get_selected_label_from_other_item($repository, 
  *   - 'selected_label':
  *        In case no branch or tag applies to that item or could not be
  *        retrieved for whatever reasons, the selected label can also be NULL.
- *        Otherwise, it's a label array describing the selected label, with the
- *        following keys:
- *
- *        - 'name': The branch or tag name (a string).
- *        - 'type': Whether this label is a branch (indicated by the
- *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
- *             (VERSIONCONTROL_OPERATION_TAG).
+ *        Otherwise, it's a VersioncontrolLabel array describing the selected
+ *        label.
  *
  *        In case the label array also contains the 'label_id' element (which
  *        happens when it's copied from the $operation['labels'] array) there
@@ -421,7 +406,7 @@ function versioncontrol_fakevcs_get_item($repository, $path, $constraints = arra
  *   The item whose parallel sibling should be retrieved.
  * @param $label_type_filter
  *   If unset, siblings will be retrieved both on branches and tags.
- *   If set to VERSIONCONTROL_OPERATION_BRANCH or VERSIONCONTROL_OPERATION_TAG,
+ *   If set to VERSIONCONTROL_LABEL_BRANCH or VERSIONCONTROL_LABEL_TAG,
  *   results are limited to just that label type.
  *
  * @return
@@ -448,14 +433,7 @@ function versioncontrol_fakevcs_get_item($repository, $path, $constraints = arra
  *        (optional, depends on the VCS backend).
  *
  *   - 'selected_label':
- *        A label array describing the selected label, with the following keys:
- *
- *        - 'name': The branch or tag name (a string).
- *        - 'type': Whether this label is a branch (indicated by the
- *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
- *             (VERSIONCONTROL_OPERATION_TAG).
- *        - 'label_id': Optional. The label identifier (a simple integer), used
- *             for unique identification of branches and tags in the database.
+ *        A VersioncontrolLabel array describing the selected label.
  *
  *   NULL is returned if the given item is not inside the repository,
  *   or has not been inside the repository at the specified revision.
@@ -474,7 +452,7 @@ function versioncontrol_fakevcs_get_parallel_items($repository, $item, $label_ty
       ),
       'selected_label' => array(
         'name' => 'HEAD',
-        'type' => VERSIONCONTROL_OPERATION_BRANCH,
+        'type' => VERSIONCONTROL_LABEL_BRANCH,
       ),
     ),
     array(
@@ -485,7 +463,7 @@ function versioncontrol_fakevcs_get_parallel_items($repository, $item, $label_ty
       ),
       'selected_label' => array(
         'name' => 'DRUPAL-5--1',
-        'type' => VERSIONCONTROL_OPERATION_BRANCH,
+        'type' => VERSIONCONTROL_LABEL_BRANCH,
       ),
     ),
     array(
@@ -511,7 +489,7 @@ function versioncontrol_fakevcs_get_parallel_items($repository, $item, $label_ty
       ),
       'selected_label' => array(
         'name' => 'trunk',
-        'type' => VERSIONCONTROL_OPERATION_BRANCH,
+        'type' => VERSIONCONTROL_LABEL_BRANCH,
       ),
     ),
     array(
@@ -522,7 +500,7 @@ function versioncontrol_fakevcs_get_parallel_items($repository, $item, $label_ty
       ),
       'selected_label' => array(
         'name' => '5.x-1.x',
-        'type' => VERSIONCONTROL_OPERATION_BRANCH,
+        'type' => VERSIONCONTROL_LABEL_BRANCH,
       ),
     ),
   );
@@ -570,13 +548,8 @@ function versioncontrol_fakevcs_get_parallel_items($repository, $item, $label_ty
  *   - 'selected_label':
  *        In case no branch or tag applies to that item or could not be
  *        retrieved for whatever reasons, the selected label can also be NULL.
- *        Otherwise, it's a label array describing the selected label, with the
- *        following keys:
- *
- *        - 'name': The branch or tag name (a string).
- *        - 'type': Whether this label is a branch (indicated by the
- *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
- *             (VERSIONCONTROL_OPERATION_TAG).
+ *        Otherwise, it's a VersioncontrolLabel array describing the selected
+ *        label.
  *
  *   NULL is returned if the given item is not under version control,
  *   or was not under version control at the time of the given revision.

@@ -164,7 +164,7 @@ function versioncontrol_schema() {
       ),
       'type' => array(
         'description' =>
-          'Whether this label is a branch or a tag. Consequently, this can be either VERSIONCONTROL_OPERATION_BRANCH or VERSIONCONTROL_OPERATION_TAG. (If we went for total correctness, it would have been VERSIONCONTROL_LABEL_{BRANCH,TAG} but I fear the confusion coming out of two similar constants. Therefore, reusing the operation constants.)',
+          'Whether this label is a branch or a tag. Consequently, this can be either VERSIONCONTROL_LABEL_BRANCH or VERSIONCONTROL_LABEL_TAG.',
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,

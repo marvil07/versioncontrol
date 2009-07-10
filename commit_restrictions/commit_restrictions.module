@@ -249,7 +249,7 @@ function _commit_restrictions_label_access($operation, $restrictions) {
 
   // This code will work for both branches and tags, given some preset values.
   $labelinfos = array(
-    VERSIONCONTROL_OPERATION_BRANCH => array(
+    VERSIONCONTROL_LABEL_BRANCH => array(
       'valid_restrictions' => $valid_branches,
       'other_restrictions' => $valid_tags,
       'simple_error' => t('** ERROR: the !labelname branch is not allowed in this repository.'),
@@ -257,7 +257,7 @@ function _commit_restrictions_label_access($operation, $restrictions) {
 '** ERROR: "!labelname" is a valid name for a tag, but not for a branch.
 ** You must either create a tag with this name, or choose a valid branch name.'),
     ),
-    VERSIONCONTROL_OPERATION_TAG => array(
+    VERSIONCONTROL_LABEL_TAG => array(
       'valid_restrictions' => $valid_tags,
       'other_restrictions' => $valid_branches,
       'simple_error' => '** ERROR: the !labelname tag is not allowed in this repository.',

@@ -4,7 +4,6 @@ require_once 'VersioncontrolRepository.php';
 /**
  * @name VCS label types
  * Use same values as VERSIONCONTROL_OPERATION_* for backward compatibility
- * TODO: change all involved label['type'] usages
  */
 //@{
 define('VERSIONCONTROL_LABEL_BRANCH', 2);
@@ -13,7 +12,6 @@ define('VERSIONCONTROL_LABEL_TAG',    3);
 
 /**
  * The parent of branches and tags classes
- *
  */
 abstract class VersioncontrolLabel implements ArrayAccess {
     // Attributes
@@ -40,9 +38,9 @@ abstract class VersioncontrolLabel implements ArrayAccess {
     public $repository;
 
     /**
-     *  Whether this label is a branch (indicated by the
-     *  VERSIONCONTROL_LABEL_BRANCH constant) or a tag
-     *  (VERSIONCONTROL_LABEL_TAG).
+     * Whether this label is a branch (indicated by the
+     * VERSIONCONTROL_LABEL_BRANCH constant) or a tag
+     * (VERSIONCONTROL_LABEL_TAG).
      *
      * @var    int
      */
@@ -76,23 +74,10 @@ abstract class VersioncontrolLabel implements ArrayAccess {
      * Insert a label entry into the {versioncontrol_labels} table,
      * or retrieve the same one that's already there.
      *
-     * @param $label
-     *   A structured array describing the branch or tag that should be inserted
-     *   into the database. A label array contains (at least) the following keys:
-     *
-     *   - 'name': The branch or tag name (a string).
-     *   - 'type': Whether this label is a branch (indicated by the
-     *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *        (VERSIONCONTROL_OPERATION_TAG).
-     *   - 'label_id': Optional - if it doesn't exist yet, it will afterwards.
-     *        The label identifier (a simple integer), used for unique
-     *        identification of branches and tags in the database.
-     *
-     * @return
-     *   The @p $label variable, enhanced with the newly added property 'label_id'
-     *   specifying the database identifier for that label. There may be labels
-     *   with a similar 'name' but different 'type' properties, those are considered
-     *   to be different and will both go into the database side by side.
+     * The object is enhanced with the newly added property 'label_id'
+     * specifying the database identifier for that label. There may be labels
+     * with a similar 'name' but different 'type' properties, those are considered
+     * to be different and will both go into the database side by side.
      */
     public function ensure() {
       if (!empty($this->label_id)) { // already in the database

@@ -786,13 +786,13 @@ function theme_commitlog_operation_caption($variables, $options = array()) {
           $action_strings[] = t('committed !id to !labels', $replacements);
         }
         else if ($action == VERSIONCONTROL_ACTION_ADDED) {
-          $action_string = ($type == VERSIONCONTROL_OPERATION_BRANCH)
+          $action_string = ($type == VERSIONCONTROL_LABEL_BRANCH)
             ? format_plural(count($labels), 'created branch !labels', 'created branches !labels')
             : format_plural(count($labels), 'created tag !labels', 'created tags !labels');
           $action_strings[] = strtr($action_string, $replacements);
         }
         else if ($action == VERSIONCONTROL_ACTION_DELETED) {
-          $action_string = ($type == VERSIONCONTROL_OPERATION_BRANCH)
+          $action_string = ($type == VERSIONCONTROL_LABEL_BRANCH)
             ? format_plural(count($labels), 'deleted branch !labels', 'deleted branches !labels')
             : format_plural(count($labels), 'deleted tag !labels', 'deleted tags !labels');
           $action_strings[] = strtr($action_string, $replacements);
@@ -851,12 +851,12 @@ function theme_commitlog_operation_subject($variables, $options = array()) {
     $replacements = array('!label' => $label_string, '!repo' => $repo_name);
 
     if ($first_label['action'] == VERSIONCONTROL_ACTION_ADDED) {
-      $action_string = ($first_label['type'] == VERSIONCONTROL_OPERATION_BRANCH)
+      $action_string = ($first_label['type'] == VERSIONCONTROL_LABEL_BRANCH)
         ? t('Created branch !label', $replacements)
         : t('Created tag !label', $replacements);
     }
     else if ($first_label['action'] == VERSIONCONTROL_ACTION_DELETED) {
-      $action_string = ($first_label['type'] == VERSIONCONTROL_OPERATION_BRANCH)
+      $action_string = ($first_label['type'] == VERSIONCONTROL_LABEL_BRANCH)
         ? t('Created branch !label', $replacements)
         : t('Created tag !label', $replacements);
     }
@@ -883,7 +883,7 @@ function theme_commitlog_label($label, $options = array()) {
   $options = _commitlog_options($options);
 
   if ($options['format'] == 'html') {
-    $label_type_filter = ($label['type'] == VERSIONCONTROL_OPERATION_BRANCH)
+    $label_type_filter = ($label['type'] == VERSIONCONTROL_LABEL_BRANCH)
                           ? 'branch' : 'tag';
     return l($label['name'], 'commitlog', array(
       'query' => array($label_type_filter => $label['name']),

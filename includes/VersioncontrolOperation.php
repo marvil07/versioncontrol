@@ -105,18 +105,7 @@ class VersioncontrolOperation implements ArrayAccess {
      * add/delete/move operations for labels, as detailed below.
      * Mind that the main development branch - e.g. 'HEAD', 'trunk'
      * or 'master' - is also considered a branch. Each element in 'labels'
-     * is a structured array with the following keys:
-     * FIXME: VersioncontrolLabel's array?
-     *
-     *        - 'name': The branch or tag name (a string).
-     *        - 'type': Whether this label is a branch (indicated by the
-     *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *             (VERSIONCONTROL_OPERATION_TAG).
-     *        - 'action': Specifies what happened to this label in this operation.
-     *             For plain commits, this is always VERSIONCONTROL_ACTION_MODIFIED.
-     *             For branch or tag operations (or commits that emulate those),
-     *             it can be either VERSIONCONTROL_ACTION_ADDED or
-     *             VERSIONCONTROL_ACTION_DELETED.
+     * is a VersioncontrolLabel(VersioncontrolBranch VersioncontrolTag)
      *
      * @var    array
      */
@@ -277,19 +266,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *        add or delete operations for labels, as detailed below.
      *        Mind that the main development branch - e.g. 'HEAD', 'trunk'
      *        or 'master' - is also considered a branch. Each element in 'labels'
-     *        is a structured array with the following keys:
-     *
-     *        - 'label_id': The label identifier (a simple integer), used for unique
-     *             identification of branches and tags in the database.
-     *        - 'name': The branch or tag name (a string).
-     *        - 'type': Whether this label is a branch (indicated by the
-     *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *             (VERSIONCONTROL_OPERATION_TAG).
-     *        - 'action': Specifies what happened to this label in this operation.
-     *             For plain commits, this is always VERSIONCONTROL_ACTION_MODIFIED.
-     *             For branch or tag operations (or commits that emulate those),
-     *             it can be either VERSIONCONTROL_ACTION_ADDED or
-     *             VERSIONCONTROL_ACTION_DELETED.
+     *        is a VersioncontrolLabel(VersioncontrolBranch VersioncontrolTag)
      *
      *   If not a single operation matches these constraints,
      *   an empty array is returned.
@@ -953,17 +930,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *        add/delete/move operations for labels, as detailed below.
      *        Mind that the main development branch - e.g. 'HEAD', 'trunk'
      *        or 'master' - is also considered a branch. Each element in 'labels'
-     *        is a structured array with the following keys:
-     *
-     *        - 'name': The branch or tag name (a string).
-     *        - 'type': Whether this label is a branch (indicated by the
-     *             VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *             (VERSIONCONTROL_OPERATION_TAG).
-     *        - 'action': Specifies what happened to this label in this operation.
-     *             For plain commits, this is always VERSIONCONTROL_ACTION_MODIFIED.
-     *             For branch or tag operations (or commits that emulate those),
-     *             it can be either VERSIONCONTROL_ACTION_ADDED or
-     *             VERSIONCONTROL_ACTION_DELETED.
+     *        is a VersioncontrolLabel(VersioncontrolBranch VersioncontrolTag)
      *
      * @param $operation_items
      *   A structured array containing the exact details of what is about to happen

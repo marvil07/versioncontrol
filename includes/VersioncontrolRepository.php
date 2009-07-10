@@ -332,8 +332,8 @@ class VersioncontrolRepository implements ArrayAccess {
    *
    *   - 'label_ids': An array of label ids. If given, only labels with one of
    *        these identifiers will be returned.
-   *   - 'type': Either VERSIONCONTROL_OPERATION_BRANCH or
-   *        VERSIONCONTROL_OPERATION_TAG. If given, only labels of this type
+   *   - 'type': Either VERSIONCONTROL_LABEL_BRANCH or
+   *        VERSIONCONTROL_LABEL_TAG. If given, only labels of this type
    *        will be returned.
    *   - 'names': An array of label names to search for. If given, only labels
    *        matching one of these names will be returned. Matching is done with
@@ -348,8 +348,8 @@ class VersioncontrolRepository implements ArrayAccess {
    *        identification of branches and tags in the database.
    *   - 'name': The branch or tag name (a string).
    *   - 'type': Whether this label is a branch (indicated by the
-   *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-   *        (VERSIONCONTROL_OPERATION_TAG).
+   *        VERSIONCONTROL_LABEL_BRANCH constant) or a tag
+   *        (VERSIONCONTROL_LABEL_TAG).
    *
    *   If not a single known label in the given repository matches these
    *   constraints, an empty array is returned.

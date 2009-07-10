@@ -419,15 +419,7 @@ class VersioncontrolItem implements ArrayAccess {
      * @return
      *   In case no branch or tag applies to that item or could not be retrieved
      *   for whatever reasons, the selected label can also be NULL. Otherwise, it's
-     *   a label array describing the selected label, with the following keys:
-     *
-     *   - 'label_id': The label identifier (a simple integer), used for unique
-     *        identification of branches and tags in the database.
-     *   - 'name': The branch or tag name (a string).
-     *   - 'type': Whether this label is a branch (indicated by the
-     *        VERSIONCONTROL_OPERATION_BRANCH constant) or a tag
-     *        (VERSIONCONTROL_OPERATION_TAG).
-     *  FIXME remove params and do not return, oop
+     *   a VersioncontrolLabel object(tag or branch)
      */
     public function getSelectedLabel() {
       // If the label is already retrieved, we can return it just that way.
@@ -573,9 +565,9 @@ class VersioncontrolItem implements ArrayAccess {
      *   The repository that the item is located in.
      * @param $item
      *   The item whose parallel sibling should be retrieved.
-     * @param $label_type
+     * @param $label_type_filter
      *   If unset, siblings will be retrieved both on branches and tags.
-     *   If set to VERSIONCONTROL_OPERATION_BRANCH or VERSIONCONTROL_OPERATION_TAG,
+     *   If set to VERSIONCONTROL_LABEL_BRANCH or VERSIONCONTROL_LABEL_TAG,
      *   results are limited to just that label type.
      *
      * @return

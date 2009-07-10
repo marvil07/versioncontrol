@@ -291,12 +291,12 @@ function hook_versioncontrol_write_access($operation, $operation_items) {
 
   // Restrict disallowed branches and tags.
   $valid_labels = array(
-    VERSIONCONTROL_OPERATION_BRANCH => array('@^HEAD$@', '@^DRUPAL-5(--[2-9])?$@', '@^DRUPAL-6--[1-9]$@'),
-    VERSIONCONTROL_OPERATION_TAG => array('@^DRUPAL-[56]--(\d+)-(\d+)(-[A-Z0-9]+)?$@'),
+    VERSIONCONTROL_LABEL_BRANCH => array('@^HEAD$@', '@^DRUPAL-5(--[2-9])?$@', '@^DRUPAL-6--[1-9]$@'),
+    VERSIONCONTROL_LABEL_TAG => array('@^DRUPAL-[56]--(\d+)-(\d+)(-[A-Z0-9]+)?$@'),
   );
 
   foreach ($operation['labels'] as $label) {
-    if ($label['type'] == VERSIONCONTROL_OPERATION_TAG
+    if ($label['type'] == VERSIONCONTROL_LABEL_TAG
         && $label['action'] == VERSIONCONTROL_ACTION_DELETED) {
       continue; // no restrictions, even invalid tags should be allowed to be deleted
     }
@@ -314,7 +314,7 @@ function hook_versioncontrol_write_access($operation, $operation_items) {
       // No regexps match this label, so deny it.
       $error_messages[] = t('** ERROR: the !name !labeltype is not allowed in this repository.', array(
         '!name' => $label['name'],
-        '!labeltype' => ($label['type'] == VERSIONCONTROL_OPERATION_BRANCH)
+        '!labeltype' => ($label['type'] == VERSIONCONTROL_LABEL_BRANCH)
                         ? t('branch')
                         : t('tag'),
       ));
