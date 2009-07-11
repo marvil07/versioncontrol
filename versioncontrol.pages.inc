@@ -250,7 +250,7 @@ function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_userna
       $vcs_accounts = array($vcs_account);
 
       foreach ($vcs_accounts as $key => $vcs_account) {
-        if (isset($url_username) && $vcs_account != $url_username) {
+        if (isset($url_username) && $vcs_account->vcs_username != $url_username) {
           unset($vcs_accounts[$uid][$repo_id]);
           continue; // disregard usernames that don't match the URL constraints
         }
