@@ -222,60 +222,59 @@ class VersioncontrolAccount implements ArrayAccess {
 
   /**
    * Update a VCS user account in the database, and call the necessary
-   * module hooks. The @p $repository and @p $uid parameters must stay the same
-   * values as the one given on account creation, whereas @p $username and
+   * module hooks. The account repository and uid must stay the same values as
+   * the one given on account creation, whereas vcs_username and
    * @p $additional_data may change.
    *
-   * @param $uid
-   *   The Drupal user id corresponding to the VCS username.
    * @param $username
-   *   The VCS specific username (a string).
-   * @param $repository
-   *   The repository where the user has its VCS account.
+   *   The VCS specific username (a string). Here we are using an explicit
+   *   parameter instead of taking the vcs_username data member to be able to
+   *   verify is it changed, there would be lots of operations, so we do not
+   *   want to update them if it's not necessary.
    * @param $additional_data
    *   An array of additional author information. Modules can fill this array
    *   by implementing hook_versioncontrol_account_submit().
    */
-  public function update($repository, $uid, $username, $additional_data = array()) {
-    $old_username = versioncontrol_get_account_username_for_uid($repository['repo_id'], $uid, TRUE);
-    $username_changed = ($username != $old_username);
+  public function update($username, $additional_data = array()) {
+    $repo_id = $this->repository->repo_id;
+    $username_changed = ($username != $this->vcs_username);
 
     if ($username_changed) {
+      $this->vcs_username = $username;
       db_query("UPDATE {versioncontrol_accounts}
                 SET username = '%s'
                 WHERE uid = %d AND repo_id = %d",
-                $username, $uid, $repository['repo_id']
+                $this->vcs_username, $this->uid, $repo_id
       );
     }
 
     // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($repository['vcs'], 'account')) {
+    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
       _versioncontrol_call_backend(
-        $repository['vcs'], 'account',
-        array('update', $uid, $username, $repository, $additional_data)
+        $this->repository->vcs, 'account',
+        array('update', $this->uid, $this->vcs_username, $this->repository, $additional_data)
       );
     }
 
-    // Update the operations table.
     if ($username_changed) {
       db_query("UPDATE {versioncontrol_operations}
                 SET uid = 0
                 WHERE uid = %d AND repo_id = %d",
-                $uid, $repository['repo_id']);
+                $this->uid, $repo_id);
       db_query("UPDATE {versioncontrol_operations}
                 SET uid = %d
-                WHERE username = '%s' AND repo_id = %d",
-                $uid, $username, $repository['repo_id']);
+                WHERE committer = '%s' AND repo_id = %d",
+                $this->uid, $this->vcs_username, $repo_id);
     }
 
     // Everything's done, let the world know about it!
     module_invoke_all('versioncontrol_account',
-      'update', $uid, $username, $repository, $additional_data
+      'update', $this->uid, $this->vcs_username, $this->repository, $additional_data
     );
 
     watchdog('special',
       'Version Control API: updated @username account in repository @repository',
-      array('@username' => $username, '@repository' => $repository['name']),
+      array('@username' => $this->vcs_username, '@repository' => $this->repository->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
     );
   }

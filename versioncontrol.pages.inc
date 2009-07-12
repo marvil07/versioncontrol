@@ -378,8 +378,8 @@ function versioncontrol_account_edit_form(&$form_state, $uid, $repository, $vcs_
   $form['#submit'] = array('versioncontrol_account_edit_form_submit');
 
   if ($create_account) {
-    $registration_message = isset($repository['data']['versioncontrol']['registration_message'])
-      ? $repository['data']['versioncontrol']['registration_message']
+    $registration_message = isset($repository->data['versioncontrol']['registration_message'])
+      ? $repository->data['versioncontrol']['registration_message']
       : '';
 
     if (!empty($registration_message)) {
@@ -535,14 +535,18 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
     ));
   }
   else {
+    //FIXME why username are a required constraint?
+    //      uid and repo_id are the PK on the table getAccounts query
     $constraints = array(
       'uids' => array($uid),
       'repo_ids' => array($repository->repo_id),
       'usernames' => array($form['#original_username'])
     );
-    $vcs_accounts = VersioncontrolAccount::getAccounts($constraints);
-    //FIXME actually update
-    versioncontrol_update_account($repository, $uid, $username, $additional_data);
+    $vcs_accounts = VersioncontrolAccount::getAccounts($constraints, TRUE);
+    // if we got an original_username we can trust on getting a value
+    $vcs_account = array_shift(array_shift($vcs_accounts));
+
+    $vcs_account->update($username, $additional_data);
 
     // Regular users cannot change the username, and will probably get
     // a message for each of the other actions that hook into the form.
