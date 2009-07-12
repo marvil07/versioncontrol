@@ -86,9 +86,28 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
     $this->assertTrue(count($admin_mail)==1, t('Account creation moderator was notified by mail.'));
     $applicant_mail = $this->drupalGetMails(array('id' => 'versioncontrol_account_status_application_applicant'));
     $this->assertTrue(count($applicant_mail)==1, t('Account applicant was notified by mail.'));
-    // TODO verify contents are correct
-    // TODO test various status changes (newly created - queued, queued - approved, approved - disabled, etc.)
+    // TODO verify mail contents are correct
 
+    // Try to register again to verify it is not possible
+    $this->drupalGet("user/{$this->basic_user->uid}/edit/versioncontrol/{$repo->repo_id}");
+    $this->assertText(t('Your application has been received and is currently pending review.'), t('Can not register twice in the same repository.'));
+
+    // now login again as the admin user to test account status changes
+    $this->drupalLogin($this->admin_user);
+    // queued -> pending
+    $account_edit_by_admin = array(
+      'status' => VERSIONCONTROL_ACCOUNT_STATUS_PENDING,
+      'send_admin_message' => 0,
+    );
+    $this->drupalGet("user/{$this->basic_user->uid}/edit/versioncontrol/{$repo->repo_id}");
+    $this->drupalPost($this->url, $account_edit_by_admin, t('Update @repo_name account', array('@repo_name' => $backend['name'])) );
+    $this->assertRaw(t('The @vcs account %username has been updated successfully.', array('@vcs' => $backend['name'], '%username' => $account_edit['account_name'])), t('Status successfully changed.'));
+    $account_status_user_status = db_result(db_query("SELECT status FROM {versioncontrol_account_status_users} WHERE uid = '%s' AND repo_id = '%s'", array($this->basic_user->uid, $repo['repo_id'])));
+    $this->assertTrue($account_status_user_status==VERSIONCONTROL_ACCOUNT_STATUS_PENDING, t('Account status successfully changed on DB.'));
+    // TODO test all?
+    // pending -> approved
+    // approved -> declined
+    // declined -> disabled
   }
 
   /**
