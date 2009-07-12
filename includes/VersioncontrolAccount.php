@@ -10,17 +10,17 @@ require_once 'VersioncontrolRepository.php';
 class VersioncontrolAccount implements ArrayAccess {
   // Attributes
   /**
-    * VCS's username
-    *
-    * @var    string
-    */
+   * VCS's username
+   *
+   * @var    string
+   */
   public $vcs_username;
 
   /**
-    * Drupal user id
-    *
-    * @var    int
-    */
+   * Drupal user id
+   *
+   * @var    int
+   */
   public $uid;
 
   /**
@@ -41,36 +41,36 @@ class VersioncontrolAccount implements ArrayAccess {
   }
 
   /**
-    * Retrieve a set of Drupal uid / VCS username mappings
-    * that match the given constraints.
-    *
-    * @static      
-    * @param $constraints
-    *   An optional array of constraints. Possible array elements are:
-    *
-    *   - 'uids': An array of Drupal user ids. If given, only accounts that
-    *        correspond to these Drupal users will be returned.
-    *   - 'repo_ids': An array of repository ids. If given, only accounts
-    *        in the corresponding repositories will be returned.
-    *   - 'usernames': An array of system specific VCS usernames,
-    *        like array('dww', 'jpetso'). If given, only accounts
-    *        with these VCS usernames will be returned.
-    *   - 'usernames_by_repository': A structured array that looks like
-    *        array($repo_id => array('dww', 'jpetso'), ...).
-    *        You might want this if you combine multiple username and repository
-    *        constraints, otherwise you can well do without.
-    *
-    * @param $include_unauthorized
-    *   If FALSE (which is the default), this function does not return accounts
-    *   that are pending, queued, disabled, blocked, or otherwise non-approved.
-    *   If TRUE, all accounts are returned, regardless of their status.
-    *
-    * @return
-    *   A structured array that looks like
-    *   array($drupal_uid => array($repo_id => 'VCS username', ...), ...).
-    *   If not a single account matches these constraints,
-    *   an empty array is returned.
-    */
+   * Retrieve a set of Drupal uid / VCS username mappings
+   * that match the given constraints.
+   *
+   * @static
+   * @param $constraints
+   *   An optional array of constraints. Possible array elements are:
+   *
+   *   - 'uids': An array of Drupal user ids. If given, only accounts that
+   *        correspond to these Drupal users will be returned.
+   *   - 'repo_ids': An array of repository ids. If given, only accounts
+   *        in the corresponding repositories will be returned.
+   *   - 'usernames': An array of system specific VCS usernames,
+   *        like array('dww', 'jpetso'). If given, only accounts
+   *        with these VCS usernames will be returned.
+   *   - 'usernames_by_repository': A structured array that looks like
+   *        array($repo_id => array('dww', 'jpetso'), ...).
+   *        You might want this if you combine multiple username and repository
+   *        constraints, otherwise you can well do without.
+   *
+   * @param $include_unauthorized
+   *   If FALSE (which is the default), this function does not return accounts
+   *   that are pending, queued, disabled, blocked, or otherwise non-approved.
+   *   If TRUE, all accounts are returned, regardless of their status.
+   *
+   * @return
+   *   A structured array that looks like
+   *   array($drupal_uid => array($repo_id => 'VCS username', ...), ...).
+   *   If not a single account matches these constraints,
+   *   an empty array is returned.
+   */
   public static function getAccounts($constraints = array(), $include_unauthorized = FALSE) {
     $and_constraints = array();
     $params = array();
@@ -176,16 +176,14 @@ class VersioncontrolAccount implements ArrayAccess {
 
   /**
    * Return the most accurate guess on what the VCS username for a Drupal user
-   * might look like in the given repository.
+   * might look like in the repository's account.
    *
-   * @param $repository
-   *   The repository where the the VCS account exists or will be located.
    * @param $user
    *  The Drupal user who wants to register an account.
    */
   public function usernameSuggestion($user) {
-    if (versioncontrol_backend_implements($this->repository['vcs'], 'account_username_suggestion')) {
-      return _versioncontrol_call_backend($this->repository['vcs'],
+    if (versioncontrol_backend_implements($this->repository->vcs, 'account_username_suggestion')) {
+      return _versioncontrol_call_backend($this->repository->vcs,
         'account_username_suggestion', array($this->repository, $user)
       );
     }
@@ -195,10 +193,8 @@ class VersioncontrolAccount implements ArrayAccess {
   }
 
   /**
-   * Determine if the given repository allows a username to exist.
+   * Determine if the account repository allows a username to exist.
    *
-   * @param $vcs
-   *   The repository where the the VCS account exists or will be located.
    * @param $username
    *  The username to check. It is passed by reference so if the username is
    *  valid but needs minor adaptions (such as cutting away unneeded parts) then
@@ -324,13 +320,6 @@ class VersioncontrolAccount implements ArrayAccess {
   /**
    * Delete a VCS user account from the database, set all commits with this
    * account as author to user 0 (anonymous), and call the necessary hooks.
-   *
-   * @param $repository
-   *   The repository where the user has its VCS account.
-   * @param $uid
-   *   The Drupal user id corresponding to the VCS username.
-   * @param $username
-   *   The VCS specific username (a string).
    */
   public function delete() {
     // Update the operations table.
