@@ -898,7 +898,9 @@ function versioncontrol_account_status_versioncontrol_account_submit(&$additiona
         : '',
     ),
     'is_reapplication' => !empty($form['#is_reapplication']),
-    'send_application_mails' => $form['#send_application_mails'],
+    'send_application_mails' => isset($form['#send_application_mails'])
+      ? $form['#send_application_mails']
+      : FALSE,
   );
 }
 
