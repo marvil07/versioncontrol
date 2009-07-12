@@ -137,25 +137,13 @@ function versioncontrol_user($type, &$edit, &$user, $category = NULL) {
       if (empty($accounts)) {
         return;
       }
-      $accounts_flat = array();
-      $repo_ids = array();
-
       foreach ($accounts as $uid => $usernames_by_repository) {
         foreach ($usernames_by_repository as $repo_id => $account) {
-          $accounts_flat[] = array('uid' => $uid, 'username' => $account->vcs_username, 'repo_id' => $repo_id);
-          $repo_ids[] = $repo_id;
+          $account->delete();
         }
       }
-      $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
+      break;
 
-      foreach ($accounts_flat as $account) {
-        if (isset($repositories[$account['repo_id']])) {
-          versioncontrol_delete_account(
-            $repositories[$account['repo_id']], $account['uid'], $account['username']
-          );
-        }
-      }
-      return;
   }
 }
 

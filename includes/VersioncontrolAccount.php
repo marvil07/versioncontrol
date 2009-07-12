@@ -332,7 +332,7 @@ class VersioncontrolAccount implements ArrayAccess {
    * @param $username
    *   The VCS specific username (a string).
    */
-  public function delete($repository, $uid, $username) {
+  public function delete() {
     // Update the operations table.
     db_query('UPDATE {versioncontrol_operations}
               SET uid = 0
