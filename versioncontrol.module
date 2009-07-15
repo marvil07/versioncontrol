@@ -207,7 +207,7 @@ function versioncontrol_menu() {
   foreach (versioncontrol_get_backends() as $vcs => $backend) {
     $items['admin/project/versioncontrol-repositories/add-'. $vcs] = array(
       'title' => 'Add @vcs repository',
-      'title arguments' => array('@vcs' => $backend['name']),
+      'title arguments' => array('@vcs' => $backend->name),
       'page arguments' => array('versioncontrol_admin_repository_edit',
         VERSIONCONTROL_FORM_CREATE, $vcs
       ),
@@ -369,7 +369,7 @@ function versioncontrol_user_accounts_title_callback($accounts) {
   if (count($vcses) == 1) {
     $backends = versioncontrol_get_backends();
     $vcs = key($vcses);
-    return check_plain($backends[$vcs]['name']);
+    return check_plain($backends[$vcs]->name);
   }
   return t('Repository accounts');
 }
@@ -465,7 +465,7 @@ function versioncontrol_get_backends() {
  */
 function versioncontrol_get_backend($repository) {
   $backends = versioncontrol_get_backends();
-  return $backends[$repository['vcs']];
+  return $backends[$repository->vcs];
 }
 
 /**

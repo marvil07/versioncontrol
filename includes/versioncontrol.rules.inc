@@ -30,7 +30,7 @@ function versioncontrol_token_list($type = 'all') {
 
     $vcs_mapping = array();
     foreach (versioncontrol_get_backends() as $vcs => $backend) {
-      $vcs_mapping[$vcs] = check_plain($backend['name']);
+      $vcs_mapping[$vcs] = check_plain($backend->name);
     }
 
     $tokens['versioncontrol repository'] = array(

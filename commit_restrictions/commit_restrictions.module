@@ -15,7 +15,7 @@
 function commit_restrictions_form_alter(&$form, &$form_state, $form_id) {
   if ($form['#id'] == 'versioncontrol-repository-form') {
     $backends = versioncontrol_get_backends();
-    $backend_capabilities = $backends[$form['#vcs']]['capabilities'];
+    $backend_capabilities = $backends[$form['#vcs']]->capabilities;
     $restrictions = array();
 
     if (isset($form['#repository']) && !empty($form['#repository']['data']['commit_restrictions'])) {

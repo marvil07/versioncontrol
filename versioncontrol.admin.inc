@@ -568,7 +568,7 @@ function versioncontrol_admin_repository_list(&$form_state) {
   // Construct the form elements for each VCS separately.
   foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
     $header = $header_template;
-    $title = t('@vcs repositories', array('@vcs' => $backends[$vcs]['name']));
+    $title = t('@vcs repositories', array('@vcs' => $backends[$vcs]->name));
     $form[$vcs] = array(
       '#value' => '<h4>'. $title .'</h4>',
     );

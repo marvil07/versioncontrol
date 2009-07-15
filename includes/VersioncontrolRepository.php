@@ -223,7 +223,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     $backends = versioncontrol_get_backends();
     $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $backends[$vcs]['flags']);
+                           $backends[$vcs]->flags);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $vcs_specific = $vcs .'_specific';
@@ -273,7 +273,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     $backends = versioncontrol_get_backends();
     $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $backends[$vcs]['flags']);
+                           $backends[$vcs]->flags);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $vcs_specific = $vcs .'_specific';
@@ -363,7 +363,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     $backends = versioncontrol_get_backends();
     if (isset($backends[$vcs])) { // not the case when called from uninstall
       $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                             $backends[$vcs]['flags']);
+                             $backends[$vcs]->flags);
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';

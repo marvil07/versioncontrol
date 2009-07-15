@@ -1083,7 +1083,7 @@ function theme_commitlog_item($repository, $item, $path_override = NULL, $format
 
   $has_atomic_commits = FALSE;
   $backend = $backends[$repository->vcs];
-  if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $backend['capabilities'])) {
+  if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $backend->capabilities)) {
     $has_atomic_commits = TRUE;
   }
 

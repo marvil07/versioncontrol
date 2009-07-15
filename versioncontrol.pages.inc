@@ -346,7 +346,7 @@ function versioncontrol_account_edit_form(&$form_state, $uid, $repository, $vcs_
   $form = array();
   $create_account = ($vcs_username === VERSIONCONTROL_FORM_CREATE);
   $backends = versioncontrol_get_backends();
-  $vcs_name = $backends[$repository['vcs']]['name'];
+  $vcs_name = $backends[$repository['vcs']]->name;
 
   $user = ($uid === VERSIONCONTROL_REGISTER_DEMO) ? FALSE : user_load($uid);
 
