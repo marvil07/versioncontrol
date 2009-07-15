@@ -6,38 +6,55 @@
  *
  * @abstract
  */
-abstract class VersioncontrolBackend {
-    // Attributes
-    /**
-     * simple name
-     *
-     * @var    string
-     */
-    public $name;
+abstract class VersioncontrolBackend implements ArrayAccess {
+  // Attributes
+  /**
+   * simple name
+   *
+   * @var    string
+   */
+  public $name;
 
-    /**
-     * simple description
-     *
-     * @var    string
-     */
-    public $description;
+  /**
+   * simple description
+   *
+   * @var    string
+   */
+  public $description;
 
-    /**
-     * what the backend can do, probably deprecated after interfaces approach
-     *
-     * @var    array
-     */
-    public $capabilities;
+  /**
+   * what the backend can do, probably deprecated after interfaces approach
+   *
+   * @var    array
+   */
+  public $capabilities;
 
-    /**
-     * XXX
-     *
-     * @var    array
-     */
-    public $flags;
+  /**
+   * XXX
+   *
+   * @var    array
+   */
+  public $flags;
 
-    // Associations
-    // Operations
+  // Operations
+  public function __construct($name, $description, $capabilities=array(), $flags=array()) {
+    $this->name = $name;
+    $this->description = $description;
+    $this->capabilities = $capabilities;
+    $this->flags = $flags;
+  }
+
+  //ArrayAccess interface implementation
+  public function offsetExists($offset) {
+    return isset($this->$offset);
+  }
+  public function offsetGet($offset) {
+    return $this->$offset;
+  }
+  public function offsetSet($offset, $value) {
+    $this->$offset = $value;
+  }
+  public function offsetUnset($offset) {
+    unset($this->$offset);
+  }
 }
-
-?>

@@ -6,16 +6,19 @@
  * Helper for testing Version Control core
  */
 
+require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolBackend.php';
+
 /**
  * Implementation of hook_versioncontrol_backends().
  */
 function versioncontrol_test_versioncontrol_backends() {
   return array(
-    'test' => array(
-      'name' => 'TestVCS',
-      'description' => t('TestVCS backend for Version Control API.'),
-      'capabilities' => array(),
-      'flags' => array(),
+    'test' => new VersioncontrolTestBackend(
+      'TestVCS',
+      t('TestVCS backend for Version Control API.')
     ),
   );
+}
+
+class VersioncontrolTestBackend extends VersioncontrolBackend {
 }
