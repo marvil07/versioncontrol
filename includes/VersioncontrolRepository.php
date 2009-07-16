@@ -407,6 +407,65 @@ abstract class VersioncontrolRepository implements ArrayAccess {
                                         array($this, $accounts));
   }
 
+
+  /**
+   * Try to retrieve a given item in a repository.
+   *
+   * This function is optional for VCS backends to implement, be sure to check
+   * with versioncontrol_backend_implements($repository['vcs'], 'get_item')
+   * if the particular backend actually implements it.
+   *
+   * @param $path
+   *   The path of the requested item.
+   * @param $constraints
+   *   An optional array specifying one of two possible array keys which specify
+   *   the exact revision of the item:
+   *
+   *   - 'revision': A specific revision for the requested item, in the same
+   *        VCS-specific format as $item['revision']. A repository/path/revision
+   *        combination is always unique, so no additional information is needed.
+   *   - 'label': A label array with at least 'name' and 'type' elements
+   *        filled in. If a label is provided, it should be incorporated into the
+   *        result item as 'selected_label' (see return value docs), and will
+   *        cause the most recent item on the label to be fetched. If the label
+   *        includes an additional 'date' property holding a Unix timestamp, the
+   *        item at that point of time will be retrieved instead of the most
+   *        recent one. (For tag labels, there is only one item anyways, so
+   *        nevermind the "most recent" part in that case.)
+   *
+   * @return
+   *   If the item with the given path and revision cannot be retrieved, NULL is
+   *   returned. Otherwise the result is an item array, consisting of the
+   *   following elements:
+   *
+   *   - 'type': Specifies the item type, which is either
+   *        VERSIONCONTROL_ITEM_FILE or VERSIONCONTROL_ITEM_DIRECTORY for items
+   *        that still exist, or VERSIONCONTROL_ITEM_FILE_DELETED respectively
+   *        VERSIONCONTROL_ITEM_DIRECTORY_DELETED for items that have been
+   *        removed.
+   *   - 'path': The path of the item at the specific revision.
+   *   - 'revision': The currently selected (file-level) revision of the item.
+   *        If there is no such revision (which may be the case for directory
+   *        items) then the 'revision' element is an empty string.
+   *
+   *   If the returned item is already present in the database, the
+   *   'item_revision_id' database identifier might also be filled in
+   *   (optionally, depending on the VCS backend).
+   */
+  public function getItem($path, $constraints = array()) {
+    $info = _versioncontrol_call_backend(
+      $this->vcs, 'get_item', array($this, $path, $constraints)
+    );
+    if (empty($info)) {
+      return NULL;
+    }
+    $item = $info['item'];
+    $item['selected_label'] = new stdClass();
+    $item['selected_label']->label = is_null($info['selected_label'])
+      ? FALSE : $info['selected_label'];
+    return $item;
+  }
+
   /**
    * Generate and execute a DELETE query for the given table
    * based on name and value of the primary key.
