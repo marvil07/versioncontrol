@@ -115,10 +115,10 @@ function commit_restrictions_versioncontrol_repository_submit(&$repository, $for
   }
 
   if (empty($restrictions)) {
-    unset($repository['data']['commit_restrictions']);
+    unset($repository->data['commit_restrictions']);
   }
   else {
-    $repository['data']['commit_restrictions'] = $restrictions;
+    $repository->data['commit_restrictions'] = $restrictions;
   }
 }
 

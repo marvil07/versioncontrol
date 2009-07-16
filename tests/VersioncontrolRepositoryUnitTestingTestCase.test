@@ -42,7 +42,7 @@ class VersioncontrolRepositoryUnitTestingTestCase extends DrupalWebTestCase {
 
   public function testGetRepositoryFound() {
     $repo = new VersioncontrolRepository(NULL, 'test repository', 'test', '', 'versioncontrol_admin', '');
-    $backends = $repo->insert(array());
+    $repo->insert(array());
     $repository = VersioncontrolRepository::getRepository($repo->repo_id);
     $this->assertTrue(is_a($repository, 'VersioncontrolRepository'), t('Make sure we get a valid return when passing a good repo_id.'), 'getRepository');
   }

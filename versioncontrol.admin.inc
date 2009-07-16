@@ -522,11 +522,10 @@ function versioncontrol_admin_account_export_form_submit($form, &$form_state) {
 function versioncontrol_admin_account_export_display_form(&$form_state, $repository, $data) {
   $form = array();
   $form['#repo_id'] = $repository['repo_id'];
-  $backend = versioncontrol_get_backend($repository);
 
   $form['data'] = array(
     '#type' => 'textarea',
-    '#title' => t('@vcs account data', array('@vcs' => $backend->name)),
+    '#title' => t('@vcs account data', array('@vcs' => $repository->backend->name)),
     '#description' => t('The exported account data. You can copy this to the config file that contains the @vcs accounts.', array('@vcs' => $backend['name'])),
     '#default_value' => $data,
     '#cols' => 70,
@@ -672,8 +671,8 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
     '#maxlength' => 255,
   );
 
-  if ($repository_exists && isset($repository['data']['versioncontrol']['registration_message'])) {
-    $current_registration_message = $repository['data']['versioncontrol']['registration_message'];
+  if ($repository_exists && isset($repository->data['versioncontrol']['registration_message'])) {
+    $current_registration_message = $repository->data['versioncontrol']['registration_message'];
   }
   else {
     $presets = _versioncontrol_get_string_presets();

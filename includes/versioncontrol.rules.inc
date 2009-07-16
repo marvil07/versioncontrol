@@ -68,12 +68,11 @@ function versioncontrol_token_values($type, $object = NULL) {
   switch ($type) {
     case 'versioncontrol_repository':
       $repository = $object;
-      $backend = versioncontrol_get_backend($repository);
       $values = array(
         'id' => $repository['repo_id'],
         'name' => check_plain($repository->name),
         'vcs' => check_plain($repository->vcs),
-        'vcs-name' => check_plain($backend->name),
+        'vcs-name' => check_plain($repository->backend->name),
         'root' => check_plain($repository->root),
       );
       break;

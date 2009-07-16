@@ -1075,15 +1075,12 @@ function theme_commitlog_operation_items($operation, $operation_items, $format =
 }
 
 function theme_commitlog_item($repository, $item, $path_override = NULL, $format = 'html') {
-  $backends = versioncontrol_get_backends();
-
-  if (!isset($backends[$repository->vcs])) {
+  if (!isset($repository->backend)) {
     return '';
   }
 
   $has_atomic_commits = FALSE;
-  $backend = $backends[$repository->vcs];
-  if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $backend->capabilities)) {
+  if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $repository->backend->capabilities)) {
     $has_atomic_commits = TRUE;
   }
 

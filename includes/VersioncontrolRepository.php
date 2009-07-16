@@ -66,6 +66,13 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   protected $built = FALSE;
 
   // Associations
+  /**
+   * The backend associated with this repository
+   *
+   * @var VersioncontrolBackend
+   */
+  public $backend;
+
   // Operations
   /**
    * Constructor
@@ -220,10 +227,9 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     unset($repository_urls['repo_id']);
 
     // Auto-add commit info from $commit['[xxx]_specific'] into the database.
-    $backends = versioncontrol_get_backends();
     $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $backends[$vcs]->flags);
+                           $this->backend->flags);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $vcs_specific = $vcs .'_specific';
@@ -270,10 +276,9 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     unset($repository_urls['repo_id']);
 
     // Auto-add repository info from $repository['[xxx]_specific'] into the database.
-    $backends = versioncontrol_get_backends();
     $vcs = $this->vcs;
     $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $backends[$vcs]->flags);
+                           $this->backend->flags);
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
       $vcs_specific = $vcs .'_specific';
@@ -360,10 +365,9 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     }
 
     // Auto-delete repository info from $repository['[xxx]_specific'] from the database.
-    $backends = versioncontrol_get_backends();
-    if (isset($backends[$vcs])) { // not the case when called from uninstall
+    if (isset($this->backend)) { // not the case when called from uninstall
       $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                             $backends[$vcs]->flags);
+                             $this->backend->flags);
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';

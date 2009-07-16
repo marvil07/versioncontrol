@@ -977,7 +977,6 @@ function _versioncontrol_account_status_send_application_mails($status_data, $is
     'status' => $status_data['status'],
     'is_reapplication' => $is_reapplication,
   );
-  $backend = versioncontrol_get_backend($params['repository']);
 
   // Send an e-mail to the version control administrators.
   $from = "$applicant->name <$applicant->mail>";
@@ -988,7 +987,7 @@ function _versioncontrol_account_status_send_application_mails($status_data, $is
   // Send an e-mail to the applicant.
   $from = t('!site @vcs administrator <!mail>', array(
     '!site' => variable_get('site_name', 'Drupal'),
-    '@vcs' => $backend->name,
+    '@vcs' => $params['repository']->backend->name,
     '!mail' => $admin_mail,
   ));
   drupal_mail('versioncontrol_account_status', 'application_applicant',
@@ -1014,12 +1013,11 @@ function _versioncontrol_account_status_send_status_update_mails($status_data, $
     'admin_message' => $admin_message,
     'status' => $status_data['status'],
   );
-  $backend = versioncontrol_get_backend($params['repository']);
 
   // Send an e-mail to the user whose account status has been updated.
   $from = t('!site @vcs administrator <!mail>', array(
     '!site' => variable_get('site_name', 'Drupal'),
-    '@vcs' => $backend->name,
+    '@vcs' => $params['repository']->backend->name,
     '!mail' => $admin_mail,
   ));
   drupal_mail('versioncontrol_account_status', 'status_update',
@@ -1036,13 +1034,12 @@ function versioncontrol_account_status_mail($key, &$message, $params) {
 
   // Gather data for the notification mails.
   $strings = _versioncontrol_account_status_get_strings($params['repository']['repo_id']);
-  $backend = versioncontrol_get_backend($params['repository']);
 
   $variables = array(
     '%account-name' => $params['applicant_user']->name,
     '%user-account-url' => url('user/'. $params['applicant_user']->uid, array('absolute' => TRUE)),
     '%manage-account-url' => url('user/'. $params['applicant_user']->uid .'/edit/versioncontrol/'. $params['repository']['repo_id'], array('absolute' => TRUE)),
-    '%vcs-name' => $backend->name,
+    '%vcs-name' => $params['repository']->backend->name,
     '%repository-name' => check_plain($params['repository']['name']),
     '%motivation-message' => wordwrap($params['motivation_message'], 72),
   );
@@ -1054,7 +1051,7 @@ function versioncontrol_account_status_mail($key, &$message, $params) {
 
     $variables['%client-information'] = implode("\n", $client_information);
 
-    $message['subject'] = t('@vcs account request', array('@vcs' => $backend->name));
+    $message['subject'] = t('@vcs account request', array('@vcs' => $params['repository']->backend->name));
 
     if (isset($params['is_reapplication'])) {
       $message['subject'] = t('!subject [reapplication]', array(
@@ -1074,7 +1071,7 @@ function versioncontrol_account_status_mail($key, &$message, $params) {
   if ($is_update_mail) {
     if (!empty($params['admin_message'])) {
       $params['admin_message'] = t('Message from the @vcs maintainer:',
-        array('@vcs' => $backend->name)) ."\n". $params['admin_message'] ."\n";
+        array('@vcs' => $params['repository']->backend->name)) ."\n". $params['admin_message'] ."\n";
     }
 
     switch ($params['status']) {
@@ -1097,7 +1094,7 @@ function versioncontrol_account_status_mail($key, &$message, $params) {
     $variables['%admin-message'] = $params['admin_message'];
     $variables['%admin-name'] = $params['admin_user']->name;
 
-    $message['subject'] = t('@vcs account maintenance', array('@vcs' => $backend->name));
+    $message['subject'] = t('@vcs account maintenance', array('@vcs' => $params['repository']->backend->name));
 
     switch ($params['status']) {
       case VERSIONCONTROL_ACCOUNT_STATUS_PENDING:

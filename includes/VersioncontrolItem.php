@@ -187,9 +187,7 @@ class VersioncontrolItem implements ArrayAccess {
       // out on operations for directory items if those are not (always) captured
       // in the {versioncontrol_operation_items} table.
       // So fetch by revision id instead in that case.
-      $backend = versioncontrol_get_backend($repository);
-
-      if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $backend->capabilities)) {
+      if (in_array(VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS, $repository->backend->capabilities)) {
         $fetch_by_revision_id = TRUE;
       }
 
@@ -535,10 +533,8 @@ class VersioncontrolItem implements ArrayAccess {
         return NULL;
       }
 
-      $backend = versioncontrol_get_backend($this->repository);
-
       $revision = '';
-      if (in_array(VERSIONCONTROL_CAPABILITY_DIRECTORY_REVISIONS, $backend->capabilities)) {
+      if (in_array(VERSIONCONTROL_CAPABILITY_DIRECTORY_REVISIONS, $this->repository->backend->capabilities)) {
         $revision = $this->revision;
       }
 

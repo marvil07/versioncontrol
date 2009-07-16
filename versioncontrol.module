@@ -367,9 +367,9 @@ function versioncontrol_user_accounts_title_callback($accounts) {
     $vcses[$repository['vcs']] = TRUE;
   }
   if (count($vcses) == 1) {
-    $backends = versioncontrol_get_backends();
+    $repo = array_shift($vcses);
     $vcs = key($vcses);
-    return check_plain($backends[$vcs]->name);
+    return check_plain($repo->backend->name);
   }
   return t('Repository accounts');
 }
@@ -453,19 +453,6 @@ function versioncontrol_get_backends() {
     $backends = module_invoke_all('versioncontrol_backends');
   }
   return $backends;
-}
-
-/**
- * Convenience function, retrieving the backend information array for a
- * single repository. So, the result is one of the elements in the result array
- * of versioncontrol_get_backends(). As
- * VersioncontrolRepositoryCache::getInstance()->getRepositories() only returns repositories for
- * backends that actually exist, this function can be trusted to always return
- * a valid backend array.
- */
-function versioncontrol_get_backend($repository) {
-  $backends = versioncontrol_get_backends();
-  return $backends[$repository->vcs];
 }
 
 /**

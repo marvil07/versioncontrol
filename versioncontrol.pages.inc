@@ -300,7 +300,6 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
         continue;
       }
       $usernames = array($username);
-      $backend = versioncontrol_get_backend($repositories[$repo_id]);
 
       foreach ($usernames as $username) {
         $formatted_username = theme('versioncontrol_account_username',
@@ -314,7 +313,7 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
         $rows[] = array(
           $repo_name,
           $formatted_username,
-          l(t('Edit @vcs account', array('@vcs' => $backend->name)),
+          l(t('Edit @vcs account', array('@vcs' => $repositories[$repo_id]->backend->name)),
             'user/'. $uid .'/edit/versioncontrol/'. $repo_id .'/'. drupal_urlencode($username)
           ),
         );
@@ -345,8 +344,7 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
 function versioncontrol_account_edit_form(&$form_state, $uid, $repository, $vcs_username) {
   $form = array();
   $create_account = ($vcs_username === VERSIONCONTROL_FORM_CREATE);
-  $backends = versioncontrol_get_backends();
-  $vcs_name = $backends[$repository['vcs']]->name;
+  $vcs_name = $repository->backend->name;
 
   $user = ($uid === VERSIONCONTROL_REGISTER_DEMO) ? FALSE : user_load($uid);
 
