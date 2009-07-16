@@ -58,13 +58,6 @@ class VersioncontrolRepository implements ArrayAccess {
   public $urls;
 
   /**
-   * cache for already loaded repositories
-   *
-   * @var    array
-   */
-  private static $repository_cache = array();
-
-  /**
    * An array of additional per-repository settings, mostly populated by
    * third-party modules. It is serialized on DB.
    */
@@ -75,43 +68,10 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct() {
-    $argv = func_get_args();
-    switch (func_num_args()) {
-    case 1:
-      self::__construct_by_id($argv[0]);
-      break;
-    case 6:
-      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5]);
-      break;
-    case 7:
-      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6]);
-      break;
-    case 8:
-      self::__construct_by_all($argv[0], $argv[1], $argv[2], $argv[3], $argv[4], $argv[5], $argv[6], $argv[7]);
-      break;
+  public function __construct($args) {
+    foreach ($args as $prop => $value) {
+      $this->$prop = $value;
     }
-  }
-
-  /**
-   * minimal constructor
-   */
-  private function __construct_by_id($repo_id) {
-    $this->repo_id = $repo_id;
-  }
-
-  /**
-   * Usual constructor
-   */
-  private function __construct_by_all($id, $name, $vcs, $root, $authorization_method, $url_backend, $urls = array(), $data=array()) {
-    $this->repo_id = $id;
-    $this->name = $name;
-    $this->vcs = $vcs;
-    $this->root = $root;
-    $this->authorization_method = $authorization_method;
-    $this->url_backend = $url_backend;
-    $this->urls = $urls;
-    $this->data= $data;
   }
 
   /**
@@ -119,162 +79,6 @@ class VersioncontrolRepository implements ArrayAccess {
    */
   public function titleCallback() {
     return check_plain($repository->name);
-  }
-
-  /**
-   * Convenience function for retrieving one single repository by repository id.
-   *
-   * @static
-   * @return
-   *   A single VersioncontroRepository array.
-   *   If no repository corresponds to the given repository id, NULL is returned.
-   */
-  public static function getRepository($repo_id) {
-    $repos = self::getRepositories(array('repo_ids' => array($repo_id)));
-
-    foreach ($repos as $repo_id => $repository) {
-      return $repository;
-    }
-    return NULL; // in case of empty($repos)
-  }
-
-  /**
-   * Retrieve a set of repositories that match the given constraints.
-   *
-   * @static
-   * @param $constraints
-   *   An optional array of constraints. Possible array elements are:
-   *
-   *   - 'vcs': An array of strings, like array('cvs', 'svn', 'git').
-   *       If given, only repositories for these backends will be returned.
-   *   - 'repo_ids': An array of repository ids.
-   *       If given, only the corresponding repositories will be returned.
-   *   - 'names': An array of repository names, like
-   *       array('Drupal CVS', 'Experimental SVN'). If given,
-   *       only repositories with these repository names will be returned.
-   *   - '[xxx]_specific': An array of VCS specific constraints. How this array
-   *       looks like is defined by the corresponding backend module
-   *       (versioncontrol_[xxx]). Other backend modules won't get to see this
-   *       constraint, so in theory you can provide one of those for each backend
-   *       in one single query.
-   *
-   * @return
-   *   An array of repositories where the key of each element is the
-   *   repository id. The corresponding value contains a structured
-   *   VersioncontrolRepository array
-   *   If not a single repository matches these constraints,
-   *   an empty array is returned.
-   */
-  public static function getRepositories($constraints = array()) {
-    $backends = versioncontrol_get_backends();
-    $auth_methods = versioncontrol_get_authorization_methods();
-
-    // "Normalize" repo_ids to integers so the cache doesn't distinguish
-    // between string and integer values.
-    if (isset($constraints['repo_ids'])) {
-      $repo_ids = array();
-      foreach ($constraints['repo_ids'] as $repo_id) {
-        $repo_ids[] = (int) $repo_id;
-      }
-      $constraints['repo_ids'] = $repo_ids;
-    }
-
-    $constraints_serialized = serialize($constraints);
-    if (isset(self::$repository_cache[$constraints_serialized])) {
-      return self::$repository_cache[$constraints_serialized];
-    }
-
-    list($and_constraints, $params) =
-      _versioncontrol_construct_repository_constraints($constraints, $backends);
-
-    // All the constraints have been gathered, assemble them to a WHERE clause.
-    $where = empty($and_constraints) ? '' : ' WHERE '. implode(' AND ', $and_constraints);
-
-    $result = db_query('SELECT * FROM {versioncontrol_repositories} r'. $where, $params);
-
-    // Sort the retrieved repositories by backend.
-    $repositories_by_backend = array();
-
-    while ($repository = db_fetch_array($result)) {
-      if (!isset($backends[$repository['vcs']])) {
-        // don't include repositories for which no backend module exists
-        continue;
-      }
-      $repository['data'] = unserialize($repository['data']);
-
-      if (!isset($auth_methods[$repository['authorization_method']])) {
-        $repository['authorization_method'] = _versioncontrol_get_fallback_authorization_method();
-      }
-      if (!isset($repositories_by_backend[$repository['vcs']])) {
-        $repositories_by_backend[$repository['vcs']] = array();
-      }
-      $repository[$repository['vcs'] .'_specific'] = array();
-      $repositories_by_backend[$repository['vcs']][$repository['repo_id']] = $repository;
-    }
-
-    $repositories_by_backend = self::_amend_repositories(
-      $repositories_by_backend, $backends
-    );
-
-    // Add the fully assembled repositories to the result array.
-    $result_repositories = array();
-    foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
-      foreach ($vcs_repositories as $repository) {
-        $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository['data']);
-        //FIXME: another idea for this?
-        $vcs_specific_key = $repository['vcs'] .'_specific';
-        $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
-        $result_repositories[$repository['repo_id']] = $vcs_repository;
-      }
-    }
-
-    self::$repository_cache[$constraints_serialized] = $result_repositories; // cache the results
-    return $result_repositories;
-  }
-
-  /**
-   * Fetch VCS specific repository data additions, either by ourselves (if the
-   * VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES flag has been set by the backend)
-   * and/or by calling [vcs_backend]_alter_repositories().
-   *
-   * @static
-   * @param $repositories_by_backend
-   * @param $backends
-   * @param $constraints
-   */
-  private static function _amend_repositories($repositories_by_backend, $backends, $constraints = array()) {
-    foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
-      $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                             $backends[$vcs]['flags']);
-
-      if ($is_autoadd) {
-        $repo_ids = array();
-        foreach ($vcs_repositories as $repo_id => $repository) {
-          $repo_ids[] = $repo_id;
-        }
-        $additions = self::_dbGetAdditions(
-          'versioncontrol_'. $vcs .'_repositories', 'repo_id', $repo_ids
-        );
-
-        foreach ($additions as $repo_id => $addition) {
-          if (isset($vcs_repositories[$repo_id])) {
-            $vcs_repositories[$repo_id][$vcs .'_specific'] = $addition;
-          }
-        }
-      }
-
-      $vcs_specific_constraints = isset($constraints[$vcs .'_specific'])
-                                  ? $constraints[$vcs .'_specific']
-                                  : array();
-
-      // Provide an opportunity for the backend to add its own stuff.
-      if (versioncontrol_backend_implements($vcs, 'alter_repositories')) {
-        $function = 'versioncontrol_'. $vcs .'_alter_repositories';
-        $function($vcs_repositories, $vcs_specific_constraints);
-      }
-      $repositories_by_backend[$vcs] = $vcs_repositories;
-    }
-    return $repositories_by_backend;
   }
 
   /**
@@ -558,7 +362,7 @@ class VersioncontrolRepository implements ArrayAccess {
     }
     if ($is_autoadd) {
       $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      self::_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
+      $this->_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
     }
 
     // Phew, everything's cleaned up. Finally, delete the repository.
@@ -600,7 +404,7 @@ class VersioncontrolRepository implements ArrayAccess {
    * In order to avoid unnecessary complexity, the primary key may not consist
    * of multiple columns and has to be a numeric value.
    */
-  private static function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
+  private function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
     db_query('DELETE FROM {'. $table_name .'}
               WHERE '. $primary_key_name .' = %d', $primary_key);
   }
@@ -659,39 +463,6 @@ class VersioncontrolRepository implements ArrayAccess {
     );
   }
 
-  /**
-   * Generate and execute a SELECT query for the given table base on the name
-   * and given values of this table's primary key. This function basically
-   * accomplishes the retrieval part of Version Control API's 'autoadd' feature.
-   * In order to avoid unnecessary complexity, the primary key may not consist
-   * of multiple columns and has to be a numeric value.
-   */
-  private static function _dbGetAdditions($table_name, $primary_key_name, $keys) {
-    $placeholders = array();
-
-    foreach ($keys as $key) {
-      $placeholders[] = '%d';
-    }
-
-    $result = db_query('SELECT * FROM {'. $table_name .'}
-    WHERE '. $primary_key_name .' IN ('.
-    implode(',', $placeholders) .')', $keys);
-
-    $additions = array();
-    while ($addition = db_fetch_array($result)) {
-      $primary_key = $addition[$primary_key_name];
-      unset($addition[$primary_key_name]);
-
-      foreach ($addition as $key => $value) {
-        if (!is_numeric($addition[$key])) {
-          $addition[$key] = unserialize($addition[$key]);
-        }
-      }
-      $additions[$primary_key] = $addition;
-    }
-    return $additions;
-
-  }
 
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
