@@ -314,7 +314,7 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
         $rows[] = array(
           $repo_name,
           $formatted_username,
-          l(t('Edit @vcs account', array('@vcs' => $backend['name'])),
+          l(t('Edit @vcs account', array('@vcs' => $backend->name)),
             'user/'. $uid .'/edit/versioncontrol/'. $repo_id .'/'. drupal_urlencode($username)
           ),
         );

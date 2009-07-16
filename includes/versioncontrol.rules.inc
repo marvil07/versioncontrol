@@ -68,25 +68,25 @@ function versioncontrol_token_values($type, $object = NULL) {
   switch ($type) {
     case 'versioncontrol_repository':
       $repository = $object;
-      $backend = versioncontrol_get_backend($repository['vcs']);
+      $backend = versioncontrol_get_backend($repository);
       $values = array(
         'id' => $repository['repo_id'],
-        'name' => check_plain($repository['name']),
-        'vcs' => check_plain($repository['vcs']),
-        'vcs-name' => check_plain($backend['name']),
-        'root' => check_plain($backend['root']),
+        'name' => check_plain($repository->name),
+        'vcs' => check_plain($repository->vcs),
+        'vcs-name' => check_plain($backend->name),
+        'root' => check_plain($repository->root),
       );
       break;
     case 'versioncontrol_operation':
       $operation = $object;
       $values = array(
-        'id' => $operation['vc_op_id'],
-        'revision' => $operation['revision'],
-        'vcs-user' => check_plain($operation['username']),
-        'vcs-user-raw' => $operation['username'],
-        'message' => check_plain($operation['message']),
-        'message-raw' => $operation['message'],
-        'date' => format_date($operation['date'],
+        'id' => $operation->vc_op_id,
+        'revision' => $operation->revision,
+        'vcs-user' => check_plain($operation->username),
+        'vcs-user-raw' => $operation->username,
+        'message' => check_plain($operation->message),
+        'message-raw' => $operation->message,
+        'date' => format_date($operation->date,
           'short', '', variable_get('date_default_timezone', 0)
         ),
       );

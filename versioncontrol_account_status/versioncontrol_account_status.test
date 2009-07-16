@@ -75,11 +75,11 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
     );
 
     // Then, create an account
-    $this->drupalPost( 'versioncontrol/register', $account_edit, t('Request @repo_name account', array('@repo_name' => $backend['name'])) );
+    $this->drupalPost( 'versioncontrol/register', $account_edit, t('Request @repo_name account', array('@repo_name' => $backend->name)) );
 
     // make sure that the application form messages are listed there correctly.
     $this->assertText(t('Your application has been sent to the version control administrators and will be processed as soon as possible.'), t('Account request sent successfully.'));
-    $this->assertRaw(t('The @vcs account %username has been registered.', array('@vcs' => $backend['name'], '%username' => $account_edit['account_name'])), t('Account registered successfully.'));
+    $this->assertRaw(t('The @vcs account %username has been registered.', array('@vcs' => $backend->name, '%username' => $account_edit['account_name'])), t('Account registered successfully.'));
 
     // check if the various emails get sent to the applicant and admin.
     $admin_mail = $this->drupalGetMails(array('id' => 'versioncontrol_account_status_application_admin'));
@@ -100,8 +100,8 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
       'send_admin_message' => 0,
     );
     $this->drupalGet("user/{$this->basic_user->uid}/edit/versioncontrol/{$repo->repo_id}");
-    $this->drupalPost($this->url, $account_edit_by_admin, t('Update @repo_name account', array('@repo_name' => $backend['name'])) );
-    $this->assertRaw(t('The @vcs account %username has been updated successfully.', array('@vcs' => $backend['name'], '%username' => $account_edit['account_name'])), t('Status successfully changed.'));
+    $this->drupalPost($this->url, $account_edit_by_admin, t('Update @repo_name account', array('@repo_name' => $backend->name)) );
+    $this->assertRaw(t('The @vcs account %username has been updated successfully.', array('@vcs' => $backend->name, '%username' => $account_edit['account_name'])), t('Status successfully changed.'));
     $account_status_user_status = db_result(db_query("SELECT status FROM {versioncontrol_account_status_users} WHERE uid = '%s' AND repo_id = '%s'", array($this->basic_user->uid, $repo->repo_id)));
     $this->assertTrue($account_status_user_status==VERSIONCONTROL_ACCOUNT_STATUS_PENDING, t('Account status successfully changed on DB.'));
     // TODO test all?
