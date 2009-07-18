@@ -1964,7 +1964,7 @@ function _versioncontrol_get_string_presets() {
 }
 
 final class VersioncontrolRepositoryCache {
-  private $instance;
+  private static $instance;
   private $backends = array();
   private $repoCache = array('id' => array(), 'name' => array(), 'vcs' => array());
     /**
@@ -1985,7 +1985,7 @@ final class VersioncontrolRepositoryCache {
    * @return VersioncontrolRepositoryCache
    */
   public static function getInstance() {
-    if (!$instance instanceof VersioncontrolRepositoryCache) {
+    if (!self::$instance instanceof VersioncontrolRepositoryCache) {
       self::$instance = new VersioncontrolRepositoryCache();
     }
     return self::$instance;
@@ -2000,7 +2000,7 @@ final class VersioncontrolRepositoryCache {
    *   If no repository corresponds to the given repository id, NULL is returned.
    */
   public function getRepository($repo_id) {
-    if (!array_key_exists($repo_id, $this->$repoCache['id'])) {
+    if (!array_key_exists($repo_id, $this->repoCache['id'])) {
       $backends = versioncontrol_get_backends();
       $sql = "SELECT repo_id, name, vcs, root, authorization_method, url_backend, data FROM {versioncontrol_repositories} WHERE repo_id = %d";
       if ($base_info = db_fetch_array(db_query($sql, $repo_id))) {
@@ -2073,11 +2073,7 @@ final class VersioncontrolRepositoryCache {
         // don't include repositories for which no backend module exists
         continue;
       }
-      $repository['data'] = unserialize($repository['data']);
 
-      if (!isset($auth_methods[$repository['authorization_method']])) {
-        $repository['authorization_method'] = _versioncontrol_get_fallback_authorization_method();
-      }
       if (!isset($repositories_by_backend[$repository['vcs']])) {
         $repositories_by_backend[$repository['vcs']] = array();
       }
@@ -2120,7 +2116,8 @@ final class VersioncontrolRepositoryCache {
       while ($base_info = db_fetch_array($result)) {
         $base_info['data'] = empty($base_info['data']) ? '' : unserialize($base_info['data']);
         // TODO make this static. possibly do it with reflection.
-        $repository = new $backends[$base_info['vcs']]['repo_class']($base_info);
+        // $repository = new $backends[$base_info['vcs']]['repo_class']($base_info);
+        $repository = new VersioncontrolRepository($base_info);
         if ($build) {
           $repository->build();
         }
@@ -2214,5 +2211,4 @@ final class VersioncontrolRepositoryCache {
     return $additions;
 
   }
-
 }

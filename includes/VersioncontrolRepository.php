@@ -41,7 +41,7 @@ class VersioncontrolRepository implements ArrayAccess {
    *
    * @var    string
    */
-  public $authorization_method;
+  public $authorization_method = 'versioncontrol_admin';
 
   /**
    * XXX
@@ -70,8 +70,9 @@ class VersioncontrolRepository implements ArrayAccess {
    */
   public function __construct($args) {
     foreach ($args as $prop => $value) {
-      $this->$prop = $value;
+      $this->$prop = $prop == 'data' ? unserialize($value) : $value;
     }
+
   }
 
   /**

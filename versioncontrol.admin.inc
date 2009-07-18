@@ -100,7 +100,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   while ($repo_id = db_result($result)) {
     $repo_ids[] = $repo_id;
   }
-  $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('repo_ids' => $repo_ids));
 
   $filter_form = versioncontrol_admin_account_list_filter_form($form_state, $repositories);
   $filter_form['#id'] = 'versioncontrol-account-filter-form';
@@ -350,7 +350,7 @@ function versioncontrol_admin_account_import_form(&$form_state) {
       $selected_backends[] = $vcs;
     }
   }
-  $repositories = VersioncontrolRepository::getRepositories(array('vcs' => $selected_backends));
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('vcs' => $selected_backends));
 
   if (empty($repositories)) {
     $form['no_repositories'] = array(
@@ -398,7 +398,7 @@ function versioncontrol_admin_account_import_form(&$form_state) {
  * Only actually validates that the repo backend is correctly configured.
  */
 function versioncontrol_admin_account_import_form_validate($form, &$form_state) {
-  if (is_null(VersioncontrolRepository::getRepository($form_state['values']['repo_id']))) {
+  if (is_null(VersioncontrolRepositoryCache::getInstance()->getRepository($form_state['values']['repo_id']))) {
     form_error($form['data'], t('The selected repository could not be found.'));
   }
 }
@@ -543,7 +543,7 @@ function versioncontrol_admin_account_export_display_form(&$form_state, $reposit
 function versioncontrol_admin_repository_list(&$form_state) {
   $form = array();
   $backends = versioncontrol_get_backends();
-  $repositories = VersioncontrolRepository::getRepositories();
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories();
 
   if (empty($repositories)) {
     $form['empty'] = array(
@@ -582,6 +582,7 @@ function versioncontrol_admin_repository_list(&$form_state) {
       );
     }
     // Provide a possibility for backends and other modules to modify the list.
+    // TODO replace with drupal_alter()
     foreach (module_implements('versioncontrol_alter_repository_list') as $module) {
       $function = $module .'_versioncontrol_alter_repository_list';
       $function($vcs, $vcs_repositories, $header, $rows_by_repo_id);
@@ -726,7 +727,7 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
       '#title' => t('Allow repository access to unknown or unauthorized committers'),
       '#description' => 'If this is enabled, users can commit to this repository even if no association of the VCS account to the Drupal user is known (assuming that no other commit restrictions apply). If it is disabled, only known and authorized users may commit. This setting only works if the appropriate pre-commit/pre-branch/pre-tag hook script is set up for this repository.',
       '#default_value' => $repository_exists
-                          ? $repository['data']['versioncontrol']['allow_unauthorized_access']
+                          ? $repository->data['versioncontrol']['allow_unauthorized_access']
                           : FALSE,
       '#weight' => 0,
     );
@@ -901,7 +902,7 @@ function versioncontrol_admin_repository_delete_confirm(&$form_state, $repositor
  * Delete the repository when the confirmation form is submitted.
  */
 function versioncontrol_admin_repository_delete_confirm_submit($form, &$form_state) {
-  $repository = VersioncontrolRepository::getRepository($form['#repo_id']);
+  $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($form['#repo_id']);
   $repository->delete();
   drupal_set_message(t('The %repository repository has been deleted.', array(
     '%repository' => $repository['name'],
