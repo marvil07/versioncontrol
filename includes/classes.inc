@@ -3,7 +3,7 @@
 final class VersioncontrolRepositoryCache {
   private static $instance;
   private $backends = array();
-  private $repoCache = array('id' => array(), 'name' => array(), 'vcs' => array());
+  private $repoCache = array('repo_id' => array(), 'name' => array(), 'vcs' => array());
     /**
    * Internal state variable indicating whether or not all repositories have
    * been fetched (via VersioncontrolRepositoryCache::getInstance()->getAllRepositories()).
@@ -14,6 +14,15 @@ final class VersioncontrolRepositoryCache {
   private function __construct() {
     // TODO really oughtta make this better.
     $this->backends = versioncontrol_get_backends();
+    $result = db_query('SELECT repo_id, name, vcs FROM {versioncontrol_repositories}');
+    // Cache a skeletal, low-mem overhead list of all the repos we have.
+    while ($item = db_fetch_object($result)) {
+      $this->repoCache['repo_id'][$item->repo_id] = &$item;
+      // $this->repoCache['name'][$item->name] = &$item;
+      // $this->repoCache['vcs'][$item->vcs] = &$item;
+    }
+
+    $this->repoCache['repo_ids'] = &$this->repoCache['repo_id']; // backwards compat
   }
 
   /**
@@ -37,18 +46,14 @@ final class VersioncontrolRepositoryCache {
    *   If no repository corresponds to the given repository id, NULL is returned.
    */
   public function getRepository($repo_id) {
-    if (!array_key_exists($repo_id, $this->repoCache['id'])) {
-      $backends = versioncontrol_get_backends();
-      $sql = "SELECT repo_id, name, vcs, root, authorization_method, url_backend, data FROM {versioncontrol_repositories} WHERE repo_id = %d";
-      if ($base_info = db_fetch_array(db_query($sql, $repo_id))) {
-        // $this->cacheRepository(new $backends[$base_info['vcs']]['repo_class']($base_info));
-        $this->cacheRepository(new VersioncontrolRepository($base_info));
-      }
-      else {
-        $this->repoCache['id'][$repo_id] = FALSE;
-      }
+    if (empty($this->repoCache['repo_id'][$repo_id])) {
+      // no such repo. bail out.
+      return;
     }
-    return $this->repoCache['id'][$repo_id];
+    if (!$this->repoCache['repo_id'][$repo_id] instanceof VersioncontrolRepository) {
+      $this->cacheRepository(new $this->backends[$this->repoCache['repo_id'][$repo_id]->vcs]['classes']['repo']($base_info));
+    }
+    return $this->repoCache['repo_id'][$repo_id];
   }
 
   /**
@@ -78,7 +83,7 @@ final class VersioncontrolRepositoryCache {
    *   an empty array is returned.
    */
   public function getRepositories($constraints = array()) {
-    $backends = versioncontrol_get_backends();
+    // $backends = versioncontrol_get_backends();
     $auth_methods = versioncontrol_get_authorization_methods();
 
     if (isset($constraints['repo_ids'])) {
@@ -95,7 +100,7 @@ final class VersioncontrolRepositoryCache {
     }
 
     list($and_constraints, $params) =
-      _versioncontrol_construct_repository_constraints($constraints, $backends);
+      _versioncontrol_construct_repository_constraints($constraints, $this->backends);
 
     // All the constraints have been gathered, assemble them to a WHERE clause.
     $where = empty($and_constraints) ? '' : ' WHERE '. implode(' AND ', $and_constraints);
@@ -106,7 +111,7 @@ final class VersioncontrolRepositoryCache {
     $repositories_by_backend = array();
 
     while ($repository = db_fetch_array($result)) {
-      if (!isset($backends[$repository['vcs']])) {
+      if (!isset($this->backends[$repository['vcs']])) {
         // don't include repositories for which no backend module exists
         continue;
       }
@@ -119,7 +124,7 @@ final class VersioncontrolRepositoryCache {
     }
 
     $repositories_by_backend = $this->_amend_repositories(
-      $repositories_by_backend, $backends
+      $repositories_by_backend, $this->backends
     );
 
     // Add the fully assembled repositories to the result array.
@@ -127,7 +132,7 @@ final class VersioncontrolRepositoryCache {
     foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
       foreach ($vcs_repositories as $repository) {
         // $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository['data']);
-        $vcs_repository = new VersioncontrolRepository($repository);
+        $vcs_repository = new $this->backends[$repository['vcs']]['classes']['repo']($repository);
         //FIXME: another idea for this?
         $vcs_specific_key = $repository['vcs'] .'_specific';
         $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
@@ -139,34 +144,20 @@ final class VersioncontrolRepositoryCache {
     return $result_repositories;
   }
 
-  public function getAllRepositories($build = FALSE) {
+  public function getAllRepositories() {
     if (!$this->allFetched) {
       $this->allFetched = TRUE;
-      $backends = versioncontrol_get_backends();
-      $excluded = '';
-      if (!empty($this->repoCache['id'])) {
-        // Exclude any repos that have already been loaded & cached.
-        $excluded = ' WHERE repo_id NOT IN (' . implode(', ', array_keys($this->repoCache['id'])) . ')';
-      }
-
-      $result = db_query("SELECT repo_id, name, vcs, root, authorization_method, url_backend, data FROM {versioncontrol_repositories}$excluded");
-      while ($base_info = db_fetch_array($result)) {
-        $base_info['data'] = empty($base_info['data']) ? '' : unserialize($base_info['data']);
-        // TODO make this static. possibly do it with reflection.
-        // $repository = new $backends[$base_info['vcs']]['repo_class']($base_info);
-        $repository = new VersioncontrolRepository($base_info);
-        if ($build) {
-          $repository->build();
-        }
-        $this->cacheRepository($repository);
+      $included = array_filter($this->repoCache['repo_id'], 'is_array');
+      foreach ($included as $item) {
+        $this->cacheRepository(new $this->backends[$item->vcs]['classes']['repo']($item->repo_id));
       }
     }
-    return $this->repoCache['id'];
+    return $this->repoCache['repo_id'];
   }
 
   private function cacheRepository(VersioncontrolRepository &$repository) {
-    $this->repoCache['id'][$repository->repo_id] = &$repository;
-    $this->repoCache['name'][$repository->name] = &$repository;
+    $this->repoCache['repo_id'][$repository->repo_id] = &$repository;
+    $this->repoCache['name'][$repository->name][$repository->repo_id] = &$repository;
     $this->repoCache['vcs'][$repository->vcs][$repository->repo_id] = &$repository;
   }
 

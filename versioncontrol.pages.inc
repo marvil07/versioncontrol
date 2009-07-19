@@ -51,7 +51,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
   }
 
   $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($register_uid)), TRUE);
-  $repositories = VersioncontrolRepository::getRepositories();
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getAllRepositories();
 
   // Construct the '#options' array.
   $account_usernames = array();
@@ -265,7 +265,7 @@ function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_userna
     return;
   }
   elseif (count($selected_usernames) == 1) {
-    $repository = VersioncontrolRepository::getRepository($any_repo_id);
+    $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($any_repo_id);
     return drupal_get_form('versioncontrol_account_edit_form',
       $uid, $repository, reset($selected_usernames)
     );
@@ -287,7 +287,7 @@ function versioncontrol_account_list_form(&$form_state, $accounts) {
   $form = array();
   $form['#id'] = 'versioncontrol-account-list-form';
 
-  $repositories = VersioncontrolRepository::getRepositories(array(
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array(
     'repo_ids' => array_keys(reset($accounts)),
   ));
 

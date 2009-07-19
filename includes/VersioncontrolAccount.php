@@ -157,7 +157,7 @@ class VersioncontrolAccount implements ArrayAccess {
     }
     $repo_ids = array_unique($repo_ids);
 
-    $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
+    $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('repo_ids' => $repo_ids));
     $accounts = array();
 
     foreach ($account_rows as $account) {

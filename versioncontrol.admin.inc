@@ -408,7 +408,7 @@ function versioncontrol_admin_account_import_form_validate($form, &$form_state) 
  * Call the [vcs_backend]_admin_import_accounts() with the given data.
  */
 function versioncontrol_admin_account_import_form_submit($form, &$form_state) {
-  $repository = VersioncontrolRepository::getRepository($form_state['values']['repo_id']);
+  $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($form_state['values']['repo_id']);
   _versioncontrol_call_backend($repository['vcs'], 'import_accounts', array(
     $repository, $form_state['values']['data']
   ));
@@ -454,7 +454,7 @@ function versioncontrol_admin_account_export_form(&$form_state) {
       $selected_backends[] = $vcs;
     }
   }
-  $repositories = VersioncontrolRepository::getRepositories(array('vcs' => $selected_backends));
+  $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('vcs' => $selected_backends));
 
   if (empty($repositories)) {
     $form['no_repositories'] = array(
@@ -809,7 +809,7 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
   if (!empty($form['#repository']) && $form_state['values']['repo_name'] == $form['#original_name']) {
     return;
   }
-  $same_repositories = VersioncontrolRepository::getRepositories(array(
+  $same_repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array(
     'names' => array($form_state['values']['repo_name']),
   ));
   if (!empty($same_repositories)) {

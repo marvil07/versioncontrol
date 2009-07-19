@@ -21,7 +21,7 @@ function versioncontrol_token_list($type = 'all') {
 
   if ($type == 'versioncontrol_repository' || $type == 'all') {
     $repo_name_mapping = array();
-    foreach (VersioncontrolRepository::getRepositories() as $repo_id => $repository) {
+    foreach (VersioncontrolRepositoryCache::getInstance()->getRepositories() as $repo_id => $repository) {
       $repo_name_mapping[] = t('!id for @repo-name', array(
         '!id' => $repo_id,
         '@repo-name' => $repository['name'],
@@ -281,7 +281,7 @@ function versioncontrol_condition_repository($repository, $settings) {
 
 function versioncontrol_condition_repository_form($settings, &$form) {
   $repository_options = array();
-  foreach (VersioncontrolRepository::getRepositories() as $repo_id => $repository) {
+  foreach (VersioncontrolRepositoryCache::getInstance()->getRepositories() as $repo_id => $repository) {
     $repository_options[$repo_id] = check_plain($repository['name']);
   }
 

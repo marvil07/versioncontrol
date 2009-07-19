@@ -324,7 +324,7 @@ class VersioncontrolOperation implements ArrayAccess {
       }
 
       // Add the corresponding repository array to each operation.
-      $repositories = VersioncontrolRepository::getRepositories(array('repo_ids' => $repo_ids));
+      $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('repo_ids' => $repo_ids));
       foreach ($operations as $vc_op_id => $operation) {
         $operations[$vc_op_id]->repository = $repositories[$operation->repo_id];
         unset($operations[$vc_op_id]->repo_id);

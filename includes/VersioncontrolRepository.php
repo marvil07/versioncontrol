@@ -6,7 +6,7 @@ require_once 'VersioncontrolBackend.php';
  * Contain fundamental information about the repository.
  *
  */
-class VersioncontrolRepository implements ArrayAccess {
+abstract class VersioncontrolRepository implements ArrayAccess {
   // Attributes
   /**
    * db identifier
@@ -63,17 +63,23 @@ class VersioncontrolRepository implements ArrayAccess {
    */
   public $data = array();
 
+  protected $built = FALSE;
+
   // Associations
   // Operations
   /**
    * Constructor
    */
-  public function __construct($args) {
-    foreach ($args as $prop => $value) {
-      $this->$prop = $prop == 'data' ? unserialize($value) : $value;
+  public function __construct($repo_id, $buildSelf = TRUE) {
+    $this->repo_id = $repo_id;
+    if ($buildSelf) {
+      $this->buildSelf();
     }
-
+    $this->built = TRUE;
   }
+
+  abstract protected function buildSelf();
+  abstract public function build($args = array());
 
   /**
    * Title callback for repository arrays.
@@ -85,8 +91,6 @@ class VersioncontrolRepository implements ArrayAccess {
   /**
    * Retrieve known branches and/or tags in a repository as a set of label arrays.
    *
-   * @param $repository
-   *   The repository of which the labels should be retrieved.
    * @param $constraints
    *   An optional array of constraints. If no constraints are given, all known
    *   labels for a repository will be returned. Possible array elements are:
