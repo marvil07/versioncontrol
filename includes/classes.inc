@@ -132,7 +132,7 @@ final class VersioncontrolRepositoryCache {
     foreach ($repositories_by_backend as $vcs => $vcs_repositories) {
       foreach ($vcs_repositories as $repository) {
         // $vcs_repository = new VersioncontrolRepository($repository['repo_id'], $repository['name'], $repository['vcs'], $repository['root'], $repository['authorization_method'], $repository['url_backend'], $repository['data']);
-        $vcs_repository = new $this->backends[$repository['vcs']]['classes']['repo']($repository);
+        $vcs_repository = new $this->backends[$repository['vcs']]->classes['repo']($repository['repo_id'], $repository, FALSE);
         //FIXME: another idea for this?
         $vcs_specific_key = $repository['vcs'] .'_specific';
         $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];

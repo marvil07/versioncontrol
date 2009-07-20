@@ -77,16 +77,32 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($repo_id, $buildSelf = TRUE) {
+  public function __construct($repo_id, $args=array(), $buildSelf = TRUE) {
     $this->repo_id = $repo_id;
     if ($buildSelf) {
       $this->buildSelf();
     }
+    else {
+      $this->build($args);
+    }
     $this->built = TRUE;
   }
 
-  abstract protected function buildSelf();
-  abstract public function build($args = array());
+  protected function buildSelf() {
+    $data = db_fetch_array(db_query("
+      SELECT
+      vr.name, vr.root, vr.authorization_method, vr.url_backend, vr.data
+      FROM {versioncontrol_repositories} vr
+      WHERE vr.repo_id = %d",
+      $this->repo_id));
+    $this->build($data);
+  }
+
+  protected function build($args = array()) {
+    foreach ($args as $prop => $value) {
+      $this->$prop = $value;
+    }
+  }
 
   /**
    * Title callback for repository arrays.
