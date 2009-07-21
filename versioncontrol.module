@@ -74,9 +74,6 @@ define('VERSIONCONTROL_USER_ASSOCIATED_ACTIVE', 2);
 /** Used internally by the repository and account admin pages. Private constant. */
 define('VERSIONCONTROL_FORM_CREATE', FALSE);
 
-//TODO: define if we want to do the load each time, per use, or all-in-one like views.inc
-require_once drupal_get_path('module', 'versioncontrol') .'/includes/VersioncontrolAccount.php';
-require_once drupal_get_path('module', 'versioncontrol') .'/includes/classes.inc';
 /**
  * Implementation of hook_init():
  * Code that is run on every page request, except for cached ones.
@@ -1579,4 +1576,36 @@ function _versioncontrol_get_string_presets() {
   );
 
   return $presets;
+}
+
+function versioncontrol_autoload_info() {
+  return array(
+    'VersioncontrolAccount' => array(
+      'file' => 'includes/VersioncontrolAccount.php',
+    ),
+    'VersioncontrolBackend' => array(
+      'file' => 'includes/VersioncontrolBackend.php',
+    ),
+    'VersioncontrolBranch' => array(
+      'file' => 'includes/VersioncontrolBranch.php',
+    ),
+    'VersioncontrolItem' => array(
+      'file' => 'includes/VersioncontrolItem.php',
+    ),
+    'VersioncontrolLabel' => array(
+      'file' => 'includes/VersioncontrolLabel.php',
+    ),
+    'VersioncontrolOperation' => array(
+      'file' => 'includes/VersioncontrolOperation.php',
+    ),
+    'VersioncontrolRepository' => array(
+      'file' => 'includes/VersioncontrolRepository.php',
+    ),
+    'VersioncontrolRepositoryCache' => array(
+      'file' => 'includes/classes.inc',
+    ),
+    'VersioncontrolTag' => array(
+      'file' => 'includes/VersioncontrolTag.php',
+    ),
+  );
 }
