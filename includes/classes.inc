@@ -148,9 +148,14 @@ final class VersioncontrolRepositoryCache {
   public function getAllRepositories() {
     if (!$this->allFetched) {
       $this->allFetched = TRUE;
-      $included = array_filter($this->repoCache['repo_id'], 'is_array');
-      foreach ($included as $item) {
-        $this->cacheRepository(new $this->backends[$item->vcs]['classes']['repo']($item->repo_id));
+      $repo_ids = array();
+      foreach ($this->repoCache['repo_id'] as $repo_id => $min_repo) {
+        if (!$min_repo instanceof VersioncontrolRepository) {
+          $repo_ids[] = $repo_id;
+        }
+      }
+      foreach ($this->getRepositories(array('repo_ids' => $repo_ids)) as $repo){
+        $this->cacheRepository($repo);
       }
     }
     return $this->repoCache['repo_id'];
