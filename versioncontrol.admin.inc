@@ -841,7 +841,18 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     $repository->authorization_method = $form_state['values']['authorization_method'];
   }
   else {
-    $repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now
+    $backends = versioncontrol_get_backends();
+    //$repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now
+    $repository = array(
+      'name' => $form_state['values']['repo_name'],
+      'vcs' => $form['#vcs'],
+      'root' => $form_state['values']['root'],
+      'authorization_method' => $form_state['values']['authorization_method'],
+      'url_backend' => 'versioncontrol_default_urls', // url_backend hardcoded for now
+      'urls' => $repository_urls,
+      'backend' => $backends[$form['#vcs']],
+    );
+    $repository = new $backends[$form['#vcs']]->classes['repo'](null, $repository, FALSE);
   }
 
   // We also provide a 'data' array where other modules can put their own
