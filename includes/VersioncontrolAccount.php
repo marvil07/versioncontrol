@@ -150,7 +150,9 @@ class VersioncontrolAccount implements ArrayAccess {
     $repo_ids = array();
     while ($account = db_fetch_object($result)) {
       $repo_ids[] = $account->repo_id;
-      $account_rows[] = new VersioncontrolAccount($account->username, $account->uid, new VersioncontrolRepository($account->repo_id));
+      $min_repo = new stdClass(); // full object is retrieved some lines down
+      $min_repo->repo_id = $account->repo_id;
+      $account_rows[] = new VersioncontrolAccount($account->username, $account->uid, $min_repo);
     }
     if (empty($repo_ids)) {
       return array();

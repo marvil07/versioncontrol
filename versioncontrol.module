@@ -355,8 +355,8 @@ function versioncontrol_private_account_access($vcs_accounts, $account = NULL) {
 function versioncontrol_user_accounts_title_callback($accounts) {
   $usernames = array();
   foreach ($accounts as $uid => $user_accounts) {
-    foreach ($user_accounts as $repo_id => $username) {
-      $usernames[] = $username;
+    foreach ($user_accounts as $repo_id => $account) {
+      $usernames[] = $account->vcs_username;
     }
   }
   $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array(
@@ -367,8 +367,7 @@ function versioncontrol_user_accounts_title_callback($accounts) {
     $vcses[$repository['vcs']] = TRUE;
   }
   if (count($vcses) == 1) {
-    $repo = array_shift($vcses);
-    $vcs = key($vcses);
+    $repo = array_shift($repositories);
     return check_plain($repo->backend->name);
   }
   return t('Repository accounts');

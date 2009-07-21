@@ -3,6 +3,7 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
 
   protected $admin_user;
   protected $basic_user;
+  protected $repoCache;
 
   /**
    * Implementation of getInfo().
@@ -25,6 +26,8 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
     // Create our users
     $this->admin_user = $this->drupalCreateUser(array('administer version control systems'));
     $this->basic_user = $this->drupalCreateUser(array('use version control systems'));
+
+    $this->repoCache = VersioncontrolRepositoryCache::getInstance();
 
     // Temporarily change the 'smtp_library' and implement drupal_mail_wrapper()
     // Make sure our drupal_mail_wrapper function is called instead of the
@@ -51,7 +54,7 @@ class VersioncontrolAccountStatusTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/project/versioncontrol-repositories/add-test', $repo_edit, t('Save repository'));
 
     // get the created repo
-    $found_repositories = VersioncontrolRepository::getRepositories( array('names' => array($repo_edit['repo_name'])) );
+    $found_repositories = $this->repoCache->getRepositories( array('names' => array($repo_edit['repo_name'])) );
     $repo = array_shift($found_repositories);
     $this->assertTrue(!is_null($repo), t('Repository found in database.'));
 
