@@ -36,12 +36,18 @@ abstract class VersioncontrolBackend implements ArrayAccess {
    */
   public $flags;
 
+  /**
+   * classes which this backend overwrite
+   */
+  public $classes;
+
   // Operations
-  public function __construct($name, $description, $capabilities=array(), $flags=array()) {
+  public function __construct($name, $description, $capabilities=array(), $flags=array(), $classes=array()) {
     $this->name = $name;
     $this->description = $description;
     $this->capabilities = $capabilities;
     $this->flags = $flags;
+    $this->classes = $classes;
   }
 
   //ArrayAccess interface implementation

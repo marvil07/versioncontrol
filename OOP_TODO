@@ -1,7 +1,7 @@
 on code
 -------
 
-- tests for Version Control core
+- buildSelf should not be abstract, it should have a by default implementation to avoid repeat same code on backends
 - follow sdboyer suggestions (http://groups.drupal.org/node/23015#comment-79517)
   - There are prolly other ones, but one coding convention we have is to get rid of the prepended underscore on function names when they become methods, and just make em protected. f.e. VersioncontrolItem::_badItemWarning.
   - I would have figured, based on last week's conversation, that it's not just VersioncontrolBackend that's abstract, but also VersioncontrolOperation, VersioncontrolItem, VersioncontrolRepository, etc; that these, too, will be extended by the backends as needed. Although that doesn't require them to be abstract, of course - just that they hold all the shared code that's common to all the vcses.

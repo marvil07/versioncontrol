@@ -38,9 +38,9 @@ final class VersioncontrolRepositoryCache {
   }
 
   /**
-   * Convenience function for retrieving one single repository by repository id.
+   * Convenience function for retrieving one single repository by repository id
+   * from cache.
    *
-   * @static
    * @return
    *   A single VersioncontroRepository array.
    *   If no repository corresponds to the given repository id, NULL is returned.
@@ -136,6 +136,7 @@ final class VersioncontrolRepositoryCache {
         //FIXME: another idea for this?
         $vcs_specific_key = $repository['vcs'] .'_specific';
         $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
+        $vcs_repository->backend = $this->backends[$repository['vcs']];
         $result_repositories[$repository['repo_id']] = $vcs_repository;
       }
     }

@@ -7,6 +7,7 @@
  */
 
 require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolBackend.php';
+require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolRepository.php';
 
 /**
  * Implementation of hook_versioncontrol_backends().
@@ -15,7 +16,10 @@ function versioncontrol_test_versioncontrol_backends() {
   return array(
     'test' => new VersioncontrolTestBackend(
       'TestVCS',
-      t('TestVCS backend for Version Control API.')
+      t('TestVCS backend for Version Control API.'),
+      array(),
+      array(),
+      array('repo' => 'VersioncontrolTestRepository')
     ),
   );
 }
@@ -24,15 +28,4 @@ class VersioncontrolTestBackend extends VersioncontrolBackend {
 }
 
 class VersioncontrolTestRepository extends VersioncontrolRepository {
-  public function build($args = array()) {
-    //$serialized = array('data', 'auth_username', 'auth_password', 'path_trunk', 'path_branches', 'path_tags');
-    foreach ($args as $prop => $value) {
-      //$this->$prop = in_array($prop, $serialized) ? unserialize($value) : $value;
-      $this->$prop = $value;
-    }
-  }
-
-  protected function buildSelf() {
-    //FIXME assign values here from db
-   }
 }
