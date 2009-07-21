@@ -46,12 +46,12 @@ final class VersioncontrolRepositoryCache {
    *   If no repository corresponds to the given repository id, NULL is returned.
    */
   public function getRepository($repo_id) {
-    if (empty($this->repoCache['repo_id'][$repo_id])) {
+    if (!isset($this->repoCache['repo_id'][$repo_id])) {
       // no such repo. bail out.
       return;
     }
     if (!$this->repoCache['repo_id'][$repo_id] instanceof VersioncontrolRepository) {
-      $this->cacheRepository(new $this->backends[$this->repoCache['repo_id'][$repo_id]->vcs]['classes']['repo']($base_info));
+      $this->cacheRepository(array_shift($this->getRepositories(array('repo_id' => $repo_id))));
     }
     return $this->repoCache['repo_id'][$repo_id];
   }
