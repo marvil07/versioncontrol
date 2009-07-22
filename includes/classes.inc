@@ -137,6 +137,9 @@ final class VersioncontrolRepositoryCache {
         $vcs_specific_key = $repository['vcs'] .'_specific';
         $vcs_repository->$vcs_specific_key = $repository[$repository['vcs'] .'_specific'];
         $vcs_repository->backend = $this->backends[$repository['vcs']];
+        if (!$this->repoCache['repo_id'][$repository['repo_id']] instanceof VersioncontrolRepository) {
+          $this->cacheRepository($vcs_repository);
+        }
         $result_repositories[$repository['repo_id']] = $vcs_repository;
       }
     }
