@@ -102,6 +102,9 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     foreach ($args as $prop => $value) {
       $this->$prop = $value;
     }
+    if (is_string($this->data)) {
+      $this->data = unserialize($this->data);
+    }
   }
 
   /**
