@@ -238,12 +238,14 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    *   An array of repository viewer URLs. How this array looks like is
    *   defined by the corresponding URL backend.
    */
-  public function update($repository_urls) {
+  public function update($repository_urls=NULL) {
     drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
-    $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
-    drupal_write_record('versioncontrol_repository_urls', $repository_urls, 'repo_id');
-    unset($repository_urls['repo_id']);
+    if (!is_null($repository_urls)) {
+      $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
+      drupal_write_record('versioncontrol_repository_urls', $repository_urls, 'repo_id');
+      unset($repository_urls['repo_id']);
+    }
 
     // Auto-add commit info from $commit['[xxx]_specific'] into the database.
     $vcs = $this->vcs;
