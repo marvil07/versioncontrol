@@ -857,10 +857,8 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
 
   // We also provide a 'data' array where other modules can put their own
   // per-repository data that doesn't need to be stored in a separate db column.
-  $repository->data = array(
-    'versioncontrol' => array(
-      'registration_message' => $form_state['values']['registration_message'],
-    ),
+  $repository->data['versioncontrol'] = array(
+    'registration_message' => $form_state['values']['registration_message'],
   );
 
   if (isset($form_state['values']['allow_unauthorized_access'])) {
