@@ -14,17 +14,23 @@ require_once drupal_get_path('module', 'versioncontrol') . '/includes/Versioncon
  */
 function versioncontrol_test_versioncontrol_backends() {
   return array(
-    'test' => new VersioncontrolTestBackend(
-      'TestVCS',
-      t('TestVCS backend for Version Control API.'),
-      array(),
-      array(),
-      array('repo' => 'VersioncontrolTestRepository')
-    ),
+    'test' => new VersioncontrolTestBackend()
   );
 }
 
 class VersioncontrolTestBackend extends VersioncontrolBackend {
+  public function __construct() {
+    $this->name = 'TestVCS';
+    $this->description = t('TestVCS backend for Version Control API.');
+    $this->capabilities = array(
+      // Use the commit hash for to identify the commit instead of an individual
+      // revision for each file.
+      VERSIONCONTROL_CAPABILITY_ATOMIC_COMMITS
+    );
+    $this->classes = array(
+      'repo' => 'VersioncontrolTestRepository',
+    );
+  }
 }
 
 class VersioncontrolTestRepository extends VersioncontrolRepository {

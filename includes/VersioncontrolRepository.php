@@ -229,6 +229,13 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
+   * Let child backend repo classes add information that _is not_ in
+   * VersioncontrolRepository::data
+   */
+  public function _getRepository() {
+  }
+
+  /**
    * Update a repository in the database, and call the necessary hooks.
    * The 'repo_id' and 'vcs' properties of the repository object must stay
    * the same as the ones given on repository creation,
@@ -238,7 +245,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    *   An array of repository viewer URLs. How this array looks like is
    *   defined by the corresponding URL backend.
    */
-  public function update($repository_urls=NULL) {
+  public final function update($repository_urls=NULL) {
     drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
     if (!is_null($repository_urls)) {
@@ -247,22 +254,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
       unset($repository_urls['repo_id']);
     }
 
-    // Auto-add commit info from $commit['[xxx]_specific'] into the database.
-    $vcs = $this->vcs;
-    $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $this->backend->flags);
-    if ($is_autoadd) {
-      $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $vcs_specific = $vcs .'_specific';
-      $elements = $this->$vcs_specific;
-      $elements['repo_id'] = $this->repo_id;
-      $this->_dbUpdateAdditions($table_name, 'repo_id', $elements);
-    }
-
-    // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('update', $this));
-    }
+    $this->_update();
 
     // Everything's done, let the world know about it!
     module_invoke_all('versioncontrol_repository', 'update', $this);
@@ -275,6 +267,14 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
+   * Let child backend repo classes update information that _is not_ in
+   * VersioncontrolRepository::data without modifying general flow if
+   * necessary.
+   */
+  protected function _update() {
+  }
+
+  /**
    * Insert a repository into the database, and call the necessary hooks.
    *
    * @param $repository_urls
@@ -284,7 +284,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    * @return
    *   The finalized repository array, including the 'repo_id' element.
    */
-  public function insert($repository_urls) {
+  public final function insert($repository_urls) {
     if (isset($this->repo_id)) {
       // This is a new repository, it's not supposed to have a repo_id yet.
       unset($this->repo_id);
@@ -296,22 +296,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     drupal_write_record('versioncontrol_repository_urls', $repository_urls);
     unset($repository_urls['repo_id']);
 
-    // Auto-add repository info from $repository['[xxx]_specific'] into the database.
-    $vcs = $this->vcs;
-    $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                           $this->backend->flags);
-    if ($is_autoadd) {
-      $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $vcs_specific = $vcs .'_specific';
-      $elements = $this->$vcs_specific;
-      $elements['repo_id'] = $this->repo_id;
-      $this->_dbInsertAdditions($table_name, $elements);
-    }
-
-    // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('insert', $this));
-    }
+    $this->_insert();
 
     // Everything's done, let the world know about it!
     module_invoke_all('versioncontrol_repository', 'insert', $this);
@@ -325,11 +310,19 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   }
 
   /**
+   * Let child backend repo classes add information that _is not_ in
+   * VersioncontrolRepository::data without modifying general flow if
+   * necessary.
+   */
+  protected function _insert() {
+  }
+
+  /**
    * Delete a repository from the database, and call the necessary hooks.
    * Together with the repository, all associated commits and accounts are
    * deleted as well.
    */
-  public function delete() {
+  public final function delete() {
     // Delete operations.
     $operations = VersioncontrolOperation::getOperations(array('repo_ids' => array($this->repo_id)));
     foreach ($operations as $operation) {
@@ -378,22 +371,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     // Announce deletion of the repository before anything has happened.
     module_invoke_all('versioncontrol_repository', 'delete', $this);
 
-    $vcs = $this->vcs;
-
-    // Provide an opportunity for the backend to delete its own stuff.
-    if (versioncontrol_backend_implements($vcs, 'repository')) {
-      _versioncontrol_call_backend($vcs, 'repository', array('delete', $this));
-    }
-
-    // Auto-delete repository info from $repository['[xxx]_specific'] from the database.
-    if (isset($this->backend)) { // not the case when called from uninstall
-      $is_autoadd = in_array(VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES,
-                             $this->backend->flags);
-    }
-    if ($is_autoadd) {
-      $table_name = 'versioncontrol_'. $vcs .'_repositories';
-      $this->_dbDeleteAdditions($table_name, 'repo_id', $this->repo_id);
-    }
+    $this->_delete();
 
     // Phew, everything's cleaned up. Finally, delete the repository.
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
@@ -408,6 +386,13 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     );
   }
 
+  /**
+   * Let child backend repo classes delete information that _is not_ in
+   * VersioncontrolRepository::data without modifying general flow if
+   * necessary.
+   */
+  protected function _delete() {
+  }
 
   /**
    * Export a repository's authenticated accounts to the version control system's
@@ -486,72 +471,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
       ? FALSE : $info['selected_label'];
     return $item;
   }
-
-  /**
-   * Generate and execute a DELETE query for the given table
-   * based on name and value of the primary key.
-   * In order to avoid unnecessary complexity, the primary key may not consist
-   * of multiple columns and has to be a numeric value.
-   */
-  private function _dbDeleteAdditions($table_name, $primary_key_name, $primary_key) {
-    db_query('DELETE FROM {'. $table_name .'}
-              WHERE '. $primary_key_name .' = %d', $primary_key);
-  }
-
-  /**
-   * Generate and execute an INSERT query for the given table based on key names,
-   * values and types of the given array elements. This function basically
-   * accomplishes the insertion part of Version Control API's 'autoadd' feature.
-   */
-  private function _dbInsertAdditions($table_name, $elements) {
-    $keys = array();
-    $params = array();
-    $types = array();
-
-    foreach ($elements as $key => $value) {
-      $keys[] = $key;
-      $params[] = is_numeric($value) ? $value : serialize($value);
-      $types[] = is_numeric($value) ? '%d' : "'%s'";
-    }
-
-    db_query(
-      'INSERT INTO {'. $table_name .'} ('. implode(', ', $keys) .')
-       VALUES ('. implode(', ', $types) .')', $params
-    );
-  }
-
-  /**
-   * Generate and execute an UPDATE query for the given table based on key names,
-   * values and types of the given array elements. This function basically
-   * accomplishes the update part of Version Control API's 'autoadd' feature.
-   * In order to avoid unnecessary complexity, the primary key may not consist
-   * of multiple columns and has to be a numeric value.
-   */
-  private function _dbUpdateAdditions($table_name, $primary_key_name, $elements) {
-    $set_statements = array();
-    $params = array();
-
-    foreach ($elements as $key => $value) {
-      if ($key == $primary_key_name) {
-        continue;
-      }
-      $type = is_numeric($value) ? '%d' : "'%s'";
-      $set_statements[] = $key .' = '. $type;
-      $params[] = is_numeric($value) ? $value : serialize($value);
-    }
-    $params[] = $elements[$primary_key_name];
-
-    if (empty($set_statements)) {
-      return; // no use updating the database if no values are assigned.
-    }
-
-    db_query(
-      'UPDATE {'. $table_name .'}
-       SET '. implode(', ', $set_statements) .'
-       WHERE '. $primary_key_name .' = %d', $params
-    );
-  }
-
 
   //ArrayAccess interface implementation
   public function offsetExists($offset) {

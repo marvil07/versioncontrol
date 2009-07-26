@@ -515,7 +515,6 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
   $username = $form_state['values']['account_name'];
   $repository = $form['#repository'];
   $vcs_name = $form['#vcs_name'];
-  $vcs_specific = NULL;
 
   // Let other modules provide additional account data.
   $additional_data = array();

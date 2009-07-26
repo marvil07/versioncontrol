@@ -21,15 +21,6 @@ define('VERSIONCONTROL_CAPABILITY_DIRECTORY_REVISIONS',     4);
 //@}
 
 /**
- * @name VCS backend flags
- * Flags that backends can set to specify if Version Control API
- * should do work for them.
- */
-//@{
-define('VERSIONCONTROL_FLAG_AUTOADD_REPOSITORIES',      1);
-//@}
-
-/**
  * @name VCS actions
  * for a single item (file or directory) in a commit, or for branches and tags.
  */
