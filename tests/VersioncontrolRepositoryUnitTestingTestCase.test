@@ -1,4 +1,13 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Unit tests for repository class
+ */
+
+/**
+ * Unit tests for VersioncontrolRepository class
+ */
 class VersioncontrolRepositoryUnitTestingTestCase extends DrupalWebTestCase {
 
   public $repoCache;

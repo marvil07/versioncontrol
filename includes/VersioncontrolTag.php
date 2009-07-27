@@ -1,4 +1,10 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Repo Tag class
+ */
+
 require_once 'VersioncontrolLabel.php';
 
 /**
@@ -10,7 +16,7 @@ class VersioncontrolTag extends VersioncontrolLabel {
   /**
    * Constructor
    */
-  public function __construct($name, $action, $label_id=NULL, $repository=NULL) {
+  public function __construct($name, $action, $label_id = NULL, $repository = NULL) {
     parent::__construct(VERSIONCONTROL_LABEL_TAG, $name, $action, $label_id, $repository);
   }
 

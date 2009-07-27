@@ -1063,7 +1063,7 @@ function versioncontrol_fetch_source_items($repository, &$items) {
       $item_revision->type,
       $item_revision->path,
       $item_revision->revision,
-      null,
+      NULL,
       $repository
     );
     $item->selected_label = new stdClass();
@@ -1075,7 +1075,7 @@ function versioncontrol_fetch_source_items($repository, &$items) {
     if ($item_revision->action == VERSIONCONTROL_ACTION_REPLACED) {
       $items[$successor_key]->replaced_item = $item;
     }
-    else if ($item_revision->action == VERSIONCONTROL_ACTION_ADDED) {
+    elseif ($item_revision->action == VERSIONCONTROL_ACTION_ADDED) {
       $items[$successor_key]['action'] = $item_revision->action;
       // Added items only join to an empty (NULL) item, ignore that one
       // instead of adding it to the source items.
@@ -1317,7 +1317,7 @@ function versioncontrol_get_url_item_log_view($repository, &$item) {
     // The default URL backend doesn't do log view URLs for directory items:
     return '';
   }
-  else if (module_exists('commitlog')) { // fallback, as 'file_log_view' is empty
+  elseif (module_exists('commitlog')) { // fallback, as 'file_log_view' is empty
     $query = array(
       'repos' => $repository['repo_id'],
       'paths' => drupal_urlencode($item['path']),
@@ -1775,7 +1775,7 @@ function versioncontrol_block($op = 'list', $delta = 0) {
     );
     return $blocks;
   }
-  else if ($op == 'view') {
+  elseif ($op == 'view') {
     if ($delta == 'site_active_developers') {
       return versioncontrol_block_site_active_developers();
     }
@@ -1783,7 +1783,7 @@ function versioncontrol_block($op = 'list', $delta = 0) {
 }
 
 /**
- * Implementation of hook_block($op='view') for the "active developers" block.
+ * Implementation of hook_block($op = 'view') for the "active developers" block.
  */
 function versioncontrol_block_site_active_developers() {
   $block = array();

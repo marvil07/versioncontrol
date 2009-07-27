@@ -1,4 +1,10 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Repo Branch class
+ */
+
 require_once 'VersioncontrolLabel.php';
 
 /**
@@ -9,7 +15,7 @@ class VersioncontrolBranch extends VersioncontrolLabel {
   /**
    * Constructor
    */
-  public function __construct($name, $action, $label_id=NULL, $repository=NULL) {
+  public function __construct($name, $action, $label_id = NULL, $repository = NULL) {
     parent::__construct(VERSIONCONTROL_LABEL_BRANCH, $name, $action, $label_id, $repository);
   }
 

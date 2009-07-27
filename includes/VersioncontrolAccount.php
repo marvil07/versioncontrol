@@ -1,4 +1,10 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Account class
+ */
+
 require_once 'VersioncontrolAccount.php';
 require_once 'VersioncontrolRepository.php';
 
@@ -34,7 +40,7 @@ class VersioncontrolAccount implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($vcs_username, $uid, $repository=NULL) {
+  public function __construct($vcs_username, $uid, $repository = NULL) {
     $this->vcs_username = $vcs_username;
     $this->uid = $uid;
     $this->repository = $repository;
@@ -211,7 +217,7 @@ class VersioncontrolAccount implements ArrayAccess {
       $function = 'versioncontrol_'. $this->repository->vcs .'_is_account_username_valid';
       return $function($this->repository, $username);
     }
-    else if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+    elseif (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
       return FALSE;
     }
     return TRUE;

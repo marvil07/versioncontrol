@@ -1,4 +1,10 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Item class
+ */
+
 require_once 'VersioncontrolRepository.php';
 
 /**
@@ -8,7 +14,7 @@ require_once 'VersioncontrolRepository.php';
 define('VERSIONCONTROL_ITEM_FILE',              1);
 define('VERSIONCONTROL_ITEM_DIRECTORY',         2);
 /**
- * @name VCS "Deleted" item types. 
+ * @name VCS "Deleted" item types.
  * Only used for items that don't exist in the repository (anymore), at least
  * not in the given revision. That is mostly the case with items that were
  * deleted by a commit and are returned as result by
@@ -115,7 +121,7 @@ class VersioncontrolItem implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($type, $path, $revision, $action, $repository, $deleted=NULL, $item_revision_id=NULL) {
+  public function __construct($type, $path, $revision, $action, $repository, $deleted = NULL, $item_revision_id = NULL) {
     $this->type = $type;
     $this->path = $path;
     $this->revision = $revision;
@@ -523,10 +529,10 @@ class VersioncontrolItem implements ArrayAccess {
       if (!isset($parent_path)) {
         $path = dirname($this->path);
       }
-      else if ($this->path == $parent_path) {
+      elseif ($this->path == $parent_path) {
         return $this;
       }
-      else if ($parent_path == '/' || strpos($this->path .'/', $parent_path .'/') !== FALSE) {
+      elseif ($parent_path == '/' || strpos($this->path .'/', $parent_path .'/') !== FALSE) {
         $path = $parent_path;
       }
       else {
@@ -741,7 +747,7 @@ class VersioncontrolItem implements ArrayAccess {
       }
       // Unless file.inc provides a nice function for recursively deleting
       // directories, let's just go for the straightforward portable method.
-      $rm = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') ? 'rd /s' : 'rm -rf';
+      $rm = (drupal_strtoupper(drupal_substr(PHP_OS, 0, 3)) == 'WIN') ? 'rd /s' : 'rm -rf';
       exec("$rm $destination_dirpath");
 
       $success = _versioncontrol_call_backend(
@@ -835,7 +841,7 @@ class VersioncontrolItem implements ArrayAccess {
           if ($this->type == VERSIONCONTROL_ITEM_FILE) {
             $this->type = VERSIONCONTROL_ITEM_FILE_DELETED;
           }
-          else if ($this->type == VERSIONCONTROL_ITEM_DIRECTORY) {
+          elseif ($this->type == VERSIONCONTROL_ITEM_DIRECTORY) {
             $this->type = VERSIONCONTROL_ITEM_DIRECTORY_DELETED;
           }
         }

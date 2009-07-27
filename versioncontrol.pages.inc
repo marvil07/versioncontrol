@@ -92,7 +92,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
   if (count($repository_names) == 1) {
     $only_repo_id = $first_repo_id;
   }
-  else if (count($repositories) == 1) {
+  elseif (count($repositories) == 1) {
     $only_repo_id = reset(array_keys($repositories));
   }
 
@@ -113,7 +113,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
                   .'/'. reset($account_usernames[$repo_id]));
       // drupal_goto() calls exit() so script execution ends right here
     }
-    else if (isset($repository_names[$repo_id])) {
+    elseif (isset($repository_names[$repo_id])) {
       return drupal_get_form('versioncontrol_account_edit_form',
         $register_uid, $repositories[$repo_id], VERSIONCONTROL_FORM_CREATE
       );

@@ -1,5 +1,14 @@
 <?php
+// $Id$
 
+/**
+ * @file
+ * Needed basic clases that are not entities.
+ */
+
+/**
+ * Repository loader, sigleton class.
+ */
 final class VersioncontrolRepositoryCache {
   private static $instance;
   private $backends = array();
@@ -149,7 +158,7 @@ final class VersioncontrolRepositoryCache {
           $repo_ids[] = $repo_id;
         }
       }
-      foreach ($this->getRepositories(array('repo_ids' => $repo_ids)) as $repo){
+      foreach ($this->getRepositories(array('repo_ids' => $repo_ids)) as $repo) {
         $this->cacheRepository($repo);
       }
     }

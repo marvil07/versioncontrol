@@ -1,4 +1,10 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Repo Label class
+ */
+
 require_once 'VersioncontrolRepository.php';
 
 /**
@@ -62,7 +68,7 @@ abstract class VersioncontrolLabel implements ArrayAccess {
     /**
      * Constructor
      */
-    public function __construct($type, $name, $action, $label_id=NULL, $repository=NULL) {
+    public function __construct($type, $name, $action, $label_id = NULL, $repository = NULL) {
       $this->type = $type;
       $this->name = $name;
       $this->action = $action;

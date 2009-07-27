@@ -1,4 +1,13 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Funcional tests for repository managment.
+ */
+
+/**
+ * Funcional tests for repository managment.
+ */
 class VersioncontrolRepositoryManagementTestCase extends DrupalWebTestCase {
 
   protected $admin_user;

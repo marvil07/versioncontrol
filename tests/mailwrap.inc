@@ -1,4 +1,11 @@
 <?php
+// $Id$
+
+/**
+ * @file
+ * Funcionts needed to emulate mail handling.
+ */
+
 /**
  * Wrapper function to override the default mail handler function.
  * (taken from d7 drupal_web_test_case, hint: rm me on d7)

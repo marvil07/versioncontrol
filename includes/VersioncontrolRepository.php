@@ -1,10 +1,16 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Repo class
+ */
+
+
 require_once 'VersioncontrolOperation.php';
 require_once 'VersioncontrolBackend.php';
 
 /**
  * Contain fundamental information about the repository.
- *
  */
 abstract class VersioncontrolRepository implements ArrayAccess {
   // Attributes
@@ -77,7 +83,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   /**
    * Constructor
    */
-  public function __construct($repo_id, $args=array(), $buildSelf = TRUE) {
+  public function __construct($repo_id, $args = array(), $buildSelf = TRUE) {
     $this->repo_id = $repo_id;
     if ($buildSelf) {
       $this->buildSelf();
@@ -191,10 +197,10 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     while ($label = db_fetch_array($result)) {
       switch ($label['type']) {
       case VERSIONCONTROL_LABEL_BRANCH:
-        $labels[] = new VersioncontrolBranch($label['name'], null, $label['label_id'], $this);
+        $labels[] = new VersioncontrolBranch($label['name'], NULL, $label['label_id'], $this);
         break;
       case VERSIONCONTROL_LABEL_TAG:
-        $labels[] = new VersioncontrolTag($label['name'], null, $label['label_id'], $this);
+        $labels[] = new VersioncontrolTag($label['name'], NULL, $label['label_id'], $this);
         break;
       }
     }
@@ -245,7 +251,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    *   An array of repository viewer URLs. How this array looks like is
    *   defined by the corresponding URL backend.
    */
-  public final function update($repository_urls=NULL) {
+  public final function update($repository_urls = NULL) {
     drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
     if (!is_null($repository_urls)) {
@@ -375,9 +381,9 @@ abstract class VersioncontrolRepository implements ArrayAccess {
 
     // Phew, everything's cleaned up. Finally, delete the repository.
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
-             $this->repo_id);
+      $this->repo_id);
     db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
-             $this->repo_id);
+      $this->repo_id);
 
     watchdog('special',
       'Version Control API: deleted repository @repository',

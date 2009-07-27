@@ -638,7 +638,7 @@ function hook_versioncontrol_account($op, $uid, $username, $repository, $additio
 
       db_query("DELETE FROM {mymodule_karma} WHERE uid = %d", $uid);
       db_query("INSERT INTO {mymodule_karma} (uid, karma) VALUES (%d, %d)",
-               $uid, $mymodule_data['karma']);
+          $uid, $mymodule_data['karma']);
       break;
 
     case 'delete':

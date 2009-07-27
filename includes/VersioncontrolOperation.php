@@ -1,4 +1,9 @@
 <?php
+// $Id$
+/**
+ * @file
+ * Operation class
+ */
 
 require_once 'VersioncontrolItem.php';
 require_once 'VersioncontrolBranch.php';
@@ -129,7 +134,7 @@ class VersioncontrolOperation implements ArrayAccess {
     /**
      * Constructor
      */
-    public function __construct($type, $committer, $date, $revision, $message, $author=NULL, $repository=NULL, $vc_op_id=NULL) {
+    public function __construct($type, $committer, $date, $revision, $message, $author = NULL, $repository = NULL, $vc_op_id = NULL) {
       $this->type = $type;
       $this->committer = $committer;
       $this->date = $date;
@@ -342,7 +347,7 @@ class VersioncontrolOperation implements ArrayAccess {
                             ('. implode(',', $op_id_placeholders) .')', $op_ids);
 
       while ($row = db_fetch_object($result)) {
-        switch($row->type) {
+        switch ($row->type) {
         case VERSIONCONTROL_LABEL_TAG:
           $operations[$row->vc_op_id]->labels[] = new VersioncontrolTag(
             $row->name, $row->action, $row->label_id,
@@ -382,7 +387,7 @@ class VersioncontrolOperation implements ArrayAccess {
      * (so only tag operations or commits affecting emulated tags are returned).
      * Parameters and result array are the same as those
      * from versioncontrol_get_operations().
-     * 
+     *
      * @static
      */
     public static function getTags($constraints = array(), $options = array()) {
@@ -1173,5 +1178,3 @@ class VersioncontrolOperation implements ArrayAccess {
   }
 
 }
-
-?>

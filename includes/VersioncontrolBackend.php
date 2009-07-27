@@ -1,5 +1,9 @@
 <?php
 // $Id$
+/**
+ * @file
+ * Backend class
+ */
 
 /**
  * Backend base class
@@ -39,7 +43,7 @@ abstract class VersioncontrolBackend implements ArrayAccess {
   /**
    * Reference constructor for backends
    */
-  public function __construct($name, $description, $capabilities=array(), $classes=array()) {
+  public function __construct($name, $description, $capabilities = array(), $classes = array()) {
     $this->name = $name;
     $this->description = $description;
     $this->capabilities = $capabilities;
