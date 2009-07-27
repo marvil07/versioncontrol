@@ -345,7 +345,7 @@ class VersioncontrolOperation implements ArrayAccess {
         switch($row->type) {
         case VERSIONCONTROL_LABEL_TAG:
           $operations[$row->vc_op_id]->labels[] = new VersioncontrolTag(
-            $row->name, $row->action, $row->label_id=NULL,
+            $row->name, $row->action, $row->label_id,
             $operations[$row->vc_op_id]->repository
           );
           break;
