@@ -211,17 +211,11 @@ abstract class VersioncontrolAccount implements ArrayAccess {
    *   TRUE if the username is valid, FALSE if not.
    */
   public function isUsernameValid(&$username) {
-    if (versioncontrol_backend_implements($this->repository->vcs, 'is_account_username_valid')) {
-      // Because $username is a by-reference argument, make it a direct call.
-      $function = 'versioncontrol_'. $this->repository->vcs .'_is_account_username_valid';
-      return $function($this->repository, $username);
-    }
-    elseif (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+    if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
       return FALSE;
     }
     return TRUE;
   }
-
 
   /**
    * Update a VCS user account in the database, and call the necessary
