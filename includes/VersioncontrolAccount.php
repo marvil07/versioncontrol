@@ -189,11 +189,6 @@ abstract class VersioncontrolAccount implements ArrayAccess {
    *  The Drupal user who wants to register an account.
    */
   public function usernameSuggestion($user) {
-    if (versioncontrol_backend_implements($this->repository->vcs, 'account_username_suggestion')) {
-      return _versioncontrol_call_backend($this->repository->vcs,
-        'account_username_suggestion', array($this->repository, $user)
-      );
-    }
     return strtr(drupal_strtolower($user->name),
       array(' ' => '', '@' => '', '.' => '', '-' => '', '_' => '', '.' => '')
     );
