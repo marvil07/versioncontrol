@@ -706,13 +706,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
      * anymore.
      *
      * This function is optional for VCS backends to implement, be sure to check
-     * with versioncontrol_backend_implements($repository['vcs'], 'export_directory')
-     * if the particular backend actually implements it.
+     * return to NULL.
      *
-     * @param $repository
-     *   The repository that the directory item is located in.
-     * @param $directory_item
-     *   The directory item whose contents should be exported.
      * @param $destination_dirpath
      *   The path of the directory that will receive the contents of the exported
      *   repository item. If that directory already exists, it will be replaced.
@@ -727,8 +722,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
      *   or was not under version control at the time of the given revision,
      *   or simply cannot be exported to the destination directory for any reason.
      */
-    public function exportDirectory($repository, $directory_item, $destination_dirpath) {
-      if (!versioncontrol_is_directory_item($directory_item)) {
+    public function exportDirectory($destination_dirpath) {
+      if (!versioncontrol_is_directory_item($this)) {
         return FALSE;
       }
       // Unless file.inc provides a nice function for recursively deleting
@@ -736,10 +731,12 @@ abstract class VersioncontrolItem implements ArrayAccess {
       $rm = (drupal_strtoupper(drupal_substr(PHP_OS, 0, 3)) == 'WIN') ? 'rd /s' : 'rm -rf';
       exec("$rm $destination_dirpath");
 
-      $success = _versioncontrol_call_backend(
-        $repository['vcs'], 'export_directory',
-        array($repository, $directory_item, $destination_dirpath)
-      );
+      if ($this instanceof VersioncontrolItemExportDirectory) {
+        $success = $this->_exportDirectory($destination_dirpath);
+      }
+      else {
+        return FALSE;
+      }
       if (!$success) {
         exec("$rm $destination_dirpath");
         return FALSE;
