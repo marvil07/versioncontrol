@@ -671,28 +671,25 @@ abstract class VersioncontrolItem implements ArrayAccess {
      * That requirement might change in the future though.
      *
      * This function is optional for VCS backends to implement, be sure to check
-     * with versioncontrol_backend_implements($repository['vcs'], 'export_file')
-     * if the particular backend actually implements it.
-     *
-     * @param $repository
-     *   The repository that the file item is located in.
-     * @param $file_item
-     *   The file item whose contents should be retrieved.
+     * the return to NULL.
      *
      * @return
      *   The local path of the created copy, if successful.
      *   NULL is returned if the given item is not under version control,
      *   or was not under version control at the time of the given revision.
      */
-    public function exportFile($repository, $file_item) {
-      if (!versioncontrol_is_file_item($file_item)) {
+    public function exportFile() {
+      if (!versioncontrol_is_file_item($this)) {
         return NULL;
       }
       $filename = basename($file_item['path']);
       $destination = file_directory_temp() .'/versioncontrol-'. mt_rand() .'-'. $filename;
-      $success = _versioncontrol_call_backend(
-        $repository['vcs'], 'export_file', array($repository, $file_item, $destination)
-      );
+      if ($this instanceof VersioncontrolItemExportFile) {
+        $success = $this->_exportFile($destination);
+      }
+      else {
+        return NULL;
+      }
       if ($success) {
         return $destination;
       }

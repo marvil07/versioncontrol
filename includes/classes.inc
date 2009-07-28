@@ -180,3 +180,7 @@ interface VersioncontrolItemParallelItems {
 interface VersioncontrolItemDirectoryContents {
   function _getDirectoryContents($recursive = FALSE);
 }
+
+interface VersioncontrolItemExportFile {
+  function _exportFile($destination);
+}
