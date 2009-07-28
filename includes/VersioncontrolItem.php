@@ -560,13 +560,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
      * different branches and/or tags where the item exists.
      *
      * This function is optional for VCS backends to implement, be sure to check
-     * with versioncontrol_backend_implements($repository['vcs'], 'get_parallel_items')
-     * if the particular backend actually implements it.
+     * the return value to NULL.
      *
-     * @param $repository
-     *   The repository that the item is located in.
-     * @param $item
-     *   The item whose parallel sibling should be retrieved.
      * @param $label_type_filter
      *   If unset, siblings will be retrieved both on branches and tags.
      *   If set to VERSIONCONTROL_LABEL_BRANCH or VERSIONCONTROL_LABEL_TAG,
@@ -595,11 +590,13 @@ abstract class VersioncontrolItem implements ArrayAccess {
      *   An empty array is returned if the item is valid, but no parallel sibling
      *   items can be found for the given @p $label_type.
      */
-    public function getParallelItems($repository, $item, $label_type_filter = NULL) {
-      $results = _versioncontrol_call_backend(
-        $repository['vcs'], 'get_parallel_items',
-        array($repository, $item, $label_type_filter)
-      );
+    public final function getParallelItems($label_type_filter = NULL) {
+      if ($this instanceof VersioncontrolItemParallelItems) {
+        $results = $this->_getParallelItems($label_type_filter);
+      }
+      else {
+        return NULL;
+      }
       if (is_null($results)) {
         return NULL;
       }

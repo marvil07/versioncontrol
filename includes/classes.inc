@@ -172,3 +172,7 @@ final class VersioncontrolRepositoryCache {
   }
 
 }
+
+interface VersioncontrolItemParallelItems {
+  function _getParallelItems($label_type_filter = NULL);
+}
