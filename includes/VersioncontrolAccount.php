@@ -13,7 +13,7 @@ require_once 'VersioncontrolRepository.php';
  *
  * This class provides the way to manage users accounts.
  */
-class VersioncontrolAccount implements ArrayAccess {
+abstract class VersioncontrolAccount implements ArrayAccess {
   // Attributes
   /**
    * VCS's username
@@ -156,9 +156,7 @@ class VersioncontrolAccount implements ArrayAccess {
     $repo_ids = array();
     while ($account = db_fetch_object($result)) {
       $repo_ids[] = $account->repo_id;
-      $min_repo = new stdClass(); // full object is retrieved some lines down
-      $min_repo->repo_id = $account->repo_id;
-      $account_rows[] = new VersioncontrolAccount($account->username, $account->uid, $min_repo);
+      $account_rows[] = array('username' => $account->username, 'uid' => $account->uid, 'repo_id' => $account->repo_id);
     }
     if (empty($repo_ids)) {
       return array();
@@ -168,15 +166,16 @@ class VersioncontrolAccount implements ArrayAccess {
     $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('repo_ids' => $repo_ids));
     $accounts = array();
 
-    foreach ($account_rows as $account) {
-      $account->repository = $repositories[$account->repository->repo_id];
+    foreach ($account_rows as $account_raw) {
+      $repo = $repositories[$account_raw['repo_id']];
+      $accountObj = new $repo->backend->classes['account']($account_raw['username'], $account_raw['uid'], $repo);
       // Only include approved accounts, except in case the caller said otherwise.
       if ($include_unauthorized
-          || $account->repository->isAccountAuthorized($account->uid)) {
-        if (!isset($accounts[$account->uid])) {
-          $accounts[$account->uid] = array();
+          || $accountObj->repository->isAccountAuthorized($accountObj->uid)) {
+        if (!isset($accounts[$accountObj->uid])) {
+          $accounts[$accountObj->uid] = array();
         }
-        $accounts[$account->uid][$account->repository->repo_id] = $account;
+        $accounts[$accountObj->uid][$accountObj->repository->repo_id] = $accountObj;
       }
     }
     return $accounts;

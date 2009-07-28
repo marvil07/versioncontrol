@@ -8,6 +8,7 @@
 
 require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolBackend.php';
 require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolRepository.php';
+require_once drupal_get_path('module', 'versioncontrol') . '/includes/VersioncontrolAccount.php';
 
 /**
  * Implementation of hook_versioncontrol_backends().
@@ -29,9 +30,13 @@ class VersioncontrolTestBackend extends VersioncontrolBackend {
     );
     $this->classes = array(
       'repo' => 'VersioncontrolTestRepository',
+      'account' => 'VersioncontrolTestAccount',
     );
   }
 }
 
 class VersioncontrolTestRepository extends VersioncontrolRepository {
+}
+
+class VersioncontrolTestAccount extends VersioncontrolAccount {
 }
