@@ -1457,33 +1457,6 @@ function _versioncontrol_get_repository_urls($repository) {
 
 
 /**
- * Get the user-visible version of a revision identifier (for an operation or
- * an item), as plaintext. By default, this function simply returns $revision.
- *
- * Version control backends can, however, choose to implement their own version
- * of this function, which for example makes it possible to cut the SHA-1 hash
- * in distributed version control systems down to a readable length.
- *
- * @param $repository
- *   The repository array for the repository where the revision is located.
- * @param $revision
- *   The unformatted revision, as given in $operation['revision']
- *   or $item['revision'] (or the respective table columns for those values).
- * @param $format
- *   Either 'full' for the original version, or 'short' for a more compact form.
- *   If the revision identifier doesn't need to be shortened, the results can
- *   be the same for both versions.
- */
-function versioncontrol_format_revision_identifier($repository, $revision, $format = 'full') {
-  if (versioncontrol_backend_implements($repository->vcs, 'format_revision_identifier')) {
-    return _versioncontrol_call_backend(
-      $repository->vcs, 'format_revision_identifier', array($repository, $revision, $format)
-    );
-  }
-  return $revision;
-}
-
-/**
  * Get the user-visible version of a commit identifier a.k.a. 'revision',
  * as plaintext. By default, this function returns the operation's revision
  * if that property exists, or its vc_op_id identifier as fallback.
@@ -1503,7 +1476,7 @@ function versioncontrol_format_operation_revision_identifier($operation, $format
   if (empty($operation->revision)) {
     return '#'. $operation->vc_op_id;
   }
-  return versioncontrol_format_revision_identifier($operation->repository, $operation->revision, $format);
+  return $operation->repository->formatRevisionIdentifier($operation->revision, $format);
 }
 
 /**
@@ -1524,7 +1497,7 @@ function versioncontrol_format_operation_revision_identifier($operation, $format
  *   be the same for both versions.
  */
 function versioncontrol_format_item_revision_identifier($repository, $item, $format = 'full') {
-  return versioncontrol_format_revision_identifier($repository, $item['revision']);
+  return $repository->formatRevisionIdentifier($item['revision']);
 }
 
 /**

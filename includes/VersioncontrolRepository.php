@@ -478,6 +478,26 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     return $item;
   }
 
+  /**
+   * Get the user-visible version of a revision identifier (for an operation or
+   * an item), as plaintext. By default, this function simply returns $revision.
+   *
+   * Version control backends can, however, choose to implement their own version
+   * of this function, which for example makes it possible to cut the SHA-1 hash
+   * in distributed version control systems down to a readable length.
+   *
+   * @param $revision
+   *   The unformatted revision, as given in $operation['revision']
+   *   or $item['revision'] (or the respective table columns for those values).
+   * @param $format
+   *   Either 'full' for the original version, or 'short' for a more compact form.
+   *   If the revision identifier doesn't need to be shortened, the results can
+   *   be the same for both versions.
+   */
+  public function formatRevisionIdentifier($revision, $format = 'full') {
+    return $revision;
+  }
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
