@@ -32,6 +32,7 @@ class VersioncontrolTestBackend extends VersioncontrolBackend {
       'repo' => 'VersioncontrolTestRepository',
       'account' => 'VersioncontrolTestAccount',
       'operation' => 'VersioncontrolTestOperation',
+      'item' => 'VersioncontrolTestItem',
     );
   }
 }
@@ -43,4 +44,7 @@ class VersioncontrolTestAccount extends VersioncontrolAccount {
 }
 
 class VersioncontrolTestOperation extends VersioncontrolOperation {
+}
+
+class VersioncontrolTestItem extends VersioncontrolItem {
 }

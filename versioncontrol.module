@@ -1059,7 +1059,7 @@ function versioncontrol_fetch_source_items($repository, &$items) {
       $items[$successor_key]->source_items = array();
     }
 
-    $item = new VersioncontrolItem(
+    $item = new $repository->backend->classes['item'](
       $item_revision->type,
       $item_revision->path,
       $item_revision->revision,

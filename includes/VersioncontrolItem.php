@@ -35,7 +35,7 @@ define('VERSIONCONTROL_ITEM_DIRECTORY_DELETED', 4);
  * applicable. Most item revisions, but probably not all of them, are recorded
  * in the database.
  */
-class VersioncontrolItem implements ArrayAccess {
+abstract class VersioncontrolItem implements ArrayAccess {
     // Attributes
     /**
      * db identifier
@@ -544,7 +544,7 @@ class VersioncontrolItem implements ArrayAccess {
         $revision = $this->revision;
       }
 
-      $parent_item = new VersioncontrolItem(VERSIONCONTROL_ITEM_DIRECTORY,
+      $parent_item = new $this->repository->backend->classes['item'](VERSIONCONTROL_ITEM_DIRECTORY,
         $path, $revision, NULL, $this->repository);
 
       $parent_item->selected_label = new stdClass();

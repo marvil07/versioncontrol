@@ -480,7 +480,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
         $this->vc_op_id, VERSIONCONTROL_OPERATION_MEMBER_ITEM);
 
       while ($item_revision = db_fetch_object($result)) {
-        $items[$item_revision->path] = new VersioncontrolItem($item_revision->type, $item_revision->path, $item_revision->revision, NULL, $this->repository, NULL, $item_revision->item_revision_id);
+        $items[$item_revision->path] = new $this->repository->backend->classes['item']($item_revision->type, $item_revision->path, $item_revision->revision, NULL, $this->repository, NULL, $item_revision->item_revision_id);
         $items[$item_revision->path]->selected_label = new stdClass();
         $items[$item_revision->path]->selected_label->get_from = 'operation';
         $items[$item_revision->path]->selected_label->operation = &$this;
