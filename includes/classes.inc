@@ -188,3 +188,7 @@ interface VersioncontrolItemExportFile {
 interface VersioncontrolItemExportDirectory {
   function _exportDirectory($destination_dirpath);
 }
+
+interface VersioncontrolItemGetFileAnnotation {
+  function _getFileAnnotation();
+}

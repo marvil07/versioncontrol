@@ -751,13 +751,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
      * operation, so expect this function to take a bit more time as well.
      *
      * This function is optional for VCS backends to implement, be sure to check
-     * with versioncontrol_backend_implements($repository['vcs'], 'get_file_annotation')
-     * if the particular backend actually implements it.
-     *
-     * @param $repository
-     *   The repository that the file item is located in.
-     * @param $file_item
-     *   The file item whose annotation should be retrieved.
+     * the return to NULL.
      *
      * @return
      *   A structured array that consists of one element per line, with
@@ -774,13 +768,11 @@ abstract class VersioncontrolItem implements ArrayAccess {
      *   A real-life example of such a result array can be found
      *   in the FakeVCS example module.
      */
-    public function getFileAnnotation($repository, $file_item) {
-      if (!versioncontrol_is_file_item($file_item)) {
+    public function getFileAnnotation() {
+      if (!$this->isFile() || $this instanceof VersioncontrolItemGetFileAnnotation) {
         return NULL;
       }
-      return _versioncontrol_call_backend(
-        $repository['vcs'], 'get_file_annotation', array($repository, $file_item)
-      );
+      return $this->_getFileAnnotation();
     }
 
     /**
