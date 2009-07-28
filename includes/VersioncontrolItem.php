@@ -617,13 +617,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
      * inside the given directory in the repository.
      *
      * This function is optional for VCS backends to implement, be sure to check
-     * with versioncontrol_backend_implements($repository['vcs'], 'get_directory_contents')
-     * if the particular backend actually implements it.
+     * the return value to NULL.
      *
-     * @param $repository
-     *   The repository that the directory item is located in.
-     * @param $directory_item
-     *   The parent item of the items that should be listed.
      * @param $recursive
      *   If FALSE, only the direct children of $path will be retrieved.
      *   If TRUE, you'll get every single descendant of $path.
@@ -647,14 +642,11 @@ abstract class VersioncontrolItem implements ArrayAccess {
      *   A real-life example of such a result array can be found
      *   in the FakeVCS example module.
      */
-    public function getDirectoryContents($repository, $directory_item, $recursive = FALSE) {
-      if (!versioncontrol_is_directory_item($directory_item)) {
+    public function getDirectoryContents($recursive = FALSE) {
+      if (!$this->isDirectory() || $this instanceof VersioncontrolItemDirectoryContents) {
         return NULL;
       }
-      $contents = _versioncontrol_call_backend(
-        $repository['vcs'], 'get_directory_contents',
-        array($repository, $directory_item, $recursive)
-      );
+      $this->_getDirectoryContents($recursive);
       if (!isset($contents)) {
         return NULL;
       }
