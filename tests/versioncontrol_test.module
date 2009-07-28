@@ -31,6 +31,7 @@ class VersioncontrolTestBackend extends VersioncontrolBackend {
     $this->classes = array(
       'repo' => 'VersioncontrolTestRepository',
       'account' => 'VersioncontrolTestAccount',
+      'operation' => 'VersioncontrolTestOperation',
     );
   }
 }
@@ -39,4 +40,7 @@ class VersioncontrolTestRepository extends VersioncontrolRepository {
 }
 
 class VersioncontrolTestAccount extends VersioncontrolAccount {
+}
+
+class VersioncontrolTestOperation extends VersioncontrolOperation {
 }

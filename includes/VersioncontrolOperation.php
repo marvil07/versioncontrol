@@ -23,7 +23,7 @@ define('VERSIONCONTROL_OPERATION_TAG',    3);
  * Stuff that happened in a repository at a specific time
  *
  */
-class VersioncontrolOperation implements ArrayAccess {
+abstract class VersioncontrolOperation implements ArrayAccess {
     // Attributes
     /**
      * db identifier (before vc_op_id)
@@ -313,14 +313,9 @@ class VersioncontrolOperation implements ArrayAccess {
           $repo_ids[] = $row->repo_id;
         }
 
-        // Construct the operation array - nearly done already.
-        $operations[$row->vc_op_id] = new VersioncontrolOperation($row->type,
-          $row->committer, $row->date, $row->revision, $row->message,
-          $row->author, NULL, $row->vc_op_id);
+        // Construct an operation array - nearly done already.
         // 'repo_id' is replaced by 'repository' further down
-        $operations[$row->vc_op_id]->repo_id = $row->repo_id;
-        $operations[$row->vc_op_id]->labels = array();
-        $operations[$row->vc_op_id]->uid = $row->uid;
+        $operations[$row->vc_op_id] = $row;
         $op_ids[] = $row->vc_op_id;
         $op_id_placeholders[] = '%d';
       }
@@ -331,8 +326,13 @@ class VersioncontrolOperation implements ArrayAccess {
       // Add the corresponding repository array to each operation.
       $repositories = VersioncontrolRepositoryCache::getInstance()->getRepositories(array('repo_ids' => $repo_ids));
       foreach ($operations as $vc_op_id => $operation) {
-        $operations[$vc_op_id]->repository = $repositories[$operation->repo_id];
-        unset($operations[$vc_op_id]->repo_id);
+        $repo = $repositories[$operation->repo_id];
+        $operationObj = new $repo->backend->classes['operation']($operation->type,
+          $operation->committer, $operation->date, $operation->revision, $operation->message,
+          $operation->author, $repo, $operation->vc_op_id);
+        $operationObj->labels = array();
+        $operationObj->uid = $operation->uid;
+        $operations[$operation->vc_op_id] = $operationObj;
       }
 
       // Add the corresponding labels to each operation.
