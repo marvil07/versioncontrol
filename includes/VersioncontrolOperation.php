@@ -547,7 +547,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *   versioncontrol_get_operations() and versioncontrol_get_operation_items().)
      *   In case of an error, NULL is returned instead of the operation array.
      */
-    public function insert(&$operation_items) {
+    public final function insert(&$operation_items) {
       $this->_fill(TRUE);
 
       if (!isset($this->repository)) {
@@ -627,11 +627,8 @@ class VersioncontrolOperation implements ArrayAccess {
       }
 
       // Notify the backend first.
-      if (versioncontrol_backend_implements($vcs, 'operation')) {
-        _versioncontrol_call_backend($vcs, 'operation', array(
-          'insert', $this, $operation_items
-        ));
-      }
+      $this->_insert($operation_items);
+
       // Everything's done, let the world know about it!
       module_invoke_all('versioncontrol_operation',
         'insert', $this, $operation_items
@@ -659,6 +656,14 @@ class VersioncontrolOperation implements ArrayAccess {
       return $this;
     }
 
+  /**
+   * Let child backend repo classes add information that _is not_ in
+   * VersioncontrolRepository::data without modifying general flow if
+   * necessary.
+   */
+  protected function _insert($operation_items) {
+  }
+
     /**
      * Delete a commit, a branch operation or a tag operation from the database,
      * and call the necessary hooks.
@@ -667,7 +672,7 @@ class VersioncontrolOperation implements ArrayAccess {
      *   The commit, branch operation or tag operation array containing
      *   the operation that should be deleted.
      */
-    public function delete() {
+    public final function delete() {
       $operation_items = $this->getItems();
 
       // As versioncontrol_update_operation_labels() provides an update hook for
@@ -680,14 +685,8 @@ class VersioncontrolOperation implements ArrayAccess {
       module_invoke_all('versioncontrol_operation',
                         'delete', $this, $operation_items);
 
-      $vcs = $this->repository->vcs;
-
       // Provide an opportunity for the backend to delete its own stuff.
-      if (versioncontrol_backend_implements($vcs, 'operation')) {
-        _versioncontrol_call_backend($vcs, 'operation', array(
-          'delete', $this, $operation_items
-        ));
-      }
+      $this->_delete($operation_items);
 
       db_query('DELETE FROM {versioncontrol_operation_labels}
                 WHERE vc_op_id = %d', $this->vc_op_id);
@@ -696,6 +695,14 @@ class VersioncontrolOperation implements ArrayAccess {
       db_query('DELETE FROM {versioncontrol_operations}
                 WHERE vc_op_id = %d', $this->vc_op_id);
     }
+
+  /**
+   * Let child backend repo classes add information that _is not_ in
+   * VersioncontrolRepository::data without modifying general flow if
+   * necessary.
+   */
+  protected function _delete($operation_items) {
+  }
 
     /**
      * Assemble a list of query constraints from the given @p $constraints and
