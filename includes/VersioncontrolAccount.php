@@ -239,7 +239,7 @@ class VersioncontrolAccount implements ArrayAccess {
    *   An array of additional author information. Modules can fill this array
    *   by implementing hook_versioncontrol_account_submit().
    */
-  public function update($username, $additional_data = array()) {
+  public final function update($username, $additional_data = array()) {
     $repo_id = $this->repository->repo_id;
     $username_changed = ($username != $this->vcs_username);
 
@@ -253,12 +253,7 @@ class VersioncontrolAccount implements ArrayAccess {
     }
 
     // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
-      _versioncontrol_call_backend(
-        $this->repository->vcs, 'account',
-        array('update', $this->uid, $this->vcs_username, $this->repository, $additional_data)
-      );
-    }
+    $this->_update($additional_data);
 
     if ($username_changed) {
       db_query("UPDATE {versioncontrol_operations}
@@ -283,6 +278,11 @@ class VersioncontrolAccount implements ArrayAccess {
     );
   }
 
+  /**
+   * Let child backend account classes update information.
+   */
+  protected function _update($additional_data) {
+  }
 
   /**
    * Insert a VCS user account into the database,
@@ -292,19 +292,14 @@ class VersioncontrolAccount implements ArrayAccess {
    *   An array of additional author information. Modules can fill this array
    *   by implementing hook_versioncontrol_account_submit().
    */
-  public function insert($additional_data = array()) {
+  public final function insert($additional_data = array()) {
     db_query(
       "INSERT INTO {versioncontrol_accounts} (uid, repo_id, username)
        VALUES (%d, %d, '%s')", $this->uid, $this->repository->repo_id, $this->vcs_username
     );
 
     // Provide an opportunity for the backend to add its own stuff.
-    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
-      _versioncontrol_call_backend(
-        $this->repository->vcs, 'account',
-        array('insert', $this->uid, $this->vcs_username, $this->repository, $additional_data)
-      );
-    }
+    $this->_insert($additional_data);
 
     // Update the operations table.
     // FIXME differenciate author and commiter
@@ -326,10 +321,16 @@ class VersioncontrolAccount implements ArrayAccess {
   }
 
   /**
+   * Let child backend account classes add information
+   */
+  protected function _insert($additional_data) {
+  }
+
+  /**
    * Delete a VCS user account from the database, set all commits with this
    * account as author to user 0 (anonymous), and call the necessary hooks.
    */
-  public function delete() {
+  public final function delete() {
     // Update the operations table.
     db_query('UPDATE {versioncontrol_operations}
               SET uid = 0
@@ -342,12 +343,7 @@ class VersioncontrolAccount implements ArrayAccess {
     );
 
     // Provide an opportunity for the backend to delete its own stuff.
-    if (versioncontrol_backend_implements($this->repository->vcs, 'account')) {
-      _versioncontrol_call_backend(
-        $this->repository->vcs, 'account',
-        array('delete', $this->uid, $this->vcs_username, $this->repository, array())
-      );
-    }
+    $this->_delete();
 
     db_query('DELETE FROM {versioncontrol_accounts}
               WHERE uid = %d AND repo_id = %d',
@@ -358,6 +354,12 @@ class VersioncontrolAccount implements ArrayAccess {
       array('@username' => $this->vcs_username, '@repository' => $this->repository->name),
       WATCHDOG_NOTICE, l('view', 'admin/project/versioncontrol-accounts')
     );
+  }
+
+  /**
+   * Let child backend account classes delete information.
+   */
+  protected function _delete($additional_data) {
   }
 
   //ArrayAccess interface implementation
