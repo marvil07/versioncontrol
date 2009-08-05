@@ -13,7 +13,7 @@ final class VersioncontrolRepositoryCache {
   private static $instance;
   private $backends = array();
   private $repoCache = array('repo_id' => array(), 'name' => array(), 'vcs' => array());
-    /**
+  /**
    * Internal state variable indicating whether or not all repositories have
    * been fetched (via VersioncontrolRepositoryCache::getInstance()->getAllRepositories()).
    * @var bool
