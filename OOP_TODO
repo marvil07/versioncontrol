@@ -24,6 +24,9 @@ Replace versioncontrol_backend_implements() approach with one interface per feat
 - update documentation
   - versioncontrol_fakevcs module
   - hook_versioncontrol.php
+- move loaders to EntityCache classes, like repo and account classes(aka cache for getEntity methods)
+  - operation
+  - item
 
 on design
 ---------
