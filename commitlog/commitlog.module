@@ -74,7 +74,7 @@ function commitlog_account_tracker_access($account) {
   if (!user_access('access commit messages')) {
     return FALSE;
   }
-  $vcs_accounts = VersioncontrolAccount::getAccounts(array('uids' => array($account->uid)));
+  $vcs_accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array('uids' => array($account->uid)));
   return !empty($vcs_accounts);
 }
 

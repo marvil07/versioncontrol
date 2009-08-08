@@ -124,7 +124,7 @@ function versioncontrol_user($type, &$edit, &$user, $category = NULL) {
       return $categories;
 
     case 'delete':
-      $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($user->uid)), TRUE);
+      $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array('uids' => array($user->uid)), TRUE);
       if (empty($accounts)) {
         return;
       }
@@ -390,17 +390,17 @@ function versioncontrol_repository_load($repo_id) {
 /**
  * Menu wildcard loader for '%versioncontrol_user_accounts':
  * Load all VCS accounts of a given user (in the format that
- * VersioncontrolAccount::getAccounts() returns) and return either that
+ * VersioncontrolAccountCache::getInstance()->getAccounts() returns) and return either that
  * or FALSE if no VCS accounts exist for this user.
  *
  * @param $uid
  *   Drupal user id of the user whose VCS accounts should be loaded.
  * @param $include_unauthorized
- *   Will be passed on to VersioncontrolAccount::getAccounts(), see the
+ *   Will be passed on to VersioncontrolAccountCache::getInstance()->getAccounts(), see the
  *   API documentation of that function.
  */
 function versioncontrol_user_accounts_load($uid, $include_unauthorized = FALSE) {
-  $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($uid)), $include_unauthorized);
+  $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array('uids' => array($uid)), $include_unauthorized);
   return empty($accounts) ? FALSE : $accounts;
 }
 
@@ -1194,7 +1194,7 @@ function versioncontrol_fetch_successor_items($repository, &$items) {
 /**
  * Retrieve the VCS username for a given Drupal user id in a specific
  * repository. If you need more detailed querying functionality than this
- * function provides, use VersioncontrolAccount::getAccounts() instead.
+ * function provides, use VersioncontrolAccountCache::getInstance()->getAccounts() instead.
  *
  * @param $repo_id
  *   The repository id of the repository where the user has its VCS account.
@@ -1228,7 +1228,7 @@ function versioncontrol_get_account_uid_for_username($repo_id, $username, $inclu
 /**
  * Retrieve the Drupal user id for a given VCS username in a specific
  * repository. If you need more detailed querying functionality than this
- * function provides, use VersioncontrolAccount::getAccounts() instead.
+ * function provides, use VersioncontrolAccountCache::getInstance()->getAccounts() instead.
  *
  * @param $repo_id
  *   The repository id of the repository where the user has its VCS account.

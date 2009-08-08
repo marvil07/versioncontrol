@@ -527,7 +527,7 @@ function hook_versioncontrol_is_account_authorized($repository, $uid) {
  *
  * @param $accounts
  *   The accounts that would normally be displayed, in the same format as the
- *   return value of VersioncontrolAccount::getAccounts(). Entries in this list
+ *   return value of VersioncontrolAccountCache::getInstance()->getAccounts(). Entries in this list
  *   may be unset by this filter function.
  *
  * @ingroup Accounts
@@ -654,7 +654,7 @@ function hook_versioncontrol_account($op, $uid, $username, $repository, $additio
  *
  * @param $accounts
  *   The list of accounts that is being displayed in the account table. This is
- *   a structured array like the one returned by VersioncontrolAccount::getAccounts().
+ *   a structured array like the one returned by VersioncontrolAccountCache::getInstance()->getAccounts().
  * @param $repositories
  *   An array of repositories where the given users have a VCS account.
  *   Array keys are the repository ids, and array values are the

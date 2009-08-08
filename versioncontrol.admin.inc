@@ -117,7 +117,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   ));
 
   // Filter the list of accounts.
-  $accounts = VersioncontrolAccount::getAccounts(array(), TRUE);
+  $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array(), TRUE);
 
   foreach (module_implements('versioncontrol_filter_accounts') as $module) {
     $function = $module .'_versioncontrol_filter_accounts';
@@ -307,7 +307,7 @@ function versioncontrol_admin_account_list_filter_form_submit($form, &$form_stat
  *
  * @param $accounts
  *   The accounts that would normally be displayed, in the same format as the
- *   return value of VersioncontrolAccount::getAccounts(). Entries in this list
+ *   return value of VersioncontrolAccountCache::getInstance()->getAccounts(). Entries in this list
  *   may be unset by this filter function.
  */
 function versioncontrol_versioncontrol_filter_accounts(&$accounts) {

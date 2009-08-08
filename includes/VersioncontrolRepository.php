@@ -365,7 +365,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     unset($placeholders); // ...likewise
 
     // Delete accounts.
-    $accounts = VersioncontrolAccount::getAccounts(
+    $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(
       array('repo_ids' => array($this->repo_id)), TRUE
     );
     foreach ($accounts as $uid => $usernames_by_repository) {
@@ -412,7 +412,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    *   as is.
    */
   public function exportAccounts() {
-    $accounts = VersioncontrolAccount::getAccounts(array(
+    $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array(
       'repo_ids' => array($this->repo_id),
     ));
     return _versioncontrol_call_backend($repository->vcs, 'export_accounts',

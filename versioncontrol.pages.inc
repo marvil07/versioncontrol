@@ -50,7 +50,7 @@ function versioncontrol_account_register_page($register_uid = FALSE, $register_a
     return;
   }
 
-  $accounts = VersioncontrolAccount::getAccounts(array('uids' => array($register_uid)), TRUE);
+  $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array('uids' => array($register_uid)), TRUE);
   $repositories = VersioncontrolRepositoryCache::getInstance()->getAllRepositories();
 
   // Construct the '#options' array.
@@ -281,7 +281,7 @@ function versioncontrol_account_page($accounts, $url_repo_id = NULL, $url_userna
  * Show a list of VCS accounts to the admin or the user.
  *
  * @param $accounts
- *   The list of accounts to show, in VersioncontrolAccount::getAccounts() format.
+ *   The list of accounts to show, in VersioncontrolAccountCache::getInstance()->getAccounts() format.
  */
 function versioncontrol_account_list_form(&$form_state, $accounts) {
   $form = array();
@@ -539,7 +539,7 @@ function versioncontrol_account_edit_form_submit($form, &$form_state) {
       'repo_ids' => array($repository->repo_id),
       'usernames' => array($form['#original_username'])
     );
-    $vcs_accounts = VersioncontrolAccount::getAccounts($constraints, TRUE);
+    $vcs_accounts = VersioncontrolAccountCache::getInstance()->getAccounts($constraints, TRUE);
     // if we got an original_username we can trust on getting a value
     $vcs_account = array_shift(array_shift($vcs_accounts));
 

@@ -1163,7 +1163,7 @@ function versioncontrol_fakevcs_import_accounts($repository, $data) {
  *   The repository whose accounts will be exported.
  * @param $accounts
  *   The list (array) of accounts that should be exported, given in the same
- *   format as the return value of VersioncontrolAccount::getAccounts().
+ *   format as the return value of VersioncontrolAccountCache::getInstance()->getAccounts().
  *   All accounts in this list are from the above repository.
  *
  * @return
