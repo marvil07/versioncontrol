@@ -594,11 +594,14 @@ function versioncontrol_update_6102() {
 }
 
 /**
- * Update 6200 (from 6.x-1.0 to 6.x-2.0):
+ * Update 6300 (from 6.x-2.0 to 6.x-3.0):
  * Adding author and commiter instead of only username
+ * Move urls to data array.
  */
-function versioncontrol_update_6200() {
+function versioncontrol_update_6300() {
   $ret = array();
+
+  // author and committer
   $author_spec = array(
     'description' => 'VCS specific username of the user who is the original author of this operation. For centralized version control systems this and committer are the same.',
     'type' => 'varchar',
@@ -615,15 +618,8 @@ function versioncontrol_update_6200() {
   );
   db_change_field($ret, 'versioncontrol_operations', 'username', 'author', $author_spec);
   db_add_field($ret, 'versioncontrol_operations', 'committer', $committer_spec);
-  return $ret;
-}
 
-/**
- * Update 6300 (from 6.x-2.0 to 6.x-3.0):
- * Move urls to data array.
- */
-function versioncontrol_update_6300() {
-  $ret = array();
+  // urls to data array
   $repos = VersioncontrolRepositoryCache::getInstance()->getAllRepositories();
   $result = db_query('SELECT * FROM {versioncontrol_repository_urls}');
   while ($urls = db_fetch_array($result)) {
@@ -633,5 +629,6 @@ function versioncontrol_update_6300() {
     $repos[$repo_id]->update();
   }
   db_drop_table($ret, 'versioncontrol_repository_urls');
+
   return $ret;
 }
