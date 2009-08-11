@@ -464,6 +464,19 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     return $revision;
   }
 
+  /**
+   * Convinience method to retrieve url handler.
+   */
+  public function getUrlHandler() {
+    if (!isset($this->data['versioncontrol']['url_handler'])) {
+      $this->data['versioncontrol']['url_handler'] =
+        new VersioncontrolRepositoryUrlHandler(
+          $this, VersioncontrolRepositoryUrlHandler::getEmpty()
+        );
+    }
+    return $this->data['versioncontrol']['url_handler'];
+  }
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
@@ -560,6 +573,151 @@ class VersioncontrolRepositoryUrlHandler {
        */
       'tracker'        => ''
     );
+  }
+
+  /**
+   * Retrieve the URL of the repository viewer that displays the given commit
+   * in the corresponding repository.
+   *
+   * @param $revision
+   *   The revision on the commit operation whose view URL should be retrieved.
+   *
+   * @return
+   *   The commit view URL corresponding to the given arguments.
+   *   An empty string is returned if no commit view URL has been defined,
+   *   or if the commit cannot be viewed for any reason.
+   */
+  public function getCommitViewUrl($revision) {
+    if (empty($revision)) {
+      return '';
+    }
+    return strtr($this->urls['commit_view'], array(
+      '%revision' => $revision,
+    ));
+  }
+
+  /**
+   * Retrieve the URL of the repository viewer that displays the commit log
+   * of the given item in the corresponding repository. If no such URL has been
+   * specified by the user, the appropriate URL from the Commit Log module is
+   * used as a fallback (if that module is enabled).
+   *
+   * @param $item
+   *   The item whose log view URL should be retrieved.
+   *
+   * @return
+   *   The item log view URL corresponding to the given arguments.
+   *   An empty string is returned if no item log view URL has been defined
+   *   (and if not even Commit Log is enabled), or if the item cannot be viewed
+   *   for any reason.
+   */
+  public function getItemLogViewUrl(&$item) {
+    $label = $item->getSelectedLabel();
+
+    if (isset($label->type) && $label->type == VERSIONCONTROL_LABEL_BRANCH) {
+      $current_branch = $label['name'];
+    }
+
+    if (!empty($this->urls['file_log_view'])) {
+      if ($item->isFile()) {
+        return strtr($this->urls['file_log_view'], array(
+          '%path'     => $item->path,
+          '%revision' => $item->revision,
+          '%branch'   => isset($current_branch) ? $current_branch : '',
+        ));
+      }
+      // The default URL backend doesn't do log view URLs for directory items:
+      return '';
+    }
+    elseif (module_exists('commitlog')) { // fallback, as 'file_log_view' is empty
+      $query = array(
+        'repos' => $item->repository->repo_id,
+        'paths' => drupal_urlencode($item->path),
+      );
+      if (isset($current_branch)) {
+        $query['branches'] = $current_branch;
+      }
+      return url('commitlog', array(
+        'query' => $query,
+        'absolute' => TRUE,
+      ));
+    }
+    return ''; // in case we really can't retrieve any sensible URL
+  }
+
+  /**
+   * Retrieve the URL of the repository viewer that displays the contents of the
+   * given item in the corresponding repository.
+   *
+   * @param $item
+   *   The item whose view URL should be retrieved.
+   *
+   * @return
+   *   The item view URL corresponding to the given arguments.
+   *   An empty string is returned if no item view URL has been defined,
+   *   or if the item cannot be viewed for any reason.
+   */
+  public function getItemViewUrl(&$item) {
+    $label = $item->getSelectedLabel();
+
+    if (isset($label->type) && $label->type == VERSIONCONTROL_LABEL_BRANCH) {
+      $current_branch = $label->name;
+    }
+    $view_url = $item->isFile()
+      ? $this->urls['file_view']
+      : $this->urls['directory_view'];
+
+    return strtr($view_url, array(
+      '%path'     => $item['path'],
+      '%revision' => $item['revision'],
+      '%branch'   => isset($current_branch) ? $current_branch : '',
+    ));
+  }
+
+  /**
+   * Retrieve the URL of the repository viewer that displays the diff between
+   * two given files in the corresponding repository.
+   *
+   * @param $file_item_new
+   *   The new version of the file that should be diffed.
+   * @param $file_item_old
+   *   The old version of the file that should be diffed.
+   *
+   * @return
+   *   The diff URL corresponding to the given arguments.
+   *   An empty string is returned if no diff URL has been defined,
+   *   or if the two items cannot be diffed for any reason.
+   */
+  public function getDiffUrl(&$file_item_new, $file_item_old) {
+    $label = $file_item_new->getSelectedLabel();
+
+    if (isset($label['type']) && $label['type'] == VERSIONCONTROL_LABEL_BRANCH) {
+      $current_branch = $label['name'];
+    }
+    return strtr($this->urls['diff'], array(
+      '%path'         => $file_item_new['path'],
+      '%new-revision' => $file_item_new['revision'],
+      '%old-path'     => $file_item_old['path'],
+      '%old-revision' => $file_item_old['revision'],
+      '%branch'       => isset($current_branch) ? $current_branch : '',
+    ));
+  }
+
+  /**
+   * Retrieve the URL of the issue tracker that displays the issue/case/bug page
+   * of an issue id which presumably has been mentioned in a commit message.
+   * As issue tracker URLs are specific to each repository, this also needs
+   * to be given as argument.
+   *
+   * @param $issue_id
+   *   A number that uniquely identifies the mentioned issue/case/bug.
+   *
+   * @return
+   *   The issue tracker URL corresponding to the given arguments.
+   *   An empty string is returned if no issue tracker URL has been defined.
+   */
+  public function getTrackerUrl($issue_id) {
+    return strtr($this->urls['tracker'], array('%d' => $issue_id));
   }
 
 }

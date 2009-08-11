@@ -733,7 +733,7 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
   }
 
   if ($repository_exists) {
-    $repo_urls = $repository->data['versioncontrol']['url_handler']->urls;
+    $repo_urls = $repository->getUrlHandler()->urls;
   }
 
   $form['repository_urls'] = array(

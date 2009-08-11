@@ -725,7 +725,7 @@ function theme_commitlog_revision_identifier($operation, $format = 'html') {
 
   if ($format == 'html') {
     if ($operation['type'] == VERSIONCONTROL_OPERATION_COMMIT) {
-      $url = versioncontrol_get_url_commit_view($operation);
+      $url = $operation->repository->getUrlHandler()->getCommitViewUrl($operation->revision);
     }
     if (!empty($url)) {
       return '<a href="'. $url .'">'. $id .'</a>';
@@ -753,9 +753,10 @@ function theme_commitlog_operation_message($operation, $format = 'html') {
   }
   // Link to issues whose numbers are given in the commit message.
   // TODO: rework this to utilize standard Drupal filters?
+  $url_handler = $operation->repository->getUrlHandler();
   return preg_replace('/#(\d+)\b/ie',
     "strtr('<a href=\"!url\">#\\1</a>',
-      array('!url' => versioncontrol_get_url_tracker(\$operation['repository'], \\1)))",
+      array('!url' => \$url_handler->getTrackerUrl(\\1)))",
     htmlspecialchars($operation->message)
   );
 }
@@ -1093,7 +1094,7 @@ function theme_commitlog_item($repository, $item, $path_override = NULL, $format
   $output = $path;
 
   if ($format == 'html') {
-    $log_url = versioncontrol_get_url_item_log_view($repository, $item);
+    $log_url = $item->repository->getUrlHandler()->getItemLogViewUrl($item);
     if (!empty($log_url)) {
       $output = l($path, $log_url);
     }
@@ -1101,7 +1102,7 @@ function theme_commitlog_item($repository, $item, $path_override = NULL, $format
 
   if (empty($item['revision']) || $has_atomic_commits) {
     if ($format == 'html') {
-      $view_url = versioncontrol_get_url_item_view($repository, $item);
+      $view_url = $item->repository->getUrlHandler()->getItemViewUrl($item);
       if (!empty($view_url)) {
         $output = l($path, $view_url);
       }
@@ -1117,7 +1118,7 @@ function theme_commitlog_item_revision($repository, $item, $format = 'html') {
   $revision = versioncontrol_format_item_revision_identifier($repository, $item, 'short');
 
   if ($format == 'html' && !empty($revision)) {
-    $view_url = versioncontrol_get_url_item_view($repository, $item);
+    $view_url = $item->repository->getUrlHandler()->getItemViewUrl($item);
     if (!empty($view_url)) {
       $revision = l($revision, $view_url);
     }
@@ -1134,8 +1135,8 @@ function theme_commitlog_diff_link($operation, $item) {
   if (in_array($item['action'], array(VERSIONCONTROL_ACTION_MODIFIED, VERSIONCONTROL_ACTION_MERGED))) {
     // Ok, everything's alright, let's get that diff link.
     $source_item = reset($item->source_items);
-    $diff_url = versioncontrol_get_url_diff(
-      $operation->repository, $item, $source_item
+    $diff_url = $item->repository->getUrlHandler()->getDiffUrl(
+      $item, $source_item
     );
     if (!empty($diff_url)) {
       return l(t('diff'), $diff_url);

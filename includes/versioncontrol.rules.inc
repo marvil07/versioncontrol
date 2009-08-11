@@ -134,7 +134,7 @@ function versioncontrol_rules_data_type_info() {
 class versioncontrol_data_type_repository extends rules_data_type {
   function save() {
     $repository = &$this->get();
-    $repository_urls = $repository->data['versioncontrol']['url_handler']->urls;
+    $repository_urls = $repository->getUrlHandler()->urls;
     $repository->update();
     return TRUE;
   }
