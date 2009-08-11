@@ -1307,7 +1307,7 @@ function versioncontrol_get_url_item_log_view($repository, &$item) {
   }
 
   if (!empty($urls['file_log_view'])) {
-    if (versioncontrol_is_file_item($item)) {
+    if ($item->isFile()) {
       return strtr($urls['file_log_view'], array(
         '%path'     => $item['path'],
         '%revision' => $item['revision'],
