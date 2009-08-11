@@ -385,8 +385,6 @@ function hook_versioncontrol_repository_submit(&$repository, $form, $form_state)
  *        authorization method, that is, how users may register accounts
  *        in this repository. Modules can provide their own methods
  *        by implementing hook_versioncontrol_authorization_methods().
- *   - 'url_backend': The prefix (excluding the trailing underscore)
- *        for URL backend retrieval functions.
  *   - 'data': An array where modules can store additional information about
  *        the repository, for settings or other data.
  *   - '[xxx]_specific': An array of VCS specific additional repository

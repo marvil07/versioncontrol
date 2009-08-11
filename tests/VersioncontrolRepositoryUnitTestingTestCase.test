@@ -57,7 +57,6 @@ class VersioncontrolRepositoryUnitTestingTestCase extends DrupalWebTestCase {
     $data = array(
       'name' => 'test repository',
       'vcs' => 'test',
-      'url_backend' => 'versioncontrol_default_urls',
       'backend' => $backends['test'],
     );
     $repo = new VersioncontrolTestRepository(NULL, $data, FALSE);

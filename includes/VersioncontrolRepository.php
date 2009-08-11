@@ -50,13 +50,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   public $authorization_method = 'versioncontrol_admin';
 
   /**
-   * name of the url backend for this repo
-   *
-   * @var    string
-   */
-  public $url_backend;
-
-  /**
    * An array of additional per-repository settings, mostly populated by
    * third-party modules. It is serialized on DB.
    */
@@ -90,7 +83,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   protected function buildSelf() {
     $data = db_fetch_array(db_query("
       SELECT
-      vr.name, vr.root, vr.authorization_method, vr.url_backend, vr.data
+      vr.name, vr.root, vr.authorization_method, vr.data
       FROM {versioncontrol_repositories} vr
       WHERE vr.repo_id = %d",
       $this->repo_id));

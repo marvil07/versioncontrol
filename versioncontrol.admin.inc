@@ -823,7 +823,6 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
  * Add or update the repository when the add/edit form is submitted.
  */
 function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
-  //TODO get fields from url backend
   $repository_urls = array();
   $repository_url_keys = array_keys(VersioncontrolRepositoryUrlHandler::getEmpty());
   foreach ($repository_url_keys as $key) {
@@ -840,13 +839,11 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   }
   else {
     $backends = versioncontrol_get_backends();
-    //$repository = new VersioncontrolRepository(null, $form_state['values']['repo_name'], $form['#vcs'], $form_state['values']['root'], $form_state['values']['authorization_method'],  'versioncontrol_default_urls', $repository_urls); // url_backend hardcoded for now
     $repository = array(
       'name' => $form_state['values']['repo_name'],
       'vcs' => $form['#vcs'],
       'root' => $form_state['values']['root'],
       'authorization_method' => $form_state['values']['authorization_method'],
-      'url_backend' => 'versioncontrol_default_urls', // url_backend hardcoded for now
       'backend' => $backends[$form['#vcs']],
     );
     $repository = new $backends[$form['#vcs']]->classes['repo'](null, $repository, FALSE);

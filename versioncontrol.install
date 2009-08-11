@@ -369,13 +369,6 @@ function versioncontrol_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'url_backend' => array(
-        'description' => 'Repository URL backend. Intended to be pluggable, but for now this is hardcoded to "versioncontrol_default_urls".',
-        'type' => 'varchar',
-        'length' => 64,
-        'not null' => TRUE,
-        'default' => '',
-      ),
       'data' => array(
         'description' => t('A serialized array of additional per-repository settings, mostly populated by third-party modules.'),
         'type' => 'text',
@@ -597,6 +590,7 @@ function versioncontrol_update_6102() {
  * Update 6300 (from 6.x-2.0 to 6.x-3.0):
  * Adding author and commiter instead of only username
  * Move urls to data array.
+ * Drop url_backend field from repo table
  */
 function versioncontrol_update_6300() {
   $ret = array();
@@ -629,6 +623,9 @@ function versioncontrol_update_6300() {
     $repos[$repo_id]->update();
   }
   db_drop_table($ret, 'versioncontrol_repository_urls');
+
+  // no more url backend
+  db_drop_field($ret, 'versioncontrol_repositories', 'url_backend');
 
   return $ret;
 }
