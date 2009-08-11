@@ -183,7 +183,7 @@ final class VersioncontrolAccountCache {
 
   /**
    * Internal state variable indicating whether or not all repositories have
-   * been fetched (via VersioncontrolAccountCache::getInstance()->getAllRepositories()).
+   * been fetched (via VersioncontrolAccountCache::getInstance()->getAllAccounts()).
    * @var bool
    */
   private $allFetched = FALSE;
@@ -199,9 +199,9 @@ final class VersioncontrolAccountCache {
   }
 
   /**
-   * Return the singleton's instance of the VersioncontrolRepositoryCache.
+   * Return the singleton's instance of the VersioncontrolAccountCache.
    *
-   * @return VersioncontrolRepositoryCache
+   * @return VersioncontrolAccountCache
    */
   public static function getInstance() {
     if (!self::$instance instanceof VersioncontrolAccountCache) {
@@ -372,8 +372,8 @@ final class VersioncontrolAccountCache {
   }
 
   private function cacheAccount(VersioncontrolRepository &$account) {
-    $this->repoCache['uid'][$account->uid][$account->repo_id] = &$account;
-    $this->repoCache['repo_id'][$account->repo_id][$account->uid] = &$account;
+    $this->accountCache['uid'][$account->uid][$account->repo_id] = &$account;
+    $this->accountCache['repo_id'][$account->repo_id][$account->uid] = &$account;
   }
 
 }
