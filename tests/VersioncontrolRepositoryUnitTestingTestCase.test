@@ -54,9 +54,16 @@ class VersioncontrolRepositoryUnitTestingTestCase extends DrupalWebTestCase {
 
   public function testGetRepositoryFound() {
     $backends = versioncontrol_get_backends();
-    $data = array('name' => 'test repository', 'vcs' => 'test', 'url_backend' => 'versioncontrol_admin', 'backend' => $backends['test']);
+    $data = array(
+      'name' => 'test repository',
+      'vcs' => 'test',
+      'url_backend' => 'versioncontrol_default_urls',
+      'backend' => $backends['test'],
+    );
     $repo = new VersioncontrolTestRepository(NULL, $data, FALSE);
-    $repo->insert(array());
+    $urls = _versioncontrol_get_repository_urls($repo);
+    $repo->url_handler = new VersioncontrolRepositoryUrlHandler($repo, $urls);
+    $repo->insert();
     $repositories = $this->repoCache->getRepositories(array('repo_id' => $repo->repo_id));
     $this->assertTrue(is_a($repositories[$repo->repo_id], 'VersioncontrolRepository'), t('Make sure we get a valid return when passing a good repo_id.'), 'getRepository');
   }

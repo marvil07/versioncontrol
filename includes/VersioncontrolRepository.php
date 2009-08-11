@@ -50,18 +50,18 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   public $authorization_method = 'versioncontrol_admin';
 
   /**
-   * XXX
+   * name of the url backend for this repo
    *
    * @var    string
    */
   public $url_backend;
 
   /**
-   * list of urls associated with this repository
+   * url handler for this repo
    *
-   * @var    array
+   * @var    VersioncontrolRepositoryUrlHandler
    */
-  public $urls;
+  public $url_handler;
 
   /**
    * An array of additional per-repository settings, mostly populated by
@@ -246,19 +246,11 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    * The 'repo_id' and 'vcs' properties of the repository object must stay
    * the same as the ones given on repository creation,
    * whereas all other values may change.
-   *
-   * @param $repository_urls
-   *   An array of repository viewer URLs. How this array looks like is
-   *   defined by the corresponding URL backend.
    */
-  public final function update($repository_urls = NULL) {
+  public final function update() {
     drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
-    if (!is_null($repository_urls)) {
-      $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
-      drupal_write_record('versioncontrol_repository_urls', $repository_urls, 'repo_id');
-      unset($repository_urls['repo_id']);
-    }
+    $this->url_handler->update();
 
     $this->_update();
 
@@ -283,14 +275,10 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   /**
    * Insert a repository into the database, and call the necessary hooks.
    *
-   * @param $repository_urls
-   *   An array of repository viewer URLs. How this array looks like is
-   *   defined by the corresponding URL backend.
-   *
    * @return
    *   The finalized repository array, including the 'repo_id' element.
    */
-  public final function insert($repository_urls) {
+  public final function insert() {
     if (isset($this->repo_id)) {
       // This is a new repository, it's not supposed to have a repo_id yet.
       unset($this->repo_id);
@@ -298,9 +286,8 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     drupal_write_record('versioncontrol_repositories', $this);
     // drupal_write_record() has now added the 'repo_id' to the $repository array.
 
-    $repository_urls['repo_id'] = $this->repo_id; // for drupal_write_record()
-    drupal_write_record('versioncontrol_repository_urls', $repository_urls);
-    unset($repository_urls['repo_id']);
+    // urls
+    $this->url_handler->insert();
 
     $this->_insert();
 
@@ -382,8 +369,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     // Phew, everything's cleaned up. Finally, delete the repository.
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
       $this->repo_id);
-    db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
-      $this->repo_id);
+    $this->url_handler->delete();
 
     watchdog('special',
       'Version Control API: deleted repository @repository',
@@ -510,6 +496,51 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   }
   public function offsetUnset($offset) {
     unset($this->$offset);
+  }
+
+}
+
+/**
+ * Contains the urls mainly for displaying.
+ */
+class VersioncontrolRepositoryUrlHandler {
+
+  /**
+   * Repository where this urls belongs.
+   *
+   * @var    VersioncontrolRepository
+   */
+  public $repository;
+
+  /**
+   * An array of repository viewer URLs.
+   *
+   * @var    array
+   */
+  public $urls;
+
+  public function __construct($repository, $urls) {
+    $this->repository = $repository;
+    $this->urls = $urls;
+  }
+
+  public function insert() {
+    $this->urls['repo_id'] = $this->repository->repo_id; // for drupal_write_record()
+    drupal_write_record('versioncontrol_repository_urls', $this->urls);
+    unset($this->urls['repo_id']);
+  }
+
+  public function update() {
+    if (!is_null($this->urls)) {
+      $this->urls['repo_id'] = $this->repository->repo_id; // for drupal_write_record()
+      drupal_write_record('versioncontrol_repository_urls', $this->urls, 'repo_id');
+      unset($this->urls['repo_id']);
+    }
+  }
+
+  public function delete() {
+    db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
+      $this->repo_id);
   }
 
 }

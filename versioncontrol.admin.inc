@@ -823,6 +823,7 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
  * Add or update the repository when the add/edit form is submitted.
  */
 function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
+  //TODO get fields from url backend
   $repository_urls = array();
   $repository_url_keys = array(
     'commit_view', 'file_log_view', 'file_view', 'directory_view',
@@ -839,6 +840,7 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     $repository->name                 = $form_state['values']['repo_name'];
     $repository->root                 = $form_state['values']['root'];
     $repository->authorization_method = $form_state['values']['authorization_method'];
+    $repository->url_handler->urls    = $repository_urls;
   }
   else {
     $backends = versioncontrol_get_backends();
@@ -849,10 +851,10 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
       'root' => $form_state['values']['root'],
       'authorization_method' => $form_state['values']['authorization_method'],
       'url_backend' => 'versioncontrol_default_urls', // url_backend hardcoded for now
-      'urls' => $repository_urls,
       'backend' => $backends[$form['#vcs']],
     );
     $repository = new $backends[$form['#vcs']]->classes['repo'](null, $repository, FALSE);
+    $repository->url_handler = new VersioncontrolRepositoryUrlHandler($repository, $repository_urls);
   }
 
   // We also provide a 'data' array where other modules can put their own
@@ -873,13 +875,13 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   }
 
   if (!is_null($repository->repo_id)) {
-    $repository->update($repository_urls);
+    $repository->update();
     drupal_set_message(t('The %repository repository has been updated.', array(
       '%repository' => $repository->name,
     )));
   }
   else {
-    $repository = $repository->insert($repository_urls);
+    $repository = $repository->insert();
     drupal_set_message(t('The %repository repository has been added.', array(
       '%repository' => $repository->name
     )));
