@@ -61,8 +61,6 @@ class VersioncontrolRepositoryUnitTestingTestCase extends DrupalWebTestCase {
       'backend' => $backends['test'],
     );
     $repo = new VersioncontrolTestRepository(NULL, $data, FALSE);
-    $urls = _versioncontrol_get_repository_urls($repo);
-    $repo->url_handler = new VersioncontrolRepositoryUrlHandler($repo, $urls);
     $repo->insert();
     $repositories = $this->repoCache->getRepositories(array('repo_id' => $repo->repo_id));
     $this->assertTrue(is_a($repositories[$repo->repo_id], 'VersioncontrolRepository'), t('Make sure we get a valid return when passing a good repo_id.'), 'getRepository');

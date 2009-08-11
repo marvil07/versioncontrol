@@ -733,7 +733,7 @@ function versioncontrol_admin_repository_edit(&$form_state, $repository, $vcs = 
   }
 
   if ($repository_exists) {
-    $repo_urls = _versioncontrol_get_repository_urls($repository);
+    $repo_urls = $repository->data['versioncontrol']['url_handler']->urls;
   }
 
   $form['repository_urls'] = array(
@@ -825,10 +825,7 @@ function versioncontrol_admin_repository_edit_validate($form, &$form_state) {
 function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
   //TODO get fields from url backend
   $repository_urls = array();
-  $repository_url_keys = array(
-    'commit_view', 'file_log_view', 'file_view', 'directory_view',
-    'diff', 'tracker'
-  );
+  $repository_url_keys = array_keys(VersioncontrolRepositoryUrlHandler::getEmpty());
   foreach ($repository_url_keys as $key) {
     $repository_urls[$key] = $form_state['values'][$key];
   }
@@ -840,7 +837,6 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
     $repository->name                 = $form_state['values']['repo_name'];
     $repository->root                 = $form_state['values']['root'];
     $repository->authorization_method = $form_state['values']['authorization_method'];
-    $repository->url_handler->urls    = $repository_urls;
   }
   else {
     $backends = versioncontrol_get_backends();
@@ -854,13 +850,13 @@ function versioncontrol_admin_repository_edit_submit($form, &$form_state) {
       'backend' => $backends[$form['#vcs']],
     );
     $repository = new $backends[$form['#vcs']]->classes['repo'](null, $repository, FALSE);
-    $repository->url_handler = new VersioncontrolRepositoryUrlHandler($repository, $repository_urls);
   }
 
   // We also provide a 'data' array where other modules can put their own
   // per-repository data that doesn't need to be stored in a separate db column.
   $repository->data['versioncontrol'] = array(
     'registration_message' => $form_state['values']['registration_message'],
+    'url_handler'          => new VersioncontrolRepositoryUrlHandler($repository, $repository_urls),
   );
 
   if (isset($form_state['values']['allow_unauthorized_access'])) {

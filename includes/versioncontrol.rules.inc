@@ -134,18 +134,18 @@ function versioncontrol_rules_data_type_info() {
 class versioncontrol_data_type_repository extends rules_data_type {
   function save() {
     $repository = &$this->get();
-    $repository_urls = _versioncontrol_get_repository_urls($repository);
-    versioncontrol_update_repository($repository);
+    $repository_urls = $repository->data['versioncontrol']['url_handler']->urls;
+    $repository->update();
     return TRUE;
   }
 
   function load($repo_id) {
-    return VersioncontrolRepository::getRepository($repo_id);
+    return VersioncontrolRepositoryCache::getInstance()->getRepository($repo_id);
   }
 
   function get_identifier() {
     $repository = &$this->get();
-    return $repository['repo_id'];
+    return $repository->repo_id;
   }
 }
 
@@ -154,7 +154,7 @@ class versioncontrol_data_type_repository extends rules_data_type {
  */
 class versioncontrol_data_type_operation extends rules_data_type {
   function load($vc_op_id) {
-    $operations = versioncontrol_get_operations(array('vc_op_ids' => array($vc_op_id)));
+    $operations = VersioncontrolOperation::getOperations(array('vc_op_ids' => array($vc_op_id)));
     return empty($operations) ? FALSE : reset($operation); // first (only) element
   }
 

@@ -370,7 +370,7 @@ function versioncontrol_schema() {
         'default' => '',
       ),
       'url_backend' => array(
-        'description' => 'Repository URL backend. Intended to be pluggable, but for now this is hardcoded to "versioncontrol_default_urls" (which uses the values in the {versioncontrol_repository_urls} table).',
+        'description' => 'Repository URL backend. Intended to be pluggable, but for now this is hardcoded to "versioncontrol_default_urls".',
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
@@ -386,68 +386,6 @@ function versioncontrol_schema() {
     ),
     'unique keys' => array(
       'name' => array('name'),
-    ),
-    'primary key' => array('repo_id'),
-  );
-
-  $schema['versioncontrol_repository_urls'] = array(
-    'description' =>
-      'Repository URLs for repositories using the "versioncontrol_default_urls" backend. (Until the URL backend is made pluggable, all repositories will be using this default backend.)',
-    'fields' => array(
-      'repo_id' => array(
-        'description' => 'Foreign key (referring to {versioncontrol_repositories}.repo_id) for the repository that uses these URLs.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'commit_view' => array(
-        'description' => 'The URL of the repository viewer that displays a given commit in the repository. "%revision" is used as placeholder for the revision/commit/changeset identifier.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'file_log_view' => array(
-        'description' =>
-          'The URL of the repository viewer that displays the commit log of a given file in the repository. "%path" is used as placeholder for the file path, "%revision" will be replaced by the file-level revision (the one in {versioncontrol_item_revisions}.revision), and "%branch" will be replaced by the branch name that the file is on.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'file_view' => array(
-        'description' =>
-          'The URL of the repository viewer that displays the contents of a given file in the repository. "%path" is used as placeholder for the file path, "%revision" will be replaced by the file-level revision (the one in {versioncontrol_item_revisions}.revision), and "%branch" will be replaced by the branch name that the file is on.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'directory_view' => array(
-        'description' =>
-          'The URL of the repository viewer that displays the contents of a given directory in the repository. "%path" is used as placeholder for the directory path, "%revision" will be replaced by the file-level revision (the one in {versioncontrol_item_revisions}.revision - only makes sense if directories are versioned, of course), and "%branch" will be replaced by the branch name that the directory is on.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'diff' => array(
-        'description' =>
-          'The URL of the repository viewer that displays the diff between two given files in the repository. "%path" and "%old-path" are used as placeholders for the new and old paths (for some version control systems, like CVS, those paths will always be the same). "%new-revision" and "%old-revision" will be replaced by the respective file-level revisions (from {versioncontrol_item_revisions}.revision), and "%branch" will be replaced by the branch name that the file is on.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'tracker' => array(
-        'description' =>
-          'The URL of the issue tracker that displays the issue/case/bug page of an issue id which presumably has been mentioned in a commit message. As issue tracker URLs are likely specific to each repository, this is also a per-repository setting. (Although... maybe it would make sense to have per-project rather than per-repository. Oh well.)',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
     ),
     'primary key' => array('repo_id'),
   );
@@ -677,5 +615,23 @@ function versioncontrol_update_6200() {
   );
   db_change_field($ret, 'versioncontrol_operations', 'username', 'author', $author_spec);
   db_add_field($ret, 'versioncontrol_operations', 'committer', $committer_spec);
+  return $ret;
+}
+
+/**
+ * Update 6300 (from 6.x-2.0 to 6.x-3.0):
+ * Move urls to data array.
+ */
+function versioncontrol_update_6300() {
+  $ret = array();
+  $repos = VersioncontrolRepositoryCache::getInstance()->getAllRepositories();
+  $result = db_query('SELECT * FROM {versioncontrol_repository_urls}');
+  while ($urls = db_fetch_array($result)) {
+    $repo_id = $urls['repo_id'];
+    unset($urls['repo_id']);
+    $repos[$repo_id]->data['versioncontrol']['url_handler'] = new VersioncontrolRepositoryUrlHandler($repos[$repo_id], $urls);
+    $repos[$repo_id]->update();
+  }
+  db_drop_table($ret, 'versioncontrol_repository_urls');
   return $ret;
 }

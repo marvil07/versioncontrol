@@ -57,13 +57,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   public $url_backend;
 
   /**
-   * url handler for this repo
-   *
-   * @var    VersioncontrolRepositoryUrlHandler
-   */
-  public $url_handler;
-
-  /**
    * An array of additional per-repository settings, mostly populated by
    * third-party modules. It is serialized on DB.
    */
@@ -250,8 +243,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
   public final function update() {
     drupal_write_record('versioncontrol_repositories', $this, 'repo_id');
 
-    $this->url_handler->update();
-
     $this->_update();
 
     // Everything's done, let the world know about it!
@@ -285,9 +276,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     }
     drupal_write_record('versioncontrol_repositories', $this);
     // drupal_write_record() has now added the 'repo_id' to the $repository array.
-
-    // urls
-    $this->url_handler->insert();
 
     $this->_insert();
 
@@ -369,7 +357,6 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     // Phew, everything's cleaned up. Finally, delete the repository.
     db_query('DELETE FROM {versioncontrol_repositories} WHERE repo_id = %d',
       $this->repo_id);
-    $this->url_handler->delete();
 
     watchdog('special',
       'Version Control API: deleted repository @repository',
@@ -524,23 +511,62 @@ class VersioncontrolRepositoryUrlHandler {
     $this->urls = $urls;
   }
 
-  public function insert() {
-    $this->urls['repo_id'] = $this->repository->repo_id; // for drupal_write_record()
-    drupal_write_record('versioncontrol_repository_urls', $this->urls);
-    unset($this->urls['repo_id']);
-  }
-
-  public function update() {
-    if (!is_null($this->urls)) {
-      $this->urls['repo_id'] = $this->repository->repo_id; // for drupal_write_record()
-      drupal_write_record('versioncontrol_repository_urls', $this->urls, 'repo_id');
-      unset($this->urls['repo_id']);
-    }
-  }
-
-  public function delete() {
-    db_query('DELETE FROM {versioncontrol_repository_urls} WHERE repo_id = %d',
-      $this->repo_id);
+  /**
+   * Explain and return and empty array of urls data member.
+   */
+  public static function getEmpty() {
+    return array(
+      /**
+       * The URL of the repository viewer that displays a given commit in the
+       * repository. "%revision" is used as placeholder for the
+       * revision/commit/changeset identifier.
+       */
+      'commit_view'    => '',
+      /**
+       * The URL of the repository viewer that displays the commit log of a
+       * given file in the repository. "%path" is used as placeholder for the
+       * file path, "%revision" will be replaced by the file-level revision
+       * (the one in {versioncontrol_item_revisions}.revision), and "%branch"
+       * will be replaced by the branch name that the file is on.
+       */
+      'file_log_view'  => '',
+      /**
+       * The URL of the repository viewer that displays the contents of a given
+       * file in the repository. "%path" is used as placeholder for the file
+       * path, "%revision" will be replaced by the file-level revision (the one
+       * in {versioncontrol_item_revisions}.revision), and "%branch" will be
+       * replaced by the branch name that the file is on.
+       */
+      'file_view'      => '',
+      /**
+       * The URL of the repository viewer that displays the contents of a given
+       * directory in the repository. "%path" is used as placeholder for the
+       * directory path, "%revision" will be replaced by the file-level revision
+       * (the one in {versioncontrol_item_revisions}.revision - only makes sense
+       * if directories are versioned, of course), and "%branch" will be
+       * replaced by the branch name that the directory is on.
+       */
+      'directory_view' => '',
+      /**
+       * The URL of the repository viewer that displays the diff between two
+       * given files in the repository. "%path" and "%old-path" are used as
+       * placeholders for the new and old paths (for some version control
+       * systems, like CVS, those paths will always be the same).
+       * "%new-revision" and "%old-revision" will be replaced by the
+       * respective file-level revisions (from
+       * {versioncontrol_item_revisions}.revision), and "%branch" will be
+       * replaced by the branch name that the file is on.
+       */
+      'diff'           => '',
+      /**
+       * The URL of the issue tracker that displays the issue/case/bug page of
+       * an issue id which presumably has been mentioned in a commit message.
+       * As issue tracker URLs are likely specific to each repository, this is
+       * also a per-repository setting. (Although... maybe it would make sense
+       * to have per-project rather than per-repository. Oh well.)
+       */
+      'tracker'        => ''
+    );
   }
 
 }

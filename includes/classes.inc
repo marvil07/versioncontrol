@@ -132,9 +132,6 @@ final class VersioncontrolRepositoryCache {
       foreach ($vcs_repositories as $repository) {
         $vcs_repository = new $this->backends[$repository['vcs']]->classes['repo']($repository['repo_id'], $repository, FALSE);
         $vcs_repository->backend = $this->backends[$repository['vcs']];
-        //TODO this query will disappear when urls are on data array, so do not matter now
-        $urls = _versioncontrol_get_repository_urls($vcs_repository);
-        $vcs_repository->url_handler = new VersioncontrolRepositoryUrlHandler($vcs_repository, $urls);
         //TODO think how to improve this getter per repo, because it can cause
         //     performance problems, maybe it's better to use a per backend
         //     process(1-level-up foreach) but now it's not posible, because

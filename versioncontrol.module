@@ -1275,7 +1275,7 @@ function versioncontrol_get_url_commit_view($operation) {
   if (empty($operation->revision)) {
     return '';
   }
-  $urls = _versioncontrol_get_repository_urls($operation->repository);
+  $urls = $operation->repository->data['versioncontrol']['url_handler']->urls;
   return strtr($urls['commit_view'], array(
     '%revision' => $operation->revision,
   ));
@@ -1299,7 +1299,7 @@ function versioncontrol_get_url_commit_view($operation) {
  *   for any reason.
  */
 function versioncontrol_get_url_item_log_view($repository, &$item) {
-  $urls = _versioncontrol_get_repository_urls($repository);
+  $urls = $repository->data['versioncontrol']['url_handler']->urls;
   $label = $item->getSelectedLabel();
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_LABEL_BRANCH) {
@@ -1348,7 +1348,7 @@ function versioncontrol_get_url_item_log_view($repository, &$item) {
  *   or if the item cannot be viewed for any reason.
  */
 function versioncontrol_get_url_item_view($repository, &$item) {
-  $urls = _versioncontrol_get_repository_urls($repository);
+  $urls = $repository->data['versioncontrol']['url_handler']->urls;
   $label = $item->getSelectedLabel();
 
   if (isset($label->type) && $label->type == VERSIONCONTROL_LABEL_BRANCH) {
@@ -1382,7 +1382,7 @@ function versioncontrol_get_url_item_view($repository, &$item) {
  *   or if the two items cannot be diffed for any reason.
  */
 function versioncontrol_get_url_diff($repository, &$file_item_new, $file_item_old) {
-  $urls = _versioncontrol_get_repository_urls($repository);
+  $urls = $repository->data['versioncontrol']['url_handler']->urls;
   $label = $file_item_new->getSelectedLabel();
 
   if (isset($label['type']) && $label['type'] == VERSIONCONTROL_LABEL_BRANCH) {
@@ -1413,48 +1413,9 @@ function versioncontrol_get_url_diff($repository, &$file_item_new, $file_item_ol
  *   An empty string is returned if no issue tracker URL has been defined.
  */
 function versioncontrol_get_url_tracker($repository, $issue_id) {
-  $urls = _versioncontrol_get_repository_urls($repository);
+  $urls = $repository->data['versioncontrol']['url_handler']->urls;
   return strtr($urls['tracker'], array('%d' => $issue_id));
 }
-
-/**
- * Retrieve the repository viewer URLs from the database (or from the cache).
- *
- * @param $repository
- *   The repository for which the URLs should be retrieved.
- *
- * @return
- *   A structured array with the repository viewer URLs as values (each of them
- *   can be an empty string), corresponding to the following keys:
- *
- *   - 'commit_view': The overall summary view of a commit/revision.
- *   - 'file_view': The 'view' URL of a file in the repository.
- *   - 'directory_view': The 'view' URL of a directory in the repository.
- *   - 'diff': The difference between two versions of a file
- *        (or of two different files, if the repository viewer supports it).
- *   - 'tracker': The issue/bug/case URL of the associated issue tracker.
- */
-function _versioncontrol_get_repository_urls($repository) {
-  static $urls_by_repository;
-
-  if (!isset($urls_by_repository[$repository->repo_id])) {
-    $result = db_query('SELECT * FROM {versioncontrol_repository_urls}
-                        WHERE repo_id = %d', $repository->repo_id);
-
-    while ($urls = db_fetch_array($result)) {
-      unset($urls['repo_id']);
-      $urls_by_repository[$repository->repo_id] = $urls;
-    }
-  }
-  if (!isset($urls_by_repository[$repository->repo_id])) {
-    return array(
-      'commit_view' => '', 'file_view' => '', 'directory_view' => '',
-      'diff' => '', 'tracker' => '',
-    );
-  }
-  return $urls_by_repository[$repository->repo_id];
-}
-
 
 /**
  * Get the user-visible version of a commit identifier a.k.a. 'revision',
