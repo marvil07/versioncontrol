@@ -643,10 +643,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   in the FakeVCS example module.
    */
   public function getDirectoryContents($recursive = FALSE) {
-    if (!$this->isDirectory() || $this instanceof VersioncontrolItemDirectoryContents) {
+    if (!$this->isDirectory() || !$this instanceof VersioncontrolItemDirectoryContents) {
       return NULL;
     }
-    $this->_getDirectoryContents($recursive);
+    $contents = $this->_getDirectoryContents($recursive);
     if (!isset($contents)) {
       return NULL;
     }
