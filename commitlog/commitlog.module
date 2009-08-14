@@ -909,9 +909,7 @@ function theme_commitlog_operation_items($operation, $operation_items, $format =
 
       if ($project['repo_id'] == $operation->repository->repo_id
           && versioncontrol_path_contains($project['directory'], $directory_item['path'])) {
-        $directory_item = versioncontrol_get_parent_item(
-          $operation->repository, $directory_item, $project['directory']
-        );
+        $directory_item = $directory_item->getParentItem($project['directory']);
         $project_string = theme('commitlog_project', $operation->repository, $project, $format);
       }
     }
