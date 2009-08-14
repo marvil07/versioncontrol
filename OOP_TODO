@@ -26,8 +26,6 @@ Replace versioncontrol_backend_implements() approach with one interface per feat
 
 - review operation and item classes
   - search non-oop methods and convert them
-  - [versioncontrol_backend]_get_selected_label_from_operation
-  - [versioncontrol_backend]_get_selected_label_from_other_item
   - move loaders to EntityCache classes, like repo and account classes(aka cache for getEntity methods)
 - group classes in files with some criteria
 

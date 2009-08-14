@@ -1170,6 +1170,28 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     return $statistics;
   }
 
+  /**
+   * Retrieve the tag or branch that applied to that item during the
+   * given operation. The result of this function will be used for the
+   * selected label property of the item, which is necessary to preserve
+   * the item state throughout navigational API functions.
+   *
+   * @param $item
+   *   The item revision for which the label should be retrieved.
+   *
+   * @return
+   *   NULL if the given item does not belong to any label or if the
+   *   appropriate label cannot be retrieved. Otherwise a
+   *   VersioncontrolLabel array is returned
+   *
+   *   In case the label array also contains the 'label_id' element
+   *   (which happens when it's copied from the $operation->labels
+   *   array) there will be a small performance improvement as the label
+   *   doesn't need to be compared to and loaded from the database
+   *   anymore.
+   */
+  public abstract function getSelectedLabel($item);
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);

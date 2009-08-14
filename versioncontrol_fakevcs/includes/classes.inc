@@ -80,11 +80,83 @@ class VersioncontrolFakeAccount extends VersioncontrolAccount {
 }
 
 class VersioncontrolFakeOperation extends VersioncontrolOperation {
+
+  /**
+   * Implementation of abstract method.
+   */
+  public function getSelectedLabel($target_item) {
+    // How CVS and many other version control systems will probably do it,
+    // as they have exactly one label assigned to each operation.
+    return $operation->labels[0];
+
+    // If an operation - or more specifically, a commit - applies to multiple
+    // branches and/or tags (as can happen in SVN, for example), then the correct
+    // label for each item has to be determined.
+  }
+
 }
 
 class VersioncontrolFakeItem
 extends VersioncontrolItem
 implements VersioncontrolItemParallelItems, VersioncontrolItemDirectoryContents, VersioncontrolItemExportFile, VersioncontrolItemExportDirectory, VersioncontrolItemGetFileAnnotation {
+
+  /**
+   * Implementation of abstract method.
+   */
+  public function getSelectedLabelFromItem(&$other_item, $other_item_tags = array()) {
+    // First up, optimizations - maybe we can do without the generic
+    // "label transfer" code from further down and use assumptions
+    // instead.
+
+    // Let's assume for FakeVCS repositories that if an item wears a
+    // label, then an item at another path but with the same (file-level)
+    // revision can also wear that same label. That is the case with some
+    // version control systems (e.g. Git, Mercurial, Bazaar) but might
+    // not be the case with others (CVS for its lack of global revision
+    // identifiers, SVN for its use of directory structure as tag/branch
+    // identifiers).
+    if ($item->revision == $other_item->revision) {
+      return $other_item->getSelectedLabel();
+    }
+
+    // If the $other_item is a successor item on a branch, some version
+    // control systems (like CVS) can guarantee that the $target_item,
+    // the predecessor, is always on the same branch. So no need for
+    // database queries, yay.
+    if (in_array('successor_item', $other_item_tags)) {
+      $label = $other_item->getSelectedLabel();
+
+      if ($label instanceof VersioncontrolBranch) {
+        return $label;
+      }
+    }
+
+    // Otherwise we might not be able to derive the $target_item's label,
+    // in which case we need to fall back to the database or a VCS
+    // invocation.  For example, something like this.
+    if ($target_item->fetchItemRevisionId()) {
+      $constraints = array(
+        'item_revision_id' => array($target_item->item_revision_id),
+      );
+      $commit_operations = VersioncontrolOperation::getCommits($constraints);
+
+      if (!empty($commit_operations)) { // yo, found the associated commit!
+        // Code taken from the CVS backend, which only assigns a single
+        // branch to any given commit operation, so it can just take the
+        // first one.
+        $commit_operation = reset($commit_operations); // first (only) element
+        return $commit_operation->labels[0];
+      }
+    }
+
+    // (You can even do more attempts if you want to, like trying to ask
+    // the VCS itself. Or maybe not, depends on your motivation and the
+    // VCS's capabilities.)
+
+    // No label could be retrieved by looking at the other item, sorry.
+    return NULL;
+  }
+
 
   /**
    * Method for VersioncontrolItemParallelItems interface.

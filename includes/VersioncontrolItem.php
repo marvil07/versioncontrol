@@ -215,7 +215,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
     }
 
     if ($fetch_by_revision_id) {
-      $commit_operations = versioncontrol_get_commit_operations(array(
+      $commit_operations = VersioncontrolOperation::getCommits(array(
         'repo_ids' => array($repository['repo_id']),
         'revisions' => array_keys($ids),
       ));
@@ -238,7 +238,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
       while ($opitem = db_fetch_object($result)) {
         $operation_item_mapping[$opitem->vc_op_id][] = $opitem->item_revision_id;
       }
-      $commit_operations = versioncontrol_get_commit_operations(array(
+      $commit_operations = VersioncontrolOperation::getCommits(array(
         'vc_op_ids' => array_keys($operation_item_mapping),
       ));
 
@@ -433,17 +433,15 @@ abstract class VersioncontrolItem implements ArrayAccess {
       $this->selected_label->label = FALSE;
       return NULL;
     }
-    $function_prefix = 'versioncontrol_'. $this->repository->vcs;
 
-    // Otherwise, determine how we might be able to retrieve the selected label.
+    // Otherwise, determine how we might be able to retrieve the selected
+    // label.
     switch ($this->selected_label->get_from) {
     case 'operation':
-      $function = $function_prefix .'_get_selected_label_from_operation';
-      $selected_label = $function($this->selected_label->operation, $this);
+      $selected_label = $this->selected_label->operation->getSelectedLabel($this);
       break;
     case 'other_item':
-      $function = $function_prefix .'_get_selected_label_from_other_item';
-      $selected_label = $function($this->repository, $this, $this->selected_label->other_item, $this->selected_label->other_item_tags);
+      $selected_label = $this->getSelectedLabelFromItem($this->selected_label->other_item, $this->selected_label->other_item_tags);
       unset($this->selected_label->other_item_tags);
       break;
     }
@@ -889,6 +887,54 @@ abstract class VersioncontrolItem implements ArrayAccess {
     }
     unset($this->repo_id);
   }
+
+  /**
+   * Retrieve a valid label (tag or branch) for a new @p $target_item
+   * that is (hopefully) similar or related to that of the given @p
+   * $other_item which already has a selected label assigned. If the
+   * backend cannot find a related label, return any valid label. The
+   * result of this function will be used for the selected label property
+   * of each item, which is necessary to preserve the item state
+   * throughout navigational API functions.
+   *
+   * @param $other_item
+   *   The item revision that the selected label should be derived from.
+   *   For example, if @p $other_item in a CVS repository is at revision
+   *   '1.5.2.1' which is on the 'DRUPAL-6--1' branch, and the @p
+   *   $target_item is at revision '1.5' (its predecessor) which is
+   *   present on both the 'DRUPAL-6--1' and 'HEAD' branches, then this
+   *   function should return a label array for the 'DRUPAL-6--1' branch.
+   * @param $other_item_tags
+   *   An array with a simple list of strings that describe properties of
+   *   the @p $other_item, in relation to the @p $target_item. You can
+   *   use those in order to make assumptions so that the selected label
+   *   can be retrieved more accurately or with better performance.
+   *   Version Control API passes a list that may contain zero or more of
+   *   the following tags:
+   *
+   *   - 'source_item': The @p $other_item is a predecessor of the @p
+   *   $target_item - same entity, but in an earlier revision and
+   *   potentially with a different path, too (only if the backend
+   *   supports item moves).
+   *   - 'successor_item': The @p $other_item is a successor of the @p
+   *   $target_item - same entity, but in a later revision and
+   *   potentially with a different path, too (only if the backend
+   *   supports item moves).
+   *   - 'same_revision': The @p $other_item is at the same (global)
+   *   revision as the @p $target_item. Specifically meant for backends
+   *   whose version control systems don't support atomic commits.
+   *
+   * @return
+   *   NULL if the given item does not belong to any label or if an
+   *   appropriate label cannot be retrieved. Otherwise a
+   *   VersioncontrolLabel object is returned.
+   *   In case the label array also contains the 'label_id' element
+   *   (which happens when it's copied from the $operation->labels
+   *   array) there will be a small performance improvement as the label
+   *   doesn't need to be compared to and loaded from the database
+   *   anymore.
+   */
+  public abstract function getSelectedLabelFromItem(&$other_item, $other_item_tags = array());
 
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
