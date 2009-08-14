@@ -204,10 +204,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
       }
       // If we don't yet know the item_revision_id (required for db queries), try
       // to retrieve it. If we don't find it, we can't fetch this item's sources.
-      if (versioncontrol_fetch_item_revision_id($repository, $item)) {
+      if ($item->fetchItemRevisionId()) {
         $placeholders[] = '%d';
-        $ids[] = $item['item_revision_id'];
-        $item_keys[$item['item_revision_id']] = $key;
+        $ids[] = $item->item_revision_id;
+        $item_keys[$item->item_revision_id] = $key;
       }
     }
     if (empty($ids)) {
@@ -292,7 +292,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
     }
     // If we don't yet know the item_revision_id (required for db queries), try
     // to retrieve it. If we don't find it, we can't go on with this function.
-    if (!versioncontrol_fetch_item_revision_id($repository, $item)) {
+    if (!$item->fetchItemRevisionId()) {
       return NULL;
     }
 
@@ -381,12 +381,12 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Make sure that the 'item_revision_id' database identifier is among an item's
-   * properties, and if it's not then try to add it.
+   * Make sure that the 'item_revision_id' database identifier is among
+   * an item's properties, and if it's not then try to add it.
    *
    * @return
-   *   TRUE if the 'item_revision_id' exists after calling this function,
-   *   FALSE if not.
+   *   TRUE if the 'item_revision_id' exists after calling this
+   *   function, FALSE if not.
    */
   public function fetchItemRevisionId() {
     if (!empty($this->item_revision_id)) {

@@ -1120,10 +1120,10 @@ function versioncontrol_fetch_successor_items($repository, &$items) {
   foreach ($items as $key => $item) {
     // If we don't yet know the item_revision_id (required for db queries), try
     // to retrieve it. If we don't find it, we can't fetch this item's sources.
-    if (versioncontrol_fetch_item_revision_id($repository, $item)) {
+    if ($item->fetchItemRevisionId()) {
       $placeholders[] = '%d';
-      $ids[] = $item['item_revision_id'];
-      $item_keys[$item['item_revision_id']] = $key;
+      $ids[] = $item->item_revision_id;
+      $item_keys[$item->item_revision_id] = $key;
     }
   }
 
