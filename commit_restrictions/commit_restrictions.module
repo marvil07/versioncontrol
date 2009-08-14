@@ -349,7 +349,7 @@ function _commit_restrictions_branch_tag_item_access($items, $restrictions) {
 }
 
 function _commit_restrictions_item_error_message($item, $message_type) {
-  $itemtype = versioncontrol_is_file_item($item) ? t('file') : t('directory');
+  $itemtype = $item->isFile() ? t('file') : t('directory');
   $params = array('!itemtype' => $itemtype, '!path' => $item['path']);
 
   switch ($message_type) {

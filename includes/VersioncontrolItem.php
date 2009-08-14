@@ -675,7 +675,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   or was not under version control at the time of the given revision.
    */
   public function exportFile() {
-    if (!versioncontrol_is_file_item($this)) {
+    if (!$this->isFile()) {
       return NULL;
     }
     $filename = basename($file_item['path']);
@@ -719,7 +719,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   or simply cannot be exported to the destination directory for any reason.
    */
   public function exportDirectory($destination_dirpath) {
-    if (!versioncontrol_is_directory_item($this)) {
+    if (!$item->isDirectory()) {
       return FALSE;
     }
     // Unless file.inc provides a nice function for recursively deleting
