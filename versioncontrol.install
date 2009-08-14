@@ -200,7 +200,7 @@ function versioncontrol_schema() {
       ),
       'type' => array(
         'description' =>
-          'Real member or cached item. This is an implementation detail of a performance optimization (for queries with a "paths" constraint), and private to the API module. Other modules must not touch this. VERSIONCONTROL_OPERATION_MEMBER_ITEM is the standard value and makes up for most entries in here, whereas VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM is the optimization (denoting an item that is not part of a versioncontrol_get_operation_items() result but will still cause that operation to be found if it matches the "paths" constraint).',
+          'Real member or cached item. This is an implementation detail of a performance optimization (for queries with a "paths" constraint), and private to the API module. Other modules must not touch this. VERSIONCONTROL_OPERATION_MEMBER_ITEM is the standard value and makes up for most entries in here, whereas VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM is the optimization (denoting an item that is not part of a VersioncontrolOperation::getItems() result but will still cause that operation to be found if it matches the "paths" constraint).',
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,

@@ -11,23 +11,27 @@
  * @abstract
  */
 abstract class VersioncontrolBackend implements ArrayAccess {
-  // Attributes
   /**
-   * simple name
+   * The user-visible name of the VCS.
    *
    * @var    string
    */
   public $name;
 
   /**
-   * simple description
+   * A short description of the backend, if possible not longer than
+   * one or two sentences.
    *
    * @var    string
    */
   public $description;
 
   /**
-   * what the backend can do, probably deprecated after interfaces approach
+   * An array listing optional capabilities, in addition
+   * to the required functionality like retrieval of detailed
+   * commit information. Array values can be an arbitrary combination
+   * of VERSIONCONTROL_CAPABILITY_* values. If no additional capabilities
+   * are supported by the backend, this array will be empty.
    *
    * @var    array
    */
@@ -37,18 +41,6 @@ abstract class VersioncontrolBackend implements ArrayAccess {
    * classes which this backend overwrite
    */
   public $classes;
-
-  // Operations
-
-  /**
-   * Reference constructor for backends
-   */
-  public function __construct($name, $description, $capabilities = array(), $classes = array()) {
-    $this->name = $name;
-    $this->description = $description;
-    $this->capabilities = $capabilities;
-    $this->classes = $classes;
-  }
 
   //ArrayAccess interface implementation
   public function offsetExists($offset) {

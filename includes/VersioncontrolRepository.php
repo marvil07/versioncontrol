@@ -453,8 +453,8 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    * in distributed version control systems down to a readable length.
    *
    * @param $revision
-   *   The unformatted revision, as given in $operation['revision']
-   *   or $item['revision'] (or the respective table columns for those values).
+   *   The unformatted revision, as given in $operation->revision
+   *   or $item->revision (or the respective table columns for those values).
    * @param $format
    *   Either 'full' for the original version, or 'short' for a more compact form.
    *   If the revision identifier doesn't need to be shortened, the results can

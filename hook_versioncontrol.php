@@ -244,7 +244,7 @@ function hook_versioncontrol_operation_labels($op, $operation, $labels) {
  * @param $operation_items
  *   A structured array containing the exact details of what is about to happen
  *   to each item in this commit. The structure of this array is the same as
- *   the return value of versioncontrol_get_operation_items() - that is,
+ *   the return value of VersioncontrolOperation::getItems() - that is,
  *   elements for 'type', 'path' and 'revision' - but doesn't include
  *   the 'item_revision_id' element as there's no relation to the database yet.
  *

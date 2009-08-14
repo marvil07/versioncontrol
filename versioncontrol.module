@@ -408,33 +408,19 @@ function versioncontrol_user_accounts_load($uid, $include_unauthorized = FALSE) 
 // API functions start here.
 
 /**
- * Get a list of all backends and more detailed information about each of them.
+ * Get a list of all backends with its detailed information.
  *
  * @return
  *   A structured array containing information about all known backends.
- *   Array keys are the unique string identifier of the version control system.
- *   The corresponding array values are again structured arrays and consist
- *   of elements with the following keys:
- *
- *   - 'name': The user-visible name of the VCS.
- *   - 'description': A short description of the backend, if possible
- *        not longer than one or two sentences.
- *   - 'capabilities': An array listing optional capabilities, in addition
- *        to the required functionality like retrieval of detailed
- *        commit information. Array values can be an arbitrary combination
- *        of VERSIONCONTROL_CAPABILITY_* values. If no additional capabilities
- *        are supported by the backend, this array will be empty.
- *   - 'flags': An array listing which tables should be managed by
- *        Version Control API instead of doing it manually in the backend.
- *        Array values can be an arbitrary combination of VERSIONCONTROL_FLAG_*
- *        values. If no array additions should be automatically managed,
- *        this array will be empty.
+ *   Array keys are the unique string identifier of the version control
+ *   system.
+ *   The corresponding array values are VersioncontrolBackend children
+ *   objects.
  *
  *   If no single backends can be found, an empty array is returned.
  *
  *   A real-life example of such a result array can be found
  *   in the FakeVCS example module.
- * TODO make me static on VersioncontrolBackend
  */
 function versioncontrol_get_backends() {
   static $backends;
@@ -1001,7 +987,7 @@ function _versioncontrol_page_operations($operations, $page, $limit) {
  *   The repository that the items are located in.
  * @param $items
  *   An array of item arrays, for example as returned by
- *   versioncontrol_get_operation_items().
+ *   VersioncontrolOperation::getItems().
  *
  * @return
  *   This function does not have a return value; instead, it alters the
@@ -1105,7 +1091,7 @@ function versioncontrol_fetch_source_items($repository, &$items) {
  *   The repository that the items are located in.
  * @param $items
  *   An array of item arrays, for example as returned by
- *   versioncontrol_get_operation_items().
+ *   VersioncontrolOperation::getItems().
  *
  * @return
  *   This function does not have a return value; instead, it alters the

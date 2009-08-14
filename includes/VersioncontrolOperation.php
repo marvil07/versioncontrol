@@ -523,14 +523,14 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    * @param $operation_items
    *   A structured array containing the exact details of happened to each
    *   item in this operation. The structure of this array is the same as
-   *   the return value of versioncontrol_get_operation_items() - that is,
+   *   the return value of VersioncontrolOperation::getItems() - that is,
    *   elements for 'type', 'path' and 'revision' - but doesn't include the
    *   'item_revision_id' element, that one will be filled in by this function.
    *
    *   For commit operations, you also have to fill in the 'action' and
    *   'source_items' elements (and optionally 'replaced_item') that are also
-   *   described in the versioncontrol_get_operation_items() API documentation.
-   *   The 'line_changes' element, as in versioncontrol_get_operation_items(),
+   *   described in the VersioncontrolOperation::getItems() API documentation.
+   *   The 'line_changes' element, as in VersioncontrolOperation::getItems(),
    *   is optional to provide.
    *
    *   This parameter is passed by reference as the insert operation will
@@ -544,7 +544,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   and 'uid' properties filled in, and 'repo_id' removed if it existed before.
    *   Labels are now equipped with an additional 'label_id' property.
    *   (For more info on these labels, see the API documentation for
-   *   versioncontrol_get_operations() and versioncontrol_get_operation_items().)
+   *   versioncontrol_get_operations() and VersioncontrolOperation::getItems().)
    *   In case of an error, NULL is returned instead of the operation array.
    */
   public final function insert(&$operation_items) {
@@ -947,7 +947,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    * @param $operation_items
    *   A structured array containing the exact details of what is about to happen
    *   to each item in this commit. The structure of this array is the same as
-   *   the return value of versioncontrol_get_operation_items() - that is,
+   *   the return value of VersioncontrolOperation::getItems() - that is,
    *   elements for 'type', 'path', 'revision', 'action', 'source_items' and
    *   'replaced_item' - but doesn't include the 'item_revision_id' element as
    *   there's no relation to the database yet.

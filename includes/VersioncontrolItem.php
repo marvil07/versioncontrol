@@ -16,10 +16,10 @@ define('VERSIONCONTROL_ITEM_DIRECTORY',         2);
 /**
  * @name VCS "Deleted" item types.
  * Only used for items that don't exist in the repository (anymore), at least
- * not in the given revision. That is mostly the case with items that were
- * deleted by a commit and are returned as result by
- * versioncontrol_get_operation_items(). A "deleted file" can also be returned
- * by directory listings for CVS, representing "dead files".
+ * not in the given revision. That is mostly the case with items that
+ * were deleted by a commit and are returned as result by
+ * VersioncontrolOperation::getItems(). A "deleted file" can also be
+ * returned by directory listings for CVS, representing "dead files".
  */
 //@{
 define('VERSIONCONTROL_ITEM_FILE_DELETED',      3);
@@ -28,15 +28,14 @@ define('VERSIONCONTROL_ITEM_DIRECTORY_DELETED', 4);
 //@}
 
 /**
- * Represent an Items (a.k.a. item revisions)
+ * Represent an Item (a.k.a. item revisions)
  *
  * Files or directories inside a specific repository, including information
- * about the path, type ("file" or "directory") and (file-level) revision, if
- * applicable. Most item revisions, but probably not all of them, are recorded
- * in the database.
+ * about the path, type ("file" or "directory") and (file-level)
+ * revision, if applicable. Most item revisions, but probably not all of
+ * them, are recorded in the database.
  */
 abstract class VersioncontrolItem implements ArrayAccess {
-  // Attributes
   /**
    * db identifier
    *
@@ -60,7 +59,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
   /**
    * A specific revision for the requested item, in the same VCS-specific
-   * format as $item['revision']. A repository/path/revision combination is
+   * format as $item->revision. A repository/path/revision combination is
    * always unique, so no additional information is needed.
    *
    * @var    string
@@ -76,8 +75,9 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
   /**
    * @name VCS actions
-   * for a single item (file or directory) in a commit, or for branches and tags.
-   * either VERSIONCONTROL_ACTION_{ADDED,MODIFIED,MOVED,COPIED,MERGED,DELETED,
+   * For a single item (file or directory) in a commit, or for branches
+   * and tags. Either
+   * VERSIONCONTROL_ACTION_{ADDED,MODIFIED,MOVED,COPIED,MERGED,DELETED,
    * REPLACED,OTHER}
    *
    * @var    array
@@ -89,10 +89,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *
    * @var    array
    */
-  public $lines_changes = array();
+  public $line_changes = array();
 
   /**
-   * FIXME: ?
+   * The repository where the operation was done.
    *
    * @var    VersioncontrolRepository
    */
@@ -116,8 +116,6 @@ abstract class VersioncontrolItem implements ArrayAccess {
     VERSIONCONTROL_ACTION_REPLACED => 0, // does not happen, guard nonetheless
   );
 
-  // Associations
-  // Operations
   /**
    * Constructor
    */
@@ -132,8 +130,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Return TRUE if the given item is an existing or an already deleted file,
-   * or FALSE if it's not.
+   * Return TRUE if the given item is an existing or an already deleted
+   * file, or FALSE if it's not.
    *
    */
   public function isFile() {
@@ -145,8 +143,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Return TRUE if the given item is an existing or an already deleted directory,
-   * or FALSE if it's not.
+   * Return TRUE if the given item is an existing or an already deleted
+   * directory, or FALSE if it's not.
    */
   public function isDirectory($item) {
     if ($this->type == VERSIONCONTROL_ITEM_DIRECTORY
@@ -174,7 +172,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   The repository that the items are located in.
    * @param $items
    *   An array of item arrays, for example as returned by
-   *   versioncontrol_get_operation_items().
+   *   VersioncontrolOperation::getItems().
    *
    * @return
    *   This function does not have a return value; instead, it alters the
@@ -277,7 +275,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   of the same item that was given as argument. The array is sorted in
    *   reverse chronological order, so the newest revision comes first. Each
    *   element has its (file-level) item revision as key, and a standard item
-   *   array (as the ones retrieved by versioncontrol_get_operation_items())
+   *   array (as the ones retrieved by VersioncontrolOperation::getItems())
    *   as value. All items except for the oldest one will also have the 'action'
    *   and 'source_items' properties filled in, the oldest item might or
    *   might not have them. (If they exist for the oldest item, 'action' will be
@@ -410,7 +408,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
    * Retrieve an item's selected label.
    *
    * When first retrieving an item, the selected label is initialized with a
-   * sensible value - for example, versioncontrol_get_operation_items() assigns
+   * sensible value - for example, VersioncontrolOperation::getItems() assigns
    * the affected branch or tag of that operation to all the items. (This is
    * especially important for version control systems like Subversion where there
    * is a need to specify the label per item and not per operation, as a single
