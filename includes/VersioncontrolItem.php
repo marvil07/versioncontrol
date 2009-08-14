@@ -480,10 +480,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
    *   uses internally) will stop searching after the first match.
    *   FALSE will be returned if an error occurred.
    */
-  public function pregItemMatch($path_regexp, $item) {
-    $path = $item['path'];
+  public function pregMatch($path_regexp) {
+    $path = $this->path;
 
-    if (versioncontrol_is_directory_item($item) && $path != '/') {
+    if ($this->isDirectory() && $path != '/') {
       $path .= '/';
     }
     return preg_match($path_regexp, $path);

@@ -194,7 +194,7 @@ function _commit_restrictions_commit_item_access($operation_items, $restrictions
       $always_allow = FALSE;
 
       foreach ($restrictions['allowed_paths'] as $allowed_path_regexp) {
-        if (versioncontrol_preg_item_match($allowed_path_regexp, $item)) {
+        if ($item->pregMatch($allowed_path_regexp)) {
           $always_allow = TRUE;
           break; // ok, this item is fine, next one
         }
@@ -224,7 +224,7 @@ function _commit_restrictions_commit_item_access($operation_items, $restrictions
   if (!empty($restrictions['forbidden_paths'])) {
     foreach ($operation_items as $item) {
       foreach ($restrictions['forbidden_paths'] as $forbidden_path_regexp) {
-        if (!versioncontrol_preg_item_match($forbidden_path_regexp, $item)) {
+        if (!$item->pregMatch($forbidden_path_regexp)) {
           $error_messages[] = _commit_restrictions_item_error_message($item, 'commit');
         }
       }
@@ -335,7 +335,7 @@ function _commit_restrictions_branch_tag_item_access($items, $restrictions) {
       $valid = FALSE;
 
       foreach ($restrictions['valid_branch_tag_paths'] as $valid_path_regexp) {
-        if (versioncontrol_preg_item_match($valid_path_regexp, $item)) {
+        if ($item->pregMatch($valid_path_regexp)) {
           $valid = TRUE;
           break;
         }

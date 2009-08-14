@@ -315,7 +315,7 @@ function versioncontrol_condition_item_paths($items, $settings) {
     }
     // Here comes the actual comparison.
     foreach ($settings['path_regexps'] as $path_regexp) {
-      if (versioncontrol_preg_item_match($path_regexp, $item)) {
+      if ($item->pregMatch($path_regexp)) {
         if ($all_items_required) { // 'AND' mode: this item is ok, next one
           $item_matches = TRUE;
           break;
