@@ -258,45 +258,46 @@ abstract class VersioncontrolItem implements ArrayAccess {
    * Retrieve the revisions where the given item has been changed,
    * in reverse chronological order.
    *
-   * Only one direct source or successor of each item will be retrieved, which
-   * means that you won't get parallel history logs with a single function call.
-   * In order to retrieve the log for this item in a different branch, you need
-   * to switch the selected label of the item by retrieving a different version
-   * of it with a call of versioncontrol_get_parallel_items() (if the backend
-   * supports this function).
+   * Only one direct source or successor of each item will be retrieved,
+   * which means that you won't get parallel history logs with a single
+   * function call. In order to retrieve the log for this item in a
+   * different branch, you need to switch the selected label of the item
+   * by retrieving a different version of it with a call of
+   * Item::getParallelItems() (if the backend supports this function).
    *
-   * @param $repository
-   *   The repository that the item is located in.
-   * @param $item
-   *   The item whose history should be retrieved.
+   * TODO: params doc
    *
    * @return
-   *   An array containing a list of item arrays, each one specifying a revision
-   *   of the same item that was given as argument. The array is sorted in
-   *   reverse chronological order, so the newest revision comes first. Each
-   *   element has its (file-level) item revision as key, and a standard item
-   *   array (as the ones retrieved by VersioncontrolOperation::getItems())
-   *   as value. All items except for the oldest one will also have the 'action'
-   *   and 'source_items' properties filled in, the oldest item might or
-   *   might not have them. (If they exist for the oldest item, 'action' will be
+   *   An array containing a list of item arrays, each one specifying a
+   *   revision of the same item that was given as argument. The array is
+   *   sorted in reverse chronological order, so the newest revision
+   *   comes first. Each element has its (file-level) item revision as
+   *   key, and a standard item object (as the ones retrieved by
+   *   VersioncontrolOperation::getItems()) as value. All items except
+   *   for the oldest one will also have the 'action' and 'source_items'
+   *   properties filled in, the oldest item might or might not have
+   *   them. (If they exist for the oldest item, 'action' will be
    *   VERSIONCONTROL_ACTION_ADDED and 'source_items' an empty array.)
    *
    *   NULL is returned if the given item is not under version control,
-   *   or was not under version control at the time of the given revision,
-   *   or if no history could be retrieved for any other reason.
+   *   or was not under version control at the time of the given
+   *   revision, or if no history could be retrieved for any other
+   *   reason.
    */
-  public function getItemHistory($repository, &$item, $successor_item_limit = NULL, $source_item_limit = NULL) {
+  public function getHistory($successor_item_limit = NULL, $source_item_limit = NULL) {
     // Items without revision have no history, don't even try to fetch it.
-    if (empty($item['revision'])) {
+    if (empty($this->revision)) {
       return NULL;
     }
-    // If we don't yet know the item_revision_id (required for db queries), try
-    // to retrieve it. If we don't find it, we can't go on with this function.
-    if (!$item->fetchItemRevisionId()) {
+    // If we don't yet know the item_revision_id (required for db
+    // queries), try to retrieve it. If we don't find it, we can't go on
+    // with this function.
+    if (!$this->fetchItemRevisionId()) {
       return NULL;
     }
 
-    // Make sure we don't run into infinite loops when passed bad arguments.
+    // Make sure we don't run into infinite loops when passed bad
+    // arguments.
     if (is_numeric($successor_item_limit) && $successor_item_limit < 0) {
       $successor_item_limit = 0;
     }
@@ -304,36 +305,40 @@ abstract class VersioncontrolItem implements ArrayAccess {
       $source_item_limit = 0;
     }
 
-    // Naive implementation - can probably be improved by sticking to the same
-    // repo_id/path until an action other than "modified" or "other" appears.
-    // (With the drawback that code will probably need to be duplicated among
-    // this function and versioncontrol_fetch_{source,successor}_items().
+    // Naive implementation - can probably be improved by sticking to
+    // the samerepo_id/path until an action other than "modified" or
+    // "other" appears. (With the drawback that code will probably need
+    // to be duplicated among this function and
+    // versioncontrol_fetch_{source,successor}_items().
 
-    // Find (recursively) all successor items within the successor item limit.
+    // Find (recursively) all successor items within the successor item
+    // limit.
     $history_successor_items = array();
-    $source_item = $item;
+    $source_item = $this;
 
     while ((!isset($successor_item_limit) || ($successor_item_limit > 0))) {
-      $source_items = array($source_item['path'] => $source_item);
-      versioncontrol_fetch_successor_items($repository, $source_items);
-      $source_item = $source_items[$source_item['path']];
+      $source_items = array($source_item->path => $source_item);
+      versioncontrol_fetch_successor_items($this->repository, $source_items);
+      $source_item = $source_items[$source_item->path];
 
-      // If there are no successor items, we are obviously at the end of the log.
-      if (empty($source_item['successor_items'])) {
+      // If there are no successor items, we are obviously at the end of
+      // the log.
+      if (empty($source_item->successor_items)) {
         break;
       }
-      // There might be multiple successor items - in most cases, the first one is
-      // the only one so that's ok except for "merged" actions.
+      // There might be multiple successor items - in most cases, the
+      // first one is the only one so that's ok except for "merged"
+      // actions.
       $successor_item = NULL;
       $highest_priority_so_far = 0;
-      foreach ($source_item['successor_items'] as $path => $succ_item) {
+      foreach ($source_item->successor_items as $path => $succ_item) {
         if (!isset($successor_item)
-          || self::$successor_action_priority[$succ_item['action']] > $highest_priority_so_far) {
+          || self::$successor_action_priority[$succ_item->action] > $highest_priority_so_far) {
             $successor_item = $succ_item;
-            $highest_priority_so_far = self::$successor_action_priority[$succ_item['action']];
+            $highest_priority_so_far = self::$successor_action_priority[$succ_item->action];
           }
       }
-      $history_successor_items[$successor_item['revision']] = $successor_item;
+      $history_successor_items[$successor_item->revision] = $successor_item;
       $source_item = $successor_item;
 
       // Decrement the counter until the item limit is reached.
@@ -346,29 +351,29 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
     // Find (recursively) all source items within the source item limit.
     $history_source_items = array();
-    $successor_item = $item;
+    $successor_item = $this;
 
     while (!isset($source_item_limit) || ($source_item_limit > 0)) {
-      $successor_items = array($successor_item['path'] => $successor_item);
+      $successor_items = array($successor_item->path => $successor_item);
       versioncontrol_fetch_source_items($repository, $successor_items);
-      $successor_item = $successor_items[$successor_item['path']];
+      $successor_item = $successor_items[$successor_item->path];
 
       // If there are no source items, we are obviously at the end of the log.
-      if (empty($successor_item['source_items'])) {
+      if (empty($successor_item->source_items)) {
         break;
       }
       // There might be multiple source items - in most cases, the first one is
       // the only one so that's ok except for "merged" actions.
       $source_item = NULL;
-      if ($successor_item['action'] == VERSIONCONTROL_ACTION_MERGED) {
-        if (isset($successor_item['source_items'][$successor_item['path']])) {
-          $source_item = $successor_item['source_items'][$successor_item['path']];
+      if ($successor_item->action == VERSIONCONTROL_ACTION_MERGED) {
+        if (isset($successor_item->source_items[$successor_item->path])) {
+          $source_item = $successor_item->source_items[$successor_item->path];
         }
       }
       if (!isset($source_item)) {
-        $source_item = reset($successor_item['source_items']); // first item
+        $source_item = reset($successor_item->source_items); // first item
       }
-      $history_source_items[$source_item['revision']] = $source_item;
+      $history_source_items[$source_item->revision] = $source_item;
       $successor_item = $source_item;
 
       // Decrement the counter until the item limit is reached.
@@ -377,7 +382,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
       }
     }
 
-    return $history_successor_items + array($item['revision'] => $item) + $history_source_items;
+    return $history_successor_items + array($this->revision => $this) + $history_source_items;
   }
 
   /**
