@@ -497,12 +497,11 @@ abstract class VersioncontrolItem implements ArrayAccess {
   /**
    * Print out a "Bad item received from VCS backend" warning to watchdog.
    */
-  public function _badItemWarning($repository, $item, $message) {
+  protected function badItemWarning($message) {
     watchdog('special', "<p>Bad item received from VCS backend: !message</p>
-      <pre>Item array: !item\nRepository array: !repository</pre>", array(
+      <pre>Item object: !item\n</pre>", array(
         '!message' => $message,
-        '!item' => print_r($item, TRUE),
-        '!repository' => print_r($repository, TRUE),
+        '!item' => print_r($this, TRUE),
       ), WATCHDOG_ERROR
     );
   }
@@ -788,7 +787,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
         // No source items for "added" actions.
       case VERSIONCONTROL_ACTION_ADDED:
         if (count($this->source_items) > 0) {
-          _versioncontrol_bad_item_warning($this->repository, $this, 'At least one source item exists although the "added" action was set (which mandates an empty \'source_items\' array.');
+          $this->badItemWarning('At least one source item exists although the "added" action was set (which mandates an empty \'source_items\' array.');
           $this->source_items = array(reset($this->source_items)); // first item
           $this->source_items = array();
         }
@@ -799,13 +798,13 @@ abstract class VersioncontrolItem implements ArrayAccess {
       case VERSIONCONTROL_ACTION_COPIED:
       case VERSIONCONTROL_ACTION_DELETED:
         if (count($this->source_items) > 1) {
-          _versioncontrol_bad_item_warning($this->repository, $this, 'More than one source item exists although a "modified", "moved", "copied" or "deleted" action was set (which allows only one of those).');
+          $this->badItemWarning('More than one source item exists although a "modified", "moved", "copied" or "deleted" action was set (which allows only one of those).');
           $item->source_items = array(reset($item->source_items)); // first item
         }
         // fall through
       case VERSIONCONTROL_ACTION_MERGED:
         if (empty($this->source_items)) {
-          _versioncontrol_bad_item_warning($this->repository, $this, 'No source item exists although a "modified", "moved", "copied", "merged" or "deleted" action was set (which requires at least or exactly one of those).');
+          $this->badItemWarning('No source item exists although a "modified", "moved", "copied", "merged" or "deleted" action was set (which requires at least or exactly one of those).');
         }
         break;
       default:
