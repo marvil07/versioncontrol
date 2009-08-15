@@ -456,7 +456,7 @@ function commitlog_operation_date($operation) {
  * Return formatted output for displaying the given operations on an HTML page.
  */
 function theme_commitlog_operations_page($constraints) {
-  $operations = VersioncontrolOperation::getOperations($constraints, array(
+  $operations = VersioncontrolOperationCache::getInstance()->getOperations($constraints, array(
     'query_type' => 'pager',
     'count' => variable_get('commitlog_pager', 10),
   ));
@@ -497,7 +497,7 @@ function theme_commitlog_operations_page($constraints) {
 function theme_commitlog_rss($constraints) {
   global $base_url, $locale;
 
-  $operations = VersioncontrolOperation::getOperations($constraints, array(
+  $operations = VersioncontrolOperationCache::getInstance()->getOperations($constraints, array(
     'query_type' => 'range',
     'from' => 0,
     'count' => variable_get('feed_default_items', 10),

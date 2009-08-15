@@ -154,7 +154,7 @@ class versioncontrol_data_type_repository extends rules_data_type {
  */
 class versioncontrol_data_type_operation extends rules_data_type {
   function load($vc_op_id) {
-    $operations = VersioncontrolOperation::getOperations(array('vc_op_ids' => array($vc_op_id)));
+    $operations = VersioncontrolOperationCache::getInstance()->getOperations(array('vc_op_ids' => array($vc_op_id)));
     return empty($operations) ? FALSE : reset($operation); // first (only) element
   }
 

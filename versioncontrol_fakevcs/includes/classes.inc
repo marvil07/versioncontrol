@@ -138,7 +138,7 @@ implements VersioncontrolItemParallelItems, VersioncontrolItemDirectoryContents,
       $constraints = array(
         'item_revision_id' => array($target_item->item_revision_id),
       );
-      $commit_operations = VersioncontrolOperation::getCommits($constraints);
+      $commit_operations = VersioncontrolOperationCache::getInstance()->getCommits($constraints);
 
       if (!empty($commit_operations)) { // yo, found the associated commit!
         // Code taken from the CVS backend, which only assigns a single

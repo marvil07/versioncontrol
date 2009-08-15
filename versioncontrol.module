@@ -1227,7 +1227,7 @@ function versioncontrol_fetch_item_commit_operations($repository, &$items) {
   }
 
   if ($fetch_by_revision_id) {
-    $commit_operations = VersioncontrolOperation::getCommits(array(
+    $commit_operations = VersioncontrolOperationCache::getInstance()->getCommits(array(
       'repo_ids' => array($repository['repo_id']),
       'revisions' => array_keys($ids),
     ));
@@ -1250,7 +1250,7 @@ function versioncontrol_fetch_item_commit_operations($repository, &$items) {
     while ($opitem = db_fetch_object($result)) {
       $operation_item_mapping[$opitem->vc_op_id][] = $opitem->item_revision_id;
     }
-    $commit_operations = VersioncontrolOperation::getCommits(array(
+    $commit_operations = VersioncontrolOperationCache::getInstance()->getCommits(array(
       'vc_op_ids' => array_keys($operation_item_mapping),
     ));
 

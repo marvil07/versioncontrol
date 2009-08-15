@@ -298,7 +298,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    */
   public final function delete() {
     // Delete operations.
-    $operations = VersioncontrolOperation::getOperations(array('repo_ids' => array($this->repo_id)));
+    $operations = VersioncontrolOperationCache::getInstance()->getOperations(array('repo_ids' => array($this->repo_id)));
     foreach ($operations as $operation) {
       $operation->delete();
     }

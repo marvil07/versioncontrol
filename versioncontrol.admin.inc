@@ -144,7 +144,7 @@ function versioncontrol_admin_account_list_form(&$form_state) {
   }
 
   // Retrieve total, first and last commits of each user.
-  $statistics = VersioncontrolOperation::getStatistics(array(
+  $statistics = VersioncontrolOperationCache::getInstance()->getStatistics(array(
     'types' => array(VERSIONCONTROL_OPERATION_COMMIT),
     'uids' => array_keys($users),
   ), array(
