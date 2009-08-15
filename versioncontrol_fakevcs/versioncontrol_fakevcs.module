@@ -372,7 +372,7 @@ function versioncontrol_fakevcs_import_accounts($repository, $data) {
       'fakevcs_specific' => array('password' => $password),
     );
     $username = $account['username'];
-    $uid = versioncontrol_get_account_uid_for_username($repository['repo_id'], $username, TRUE);
+    $uid = $repository->getAccountUidForUsername($username, TRUE);
 
     if (isset($uid)) {
       versioncontrol_update_account($repository, $uid, $username, $additional_data);

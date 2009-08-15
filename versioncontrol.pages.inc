@@ -490,7 +490,7 @@ function versioncontrol_account_edit_form_validate($form, &$form_state) {
     $form_state['values']['account_name'] = $username;
 
     // Check for duplicates.
-    $existing_uid = versioncontrol_get_account_uid_for_username($repository['repo_id'], $username, TRUE);
+    $existing_uid = $repository->getAccountUidForUsername($username, TRUE);
     if ($existing_uid && $uid != $existing_uid) {
       if ($existing_user = user_load(array('uid' => $existing_uid))) {
         $existing_username = theme('username', $existing_user);

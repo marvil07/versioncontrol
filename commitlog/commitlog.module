@@ -1010,11 +1010,11 @@ function theme_commitlog_operation_items($operation, $operation_items, $format =
           continue;
       }
 
-      if (isset($item['line_changes'])) {
+      if (!empty($item->line_changes)) {
         $action_string = t('!action, lines: +!added -!removed', array(
           '!action'  => $action_string,
-          '!added'   => $item['line_changes']['added'],
-          '!removed' => $item['line_changes']['removed'],
+          '!added'   => $item->line_changes['added'],
+          '!removed' => $item->line_changes['removed'],
         ));
       }
     }

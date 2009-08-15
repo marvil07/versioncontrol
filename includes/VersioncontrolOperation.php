@@ -827,15 +827,15 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   private function _fill($include_unauthorized = FALSE) {
     // If not already there, retrieve the full repository object.
     // FIXME: take one always set member, not sure if root is one | set other condition here
-    if (!isset($this->repository->root) && isset($this->repository->repo_id)) {
-      $this->repository = VersioncontrolRepository::getRepository($this->repository->repo_id);
-      unset($this->repository->repo_id);
+    if (!isset($this->repository->root) && isset($this->repo_id)) {
+      $this->repository = VersioncontrolRepositoryCache::getInstance()->getRepository($this->repository->repo_id);
+      unset($this->repo_id);
     }
 
     // If not already there, retrieve the Drupal user id of the committer.
     if (!isset($this->author)) {
-      $uid = versioncontrol_get_account_uid_for_username(
-        $this->repository->repo_id, $this->author, $include_unauthorized
+      $uid = $this->repository->getAccountUidForUsername(
+        $this->author, $include_unauthorized
       );
       // If no uid could be retrieved, blame the commit on user 0 (anonymous).
       $this->author = isset($this->author) ? $this->author : 0;
@@ -961,7 +961,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   by calling versioncontrol_get_access_errors().
    */
   protected function hasWriteAccess($operation, $operation_items) {
-    $operation = _versioncontrol_fill_operation($operation);
+    $operation->_fill();
 
     // If we can't determine this operation's repository,
     // we can't really allow the operation in the first place.
@@ -986,14 +986,14 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     }
 
     // If the user doesn't have commit access at all, we can't allow this as well.
-    $repo_data = $operation['repository']['data']['versioncontrol'];
+    $repo_data = $operation->repository->data['versioncontrol'];
 
     if (!$repo_data['allow_unauthorized_access']) {
 
-      if (!versioncontrol_is_account_authorized($operation['repository'], $operation['uid'])) {
+      if (!$operation->repository->isAccountAuthorized($operation->uid)) {
         $this->_accessErrors(array(t(
           '** ERROR: !user does not have commit access to this repository.',
-          array('!user' => $operation['username'])
+          array('!user' => $operation->committer)
         )));
         return FALSE;
       }

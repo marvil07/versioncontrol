@@ -832,22 +832,23 @@ abstract class VersioncontrolItem implements ArrayAccess {
    */
   public function insertSourceRevision($source_item, $action) {
     if ($action == VERSIONCONTROL_ACTION_ADDED && $source_item === 0) {
-      $source_item = array('item_revision_id' => 0);
+      $source_item = new stdClass();
+      $source_item->item_revision_id = 0;
     }
     // Before inserting that item entry, make sure it doesn't exist already.
     db_query("DELETE FROM {versioncontrol_source_items}
     WHERE item_revision_id = %d AND source_item_revision_id = %d",
-    $this->item_revision_id, $source_item['item_revision_id']);
+    $this->item_revision_id, $source_item->item_revision_id);
 
-    $line_changes = !empty($item['line_changes']);
+    $line_changes = !empty($this->line_changes);
     db_query("INSERT INTO {versioncontrol_source_items}
     (item_revision_id, source_item_revision_id, action,
     line_changes_recorded, line_changes_added, line_changes_removed)
     VALUES (%d, %d, %d, %d, %d, %d)",
-      $this->item_revision_id, $source_item['item_revision_id'],
+      $this->item_revision_id, $source_item->item_revision_id,
       $action, ($line_changes ? 1 : 0),
-      ($line_changes ? $item['line_changes']['added'] : 0),
-      ($line_changes ? $item['line_changes']['removed'] : 0));
+      ($line_changes ? $this->line_changes['added'] : 0),
+      ($line_changes ? $this->line_changes['removed'] : 0));
   }
 
   /**
@@ -857,10 +858,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
   public function ensure() {
     $result = db_query(
       "SELECT item_revision_id, type
-      FROM {versioncontrol_item_revisions}
-    WHERE repo_id = %d AND path = '%s' AND revision = '%s'",
-    $this->repository->repo_id, $this->path, $this->revision
-  );
+       FROM {versioncontrol_item_revisions}
+       WHERE repo_id = %d AND path = '%s' AND revision = '%s'",
+       $this->repository->repo_id, $this->path, $this->revision
+    );
     while ($item_revision = db_fetch_object($result)) {
       // Replace / fill in properties that were not in the WHERE condition.
       $this->item_revision_id = $item_revision->item_revision_id;
@@ -875,7 +876,6 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
   /**
    * Insert an item revision entry into the {versioncontrol_items_revisions} table.
-   * FIXME: ?
    */
   public function insert() {
     $this->repo_id = $this->repository->repo_id; // for drupal_write_record() only

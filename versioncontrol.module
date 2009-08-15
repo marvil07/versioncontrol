@@ -1178,74 +1178,6 @@ function versioncontrol_fetch_successor_items($repository, &$items) {
 }
 
 /**
- * Retrieve the VCS username for a given Drupal user id in a specific
- * repository. If you need more detailed querying functionality than this
- * function provides, use VersioncontrolAccountCache::getInstance()->getAccounts() instead.
- *
- * @param $repo_id
- *   The repository id of the repository where the user has its VCS account.
- * @param $username
- *   The VCS specific username (a string) corresponding to the Drupal user.
- * @param $include_unauthorized
- *   If FALSE (which is the default), this function does not return accounts
- *   that are pending, queued, disabled, blocked, or otherwise non-approved.
- *   If TRUE, all accounts are returned, regardless of their status.
- *
- * @return
- *   The Drupal user id that corresponds to the given username and repository,
- *   or NULL if no Drupal user could be associated to those.
- */
-function versioncontrol_get_account_uid_for_username($repo_id, $username, $include_unauthorized = FALSE) {
-  $result = db_query("SELECT uid, repo_id
-                      FROM {versioncontrol_accounts}
-                      WHERE username = '%s' AND repo_id = %d",
-                      $username, $repo_id);
-
-  while ($account = db_fetch_object($result)) {
-    $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($account->repo_id);
-    // Only include approved accounts, except in case the caller said otherwise.
-    if ($include_unauthorized || versioncontrol_is_account_authorized($repository, $account->uid)) {
-      return $account->uid;
-    }
-  }
-  return NULL;
-}
-
-/**
- * Retrieve the Drupal user id for a given VCS username in a specific
- * repository. If you need more detailed querying functionality than this
- * function provides, use VersioncontrolAccountCache::getInstance()->getAccounts() instead.
- *
- * @param $repo_id
- *   The repository id of the repository where the user has its VCS account.
- * @param $uid
- *   The Drupal user id corresponding to the VCS account.
- * @param $include_unauthorized
- *   If FALSE (which is the default), this function does not return accounts
- *   that are pending, queued, disabled, blocked, or otherwise non-approved.
- *   If TRUE, all accounts are returned, regardless of their status.
- *
- * @return
- *   The VCS username (a string) that corresponds to the given Drupal user
- *   and repository, or NULL if no VCS account could be associated to those.
- */
-function versioncontrol_get_account_username_for_uid($repo_id, $uid, $include_unauthorized = FALSE) {
-  $result = db_query('SELECT uid, username, repo_id
-                      FROM {versioncontrol_accounts}
-                      WHERE uid = %d AND repo_id = %d',
-                      $uid, $repo_id);
-
-  while ($account = db_fetch_object($result)) {
-    $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($account->repo_id);
-    // Only include approved accounts, except in case the caller said otherwise.
-    if ($include_unauthorized || versioncontrol_is_account_authorized($repository, $account->uid)) {
-      return $account->username;
-    }
-  }
-  return NULL;
-}
-
-/**
  * Get the user-visible version of a commit identifier a.k.a. 'revision',
  * as plaintext. By default, this function returns the operation's revision
  * if that property exists, or its vc_op_id identifier as fallback.
@@ -1600,7 +1532,7 @@ function versioncontrol_user_autocomplete($repo_id, $string = '') {
     if (!isset($repository)) {
       $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($repo_id);
     }
-    if (versioncontrol_is_account_authorized($repository, $user->uid)) {
+    if ($repository->isAccountAuthorized($user->uid)) {
       $matches[$user->name] = check_plain($user->name);
     }
   }

@@ -477,6 +477,75 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     return $this->data['versioncontrol']['url_handler'];
   }
 
+  /**
+   * Retrieve the VCS username for a given Drupal user id in a specific
+   * repository. If you need more detailed querying functionality than
+   * this function provides, use
+   * VersioncontrolAccountCache::getInstance()->getAccounts() instead.
+   *
+   * @param $username
+   *   The VCS specific username (a string) corresponding to the Drupal
+   *   user.
+   * @param $include_unauthorized
+   *   If FALSE (which is the default), this function does not return
+   *   accounts that are pending, queued, disabled, blocked, or otherwise
+   *   non-approved. If TRUE, all accounts are returned, regardless of
+   *   their status.
+   *
+   * @return
+   *   The Drupal user id that corresponds to the given username and
+   *   repository, or NULL if no Drupal user could be associated to
+   *   those.
+   */
+  public function getAccountUidForUsername($username, $include_unauthorized = FALSE) {
+    $result = db_query("SELECT uid, repo_id
+      FROM {versioncontrol_accounts}
+      WHERE username = '%s' AND repo_id = %d",
+      $username, $this->repo_id);
+
+    while ($account = db_fetch_object($result)) {
+      // Only include approved accounts, except in case the caller said otherwise.
+      if ($include_unauthorized || $this->isAccountAuthorized($account->uid)) {
+        return $account->uid;
+      }
+    }
+    return NULL;
+  }
+
+  /**
+   * Retrieve the Drupal user id for a given VCS username in a specific
+   * repository. If you need more detailed querying functionality than
+   * this function provides, use
+   * VersioncontrolAccountCache::getInstance()->getAccounts() instead.
+   *
+   * @param $uid
+   *   The Drupal user id corresponding to the VCS account.
+   * @param $include_unauthorized
+   *   If FALSE (which is the default), this function does not return
+   *   accounts that are pending, queued, disabled, blocked, or otherwise
+   *   non-approved. If TRUE, all accounts are returned, regardless of
+   *   their status.
+   *
+   * @return
+   *   The VCS username (a string) that corresponds to the given Drupal
+   *   user and repository, or NULL if no VCS account could be associated
+   *   to those.
+   */
+  function getAccountUsernameForUid($uid, $include_unauthorized = FALSE) {
+    $result = db_query('SELECT uid, username, repo_id
+      FROM {versioncontrol_accounts}
+      WHERE uid = %d AND repo_id = %d',
+      $uid, $this->repo_id);
+
+    while ($account = db_fetch_object($result)) {
+      // Only include approved accounts, except in case the caller said otherwise.
+      if ($include_unauthorized || $this->isAccountAuthorized($account->uid)) {
+        return $account->username;
+      }
+    }
+    return NULL;
+  }
+
   //ArrayAccess interface implementation
   public function offsetExists($offset) {
     return isset($this->$offset);
