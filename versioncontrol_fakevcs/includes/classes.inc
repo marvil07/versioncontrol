@@ -35,7 +35,7 @@ class VersioncontrolFakeBackend extends VersioncontrolBackend {
 
 }
 
-class VersioncontrolFakeRepository extends VersioncontrolRepository {
+class VersioncontrolFakeRepository extends VersioncontrolRepository implements VersioncontrolRepositoryImportExport {
 
   public function formatRevisionIdentifier($revision, $format = 'full') {
     switch ($format) {
@@ -51,6 +51,68 @@ class VersioncontrolFakeRepository extends VersioncontrolRepository {
       // SVN also wants to format revisions in a slightly custom way:
       return 'r'. $revision;
     }
+  }
+
+  public function importAccounts($data) {
+    $accounts = $this->parseAccountData($data);
+
+    foreach ($accounts as $account) {
+      $additional_data = array(
+        'fakevcs_specific' => array('password' => $password),
+      );
+      $username = $account->author;
+      $uid = $this->getAccountUidForUsername($username, TRUE);
+
+      if (isset($uid)) {
+        $account->uid = $uid;
+        $account->update($additional_data);
+        $names[] = t('updated !username', array('!username' => $username));
+      }
+      else {
+        $uid = db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $username));
+        if ($uid) {
+          $account->uid = $uid;
+          $account->insert($additional_data);
+          $names[] = t('added !username', array('!username' => $username));
+        }
+        else {
+          $names[] = t('didn\'t add !username (no matching Drupal username exists)',
+            array('!username' => $username));
+        }
+      }
+    }
+  }
+
+  public function exportAccounts($accounts) {
+    if (empty($accounts)) {
+      return '# '. t('no user accounts available to export');
+    }
+    $accounts_flat = array();
+    $uid_constraints = array();
+    $params = array($this->repo_id);
+
+    foreach ($accounts as $uid => $accounts_per_repository) {
+      foreach ($accountss_per_repository as $repo_id => $account) {
+        $accounts_flat[$uid] = array('uid' => $uid, 'author' => $account->author);
+        $uid_constraints[] = 'uid = %d';
+        $params[] = $uid;
+      }
+    }
+
+    $result = db_query('SELECT uid, password FROM {versioncontrol_fakevcs_accounts}
+      WHERE repo_id = %d
+      AND ('. implode(' OR ', $uid_constraints) .')',
+      $params);
+    while ($account = db_fetch_object($result)) {
+      $accounts_flat[$account->uid]['password'] = $account->password;
+    }
+
+    $data = '';
+    foreach ($accounts_flat as $uid => $account) {
+      $data .= '# '. url('user/'. $uid, array('absolute' => TRUE)) ."\n";
+      $data .= $account['author'] .':'. $account['password'] ."\n";
+    }
+    return $data;
   }
 
 }

@@ -346,7 +346,8 @@ function versioncontrol_admin_account_import_form(&$form_state) {
   $selected_backends = array();
 
   foreach (versioncontrol_get_backends() as $vcs => $backend) {
-    if (versioncontrol_backend_implements($vcs, 'import_accounts')) {
+    $repo = new $backend->classes['repo'](0, array(), FALSE);
+    if ($repo instanceof VersioncontrolRepositoryImportExport) {
       $selected_backends[] = $vcs;
     }
   }
@@ -405,13 +406,11 @@ function versioncontrol_admin_account_import_form_validate($form, &$form_state) 
 
 /**
  * Submit handler for the "select repository to import" form from above:
- * Call the [vcs_backend]_admin_import_accounts() with the given data.
+ * Call the repo::importAccounts() with the given data.
  */
 function versioncontrol_admin_account_import_form_submit($form, &$form_state) {
   $repository = VersioncontrolRepositoryCache::getInstance()->getRepository($form_state['values']['repo_id']);
-  _versioncontrol_call_backend($repository['vcs'], 'import_accounts', array(
-    $repository, $form_state['values']['data']
-  ));
+  $repository->importAccounts($form_state['values']['data']);
 }
 
 
@@ -421,13 +420,13 @@ function versioncontrol_admin_account_import_form_submit($form, &$form_state) {
  * password file format.
  */
 function versioncontrol_admin_account_export_page($repository) {
-  if (!versioncontrol_backend_implements($repository['vcs'], 'export_accounts')) {
+  if (!$repository instanceof VersioncontrolRepositoryImportExport) {
     drupal_not_found();
     return;
   }
 
   // The repository has already been selected, export the accounts.
-  $data = versioncontrol_export_accounts($repository);
+  $data = $repository->exportAccounts();
 
   if (arg(5) == 'plaintext') {
     drupal_set_header('Content-Type: text/plain; charset=utf-8');
@@ -450,7 +449,8 @@ function versioncontrol_admin_account_export_form(&$form_state) {
   $selected_backends = array();
 
   foreach (versioncontrol_get_backends() as $vcs => $backend) {
-    if (versioncontrol_backend_implements($vcs, 'export_accounts')) {
+    $repo = new $backend->classes['repo'](0, array(), FALSE);
+    if ($repo instanceof VersioncontrolRepositoryImportExport) {
       $selected_backends[] = $vcs;
     }
   }

@@ -1117,3 +1117,41 @@ interface VersioncontrolRepositoryGetItem {
   public function _getItem($path, $constraints = array());
 
 }
+
+interface VersioncontrolRepositoryImportExport {
+
+  /**
+   * Import accounts into a repository, given text data from the accounts
+   * file.
+   * No accounts are deleted, new accounts are inserted, and existing
+   * accounts are updated with imported ones.
+   *
+   * This function is optional for backend modules to implement. If it's not
+   * implemented, the user will simply not be offered import functionality.
+   *
+   * @param $data
+   *   The contents of the "account data" text area where the user has to
+   *   enter/copy the contents of the version control system's accounts file.
+   */
+  public function importAccounts($data);
+
+  /**
+   * Export accounts of a repository to text data that is suitable for
+   * copying to the version control system's accounts file.
+   *
+   * This function is optional for backend modules to implement. If it's
+   * not implemented, the user will simply not be offered export
+   * functionality.
+   *
+   * @param $accounts
+   *   The list (array) of accounts that should be exported, given in the
+   *   same format as the return value of
+   *   VersioncontrolAccountCache::getInstance()->getAccounts().  All
+   *   accounts in this list are from the above repository.
+   *
+   * @return
+   *   The exported textual representation of the account list.
+   */
+  public function exportAccounts($accounts);
+
+}

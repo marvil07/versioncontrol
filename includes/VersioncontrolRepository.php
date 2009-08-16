@@ -381,8 +381,7 @@ abstract class VersioncontrolRepository implements ArrayAccess {
     $accounts = VersioncontrolAccountCache::getInstance()->getAccounts(array(
       'repo_ids' => array($this->repo_id),
     ));
-    return _versioncontrol_call_backend($repository->vcs, 'export_accounts',
-                                        array($this, $accounts));
+    return $repository->exportAccounts($accounts);
   }
 
 
