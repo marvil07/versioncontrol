@@ -431,10 +431,11 @@ abstract class VersioncontrolRepository implements ArrayAccess {
    *   (optionally, depending on the VCS backend).
    */
   public function getItem($path, $constraints = array()) {
-    $info = _versioncontrol_call_backend(
-      $this->vcs, 'get_item', array($this, $path, $constraints)
-    );
-    if (empty($info)) {
+    if (!$this instanceof VersioncontrolRepositoryGetItem) {
+      return NULL;
+    }
+    $info = $this->_getItem($path, $constraints);
+    if (is_null($info)) {
       return NULL;
     }
     $item = $info['item'];

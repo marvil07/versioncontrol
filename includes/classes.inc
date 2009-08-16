@@ -1068,3 +1068,52 @@ interface VersioncontrolItemGetFileAnnotation {
    */
   function _getFileAnnotation();
 }
+
+interface VersioncontrolRepositoryGetItem {
+
+  /**
+   * Try to retrieve a given item in a repository.
+   *
+   * @param $path
+   *   The path of the requested item.
+   * @param $constraints
+   *   An optional array specifying one of two possible array keys which
+   *   specify the exact revision of the item:
+   *
+   *   - 'revision': A specific revision for the requested item, in the
+   *        same VCS-specific format as $item['revision']. A
+   *        repository/path/revision combination is always unique, so no
+   *        additional information is needed.
+   *   - 'label': A label array with at least 'name' and 'type' elements
+   *        filled in. If a label is provided, it should be incorporated
+   *        into the result item as 'selected_label' (see return value
+   *        docs), and will cause the most recent item on the label to
+   *        be fetched. If the label includes an additional 'date'
+   *        property holding a Unix timestamp, the item at that point of
+   *        time will be retrieved instead of the most recent one. (For
+   *        tag labels, there is only one item anyways, so nevermind the
+   *        "most recent" part in that case.)
+   *
+   * @return
+   *   If the item with the given path and revision cannot be retrieved,
+   *   NULL is returned. Otherwise the result of the backend function is
+   *   a structured array with the elements 'item' and 'selected_label',
+   *   making up the whole picture.
+   *
+   *   - 'item': An item object.
+   *
+   *   - 'selected_label':
+   *        In case no branch or tag applies to that item or could not be
+   *        retrieved for whatever reasons, the selected label can also
+   *        be NULL. Otherwise, it's a VersioncontrolLabel object
+   *        describing the selected label.
+   *
+   *        In case the label array also contains the 'label_id' element
+   *        (which happens when it's copied from the $operation->labels
+   *        array) there will be a small performance improvement as the
+   *        label doesn't need to be compared to and loaded from the
+   *        database anymore.
+   */
+  public function _getItem($path, $constraints = array());
+
+}
