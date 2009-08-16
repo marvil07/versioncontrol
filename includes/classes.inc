@@ -164,7 +164,7 @@ final class VersioncontrolRepositoryCache {
     return $this->repoCache['repo_id'];
   }
 
-  private function cacheRepository(VersioncontrolRepository &$repository) {
+  private function cacheRepository(&$repository) {
     $this->repoCache['repo_id'][$repository->repo_id] = &$repository;
     $this->repoCache['name'][$repository->name][$repository->repo_id] = &$repository;
     $this->repoCache['vcs'][$repository->vcs][$repository->repo_id] = &$repository;
@@ -339,8 +339,8 @@ final class VersioncontrolAccountCache {
         }
         $accounts[$accountObj->uid][$accountObj->repository->repo_id] = $accountObj;
       }
-      if (!$this->accountCache['uid'][$accountObj->uid][$account->repo_id] instanceof VersioncontrolAccount) {
-        $this->cacheAccount($acocuntObj);
+      if (!$this->accountCache['uid'][$accountObj->uid][$accountObj->repository->repo_id] instanceof VersioncontrolAccount) {
+        $this->cacheAccount($accountObj);
       }
 
     }
@@ -369,9 +369,9 @@ final class VersioncontrolAccountCache {
     return $this->accountCache['uid'];
   }
 
-  private function cacheAccount(VersioncontrolRepository &$account) {
-    $this->accountCache['uid'][$account->uid][$account->repo_id] = &$account;
-    $this->accountCache['repo_id'][$account->repo_id][$account->uid] = &$account;
+  private function cacheAccount(&$account) {
+    $this->accountCache['uid'][$account->uid][$account->repository->repo_id] = &$account;
+    $this->accountCache['repo_id'][$account->repository->repo_id][$account->uid] = &$account;
   }
 
 }
@@ -679,7 +679,7 @@ final class VersioncontrolOperationCache {
     return $this->getOperations($constraints, $options);
   }
 
-  private function cacheOperation(VersioncontrolOperation &$operation) {
+  private function cacheOperation(&$operation) {
     $this->opCache['vc_op_id'][$operation->vc_op_id] = &$operation;
     $this->opCache['type'][$operation->type] = &$operation;
     //$this->opCache['repo_ids'][$operation->repository->repo_id][$operation->vc_op_id] = &$operation;
