@@ -37,7 +37,7 @@ define('VERSIONCONTROL_ITEM_DIRECTORY_DELETED', 4);
  */
 abstract class VersioncontrolItem implements ArrayAccess {
   /**
-   * db identifier
+   * DB identifier.
    *
    * @var    int
    */
@@ -51,7 +51,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
   public $path;
 
   /**
-   * Deleted status
+   * Deleted status.
    *
    * @var    boolean
    */
@@ -74,7 +74,6 @@ abstract class VersioncontrolItem implements ArrayAccess {
   public $source_items = array();
 
   /**
-   * @name VCS actions
    * For a single item (file or directory) in a commit, or for branches
    * and tags. Either
    * VERSIONCONTROL_ACTION_{ADDED,MODIFIED,MOVED,COPIED,MERGED,DELETED,
@@ -85,7 +84,14 @@ abstract class VersioncontrolItem implements ArrayAccess {
   public $action;
 
   /**
-   * FIXME: ?
+   * Let count added/removed lines if possible.
+   *
+   * It has the following elements:
+   *
+   * - 'added': Number of lines added to the repository in this
+   * VersioncontrolItem.
+   * - 'removed': Number of lines removed to the repository in this
+   * VersioncontrolItem.
    *
    * @var    array
    */
@@ -117,7 +123,7 @@ abstract class VersioncontrolItem implements ArrayAccess {
   );
 
   /**
-   * Constructor
+   * Constructor.
    */
   public function __construct($type, $path, $revision, $action, $repository, $deleted = NULL, $item_revision_id = NULL) {
     $this->type = $type;
@@ -132,7 +138,6 @@ abstract class VersioncontrolItem implements ArrayAccess {
   /**
    * Return TRUE if the given item is an existing or an already deleted
    * file, or FALSE if it's not.
-   *
    */
   public function isFile() {
     if ($this->type == VERSIONCONTROL_ITEM_FILE
@@ -323,21 +328,22 @@ abstract class VersioncontrolItem implements ArrayAccess {
   /**
    * Retrieve an item's selected label.
    *
-   * When first retrieving an item, the selected label is initialized with a
-   * sensible value - for example, VersioncontrolOperation::getItems() assigns
-   * the affected branch or tag of that operation to all the items. (This is
-   * especially important for version control systems like Subversion where there
-   * is a need to specify the label per item and not per operation, as a single
-   * commit can affect multiple branches or tags at once.)
+   * When first retrieving an item, the selected label is initialized
+   * with a sensible value - for example,
+   * VersioncontrolOperation::getItems() assigns the affected branch or
+   * tag of that operation to all the items. (This is especially
+   * important for version control systems like Subversion where there is
+   * a need to specify the label per item and not per operation, as a
+   * single commit can affect multiple branches or tags at once.)
    *
-   * The selected label is also meant to help with branch/tag-based navigation,
-   * so item navigation functions will try to preserve it as good as possible, as
-   * far as it's accurate.
+   * The selected label is also meant to help with branch/tag-based
+   * navigation, so item navigation functions will try to preserve it as
+   * good as possible, as far as it's accurate.
    *
    * @return
-   *   In case no branch or tag applies to that item or could not be retrieved
-   *   for whatever reasons, the selected label can also be NULL. Otherwise, it's
-   *   a VersioncontrolLabel object(tag or branch)
+   *   In case no branch or tag applies to that item or could not be
+   *   retrieved for whatever reasons, the selected label can also be
+   *   NULL. Otherwise, it's a VersioncontrolLabel object(tag or branch)
    */
   public function getSelectedLabel() {
     // If the label is already retrieved, we can return it just that way.
@@ -364,7 +370,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
     if (isset($selected_label)) {
       // Just to make sure that we only pass applicable info:
-      // 'action' might make sense in an operation, but not in an item array.
+      // 'action' might make sense in an operation, but not in an item
+      // object.
       if (isset($selected_label->action)) {
         //FIXME we are returning a label here, not an item; so, is it ok to have an action on label?
         //  unset($selected_label->action);
@@ -376,7 +383,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
       $this->selected_label->label = FALSE;
     }
 
-    // Now that we've got the real label, we can get rid of the retrieval recipe.
+    // Now that we've got the real label, we can get rid of the retrieval
+    // recipe.
     if (isset($this->selected_label->{$this->selected_label->get_from})) {
       unset($this->selected_label->{$this->selected_label->get_from});
     }
@@ -386,14 +394,18 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Check if the @p $path_regexp applies to the path of the given @p $item.
-   * This function works just like preg_match(), with the single difference that
-   * it also accepts a trailing slash for item paths if the item is a directory.
+   * Check if the @p $path_regexp applies to the path of the given @p
+   * $item.
+   *
+   * This function works just like preg_match(), with the single
+   * difference that it also accepts a trailing slash for item paths if
+   * the item is a directory.
    *
    * @return
-   *   The number of times @p $path_regexp matches. That will be either 0 times
-   *   (no match) or 1 time because preg_match() (which is what this function
-   *   uses internally) will stop searching after the first match.
+   *   The number of times @p $path_regexp matches. That will be either 0
+   *   times (no match) or 1 time because preg_match() (which is what
+   *   this function uses internally) will stop searching after the first
+   *   match.
    *   FALSE will be returned if an error occurred.
    */
   public function pregMatch($path_regexp) {
@@ -406,7 +418,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Print out a "Bad item received from VCS backend" warning to watchdog.
+   * Print out a "Bad item received from VCS backend" warning to
+   * watchdog.
    */
   protected function badItemWarning($message) {
     watchdog('special', "<p>Bad item received from VCS backend: !message</p>
@@ -420,10 +433,6 @@ abstract class VersioncontrolItem implements ArrayAccess {
   /**
    * Retrieve the parent (directory) item of a given item.
    *
-   * @param $repository
-   *   The repository that the item is located in.
-   * @param $item
-   *   The item whose parent should be retrieved.
    * @param $parent_path
    *   NULL if the direct parent of the given item should be retrieved,
    *   or a parent path that is further up the directory tree.
@@ -431,10 +440,10 @@ abstract class VersioncontrolItem implements ArrayAccess {
    * @return
    *   The parent directory item at the same revision as the given item.
    *   If $parent_path is not set and the item is already the topmost one
-   *   in the repository, the item is returned as is. It also stays the same
-   *   if $parent_path is given and the same as the path of the given item.
-   *   If the given directory path does not correspond to a parent item,
-   *   NULL is returned.
+   *   in the repository, the item is returned as is. It also stays the
+   *   same if $parent_path is given and the same as the path of the
+   *   given item. If the given directory path does not correspond to a
+   *   parent item, NULL is returned.
    */
   public function getParentItem($parent_path = NULL) {
     if (!isset($parent_path)) {
@@ -467,11 +476,11 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Given an item in a repository, retrieve related versions of that item on all
-   * different branches and/or tags where the item exists.
+   * Given an item in a repository, retrieve related versions of that
+   * item on all different branches and/or tags where the item exists.
    *
-   * This function is optional for VCS backends to implement, be sure to check
-   * the return value to NULL.
+   * VersioncontrolItemParallelItems interface is optional for VCS
+   * backends to implement, be sure to check the return value to NULL.
    *
    * @param $label_type_filter
    *   If unset, siblings will be retrieved both on branches and tags.
@@ -481,25 +490,17 @@ abstract class VersioncontrolItem implements ArrayAccess {
    * @return
    *   An item array of parallel items on all branches and tags, possibly
    *   including the original item itself (if appropriate for the given
-   *   @p $label_type_filter). Array keys do not convey any specific meaning,
-   *   item values are again structured arrays and consist of elements with the
-   *   following keys:
+   *   @p $label_type_filter). Array keys do not convey any specific
+   *   meaning, item values are VersioncontrolItem objects.
    *
-   *   - 'type': Specifies the item type, which should be the same as the type
-   *        of the given @p $item.
-   *   - 'path': The path of the item at the specific revision.
-   *   - 'revision': The (file-level) revision when the item was last changed.
-   *        If there is no such revision (which may be the case for
-   *        directory items) then the 'revision' element is an empty string.
-   *
-   *   Branch and tag names are implicitely stored and can be retrieved by
-   *   calling versioncontrol_get_item_selected_label() on each item in the
-   *   result array.
+   *   Branch and tag names are implicitely stored and can be retrieved
+   *   by calling Item::getSelectedLabel() on each item in the result
+   *   array.
    *
    *   NULL is returned if the given item is not inside the repository,
    *   or has not been inside the repository at the specified revision.
-   *   An empty array is returned if the item is valid, but no parallel sibling
-   *   items can be found for the given @p $label_type.
+   *   An empty array is returned if the item is valid, but no parallel
+   *   sibling items can be found for the given @p $label_type.
    */
   public final function getParallelItems($label_type_filter = NULL) {
     if ($this instanceof VersioncontrolItemParallelItems) {
@@ -524,34 +525,35 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Retrieve the set of files and directories that exist at a specified revision
-   * inside the given directory in the repository.
+   * Retrieve the set of files and directories that exist at a specified
+   * revision inside the given directory in the repository.
    *
-   * This function is optional for VCS backends to implement, be sure to check
-   * the return value to NULL.
+   * This function is optional for VCS backends to implement, be sure to
+   * check the return value to NULL.
    *
    * @param $recursive
    *   If FALSE, only the direct children of $path will be retrieved.
    *   If TRUE, you'll get every single descendant of $path.
    *
    * @return
-   *   A structured item array of items that have been inside the directory in
-   *   its given state, including the directory item itself. Array keys are the
-   *   current/new paths. The corresponding item values are again structured
-   *   arrays and consist of elements with the following keys:
+   *   A structured item array of items that have been inside the
+   *   directory in its given state, including the directory item itself.
+   *   Array keys are the current/new paths. The corresponding item
+   *   values are again structured arrays and consist of elements with
+   *   the following keys:
    *
    *   - 'type': Specifies the item type, which is either
-   *        VERSIONCONTROL_ITEM_FILE or VERSIONCONTROL_ITEM_DIRECTORY.
+   *   VERSIONCONTROL_ITEM_FILE or VERSIONCONTROL_ITEM_DIRECTORY.
    *   - 'path': The path of the item at the specific revision.
-   *   - 'revision': The (file-level) revision when the item was last changed.
-   *        If there is no such revision (which may be the case for
-   *        directory items) then the 'revision' element is an empty string.
+   *   - 'revision': The (file-level) revision when the item was last
+   *   changed. If there is no such revision (which may be the case for
+   *   directory items) then the 'revision' element is an empty string.
    *
    *   NULL is returned if the given item is not inside the repository,
    *   or if it is not a directory item at all.
    *
-   *   A real-life example of such a result array can be found
-   *   in the FakeVCS example module.
+   *   A real-life example of such a result array can be found in the
+   *   FakeVCS example module.
    */
   public function getDirectoryContents($recursive = FALSE) {
     if (!$this->isDirectory() || !$this instanceof VersioncontrolItemDirectoryContents) {
@@ -574,20 +576,23 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Retrieve a copy of the contents of a given file item in the repository.
+   * Retrieve a copy of the contents of a given file item in the
+   * repository.
    *
-   * (You won't get the original because repositories can often be remote.)
+   * (You won't get the original because repositories can often be
+   * remote.)
    *
-   * The caller should make sure to delete the file when it's not needed anymore.
-   * That requirement might change in the future though.
+   * The caller should make sure to delete the file when it's not needed
+   * anymore. That requirement might change in the future though.
    *
-   * This function is optional for VCS backends to implement, be sure to check
-   * the return to NULL.
+   * This function is optional for VCS backends to implement, be sure to
+   * check the return to NULL.
    *
    * @return
    *   The local path of the created copy, if successful.
    *   NULL is returned if the given item is not under version control,
-   *   or was not under version control at the time of the given revision.
+   *   or was not under version control at the time of the given
+   *   revision.
    */
   public function exportFile() {
     if (!$this->isFile()) {
@@ -611,27 +616,31 @@ abstract class VersioncontrolItem implements ArrayAccess {
   /**
    * Retrieve a copy of the given directory item in the repository.
    *
-   * (You won't get the original because repositories can often be remote.)
+   * (You won't get the original because repositories can often be
+   * remote.)
    *
-   * The caller should make sure to delete the directory when it's not needed
-   * anymore.
+   * The caller should make sure to delete the directory when it's not
+   * needed anymore.
    *
-   * This function is optional for VCS backends to implement, be sure to check
-   * return to NULL.
+   * This function is optional for VCS backends to implement, be sure to
+   * check return to NULL.
    *
    * @param $destination_dirpath
-   *   The path of the directory that will receive the contents of the exported
-   *   repository item. If that directory already exists, it will be replaced.
-   *   If that directory doesn't yet exist, it will be created by the backend.
-   *   (This directory will directly correspond to the @p $directory_item - there
-   *   are no artificial subdirectories, even if the @p $destination_dirpath has
-   *   a different basename than the original path of the @p $directory_item.)
+   *   The path of the directory that will receive the contents of the
+   *   exported repository item. If that directory already exists, it
+   *   will be replaced. If that directory doesn't yet exist, it will be
+   *   created by the backend. (This directory will directly correspond
+   *   to the @p $directory_item - there are no artificial
+   *   subdirectories, even if the @p $destination_dirpath has a
+   *   different basename than the original path of the @p
+   *   $directory_item.)
    *
    * @return
    *   TRUE if successful, or FALSE if not.
-   *   FALSE can be returned if the given item is not under version control,
-   *   or was not under version control at the time of the given revision,
-   *   or simply cannot be exported to the destination directory for any reason.
+   *   FALSE can be returned if the given item is not under version
+   *   control, or was not under version control at the time of the given
+   *   revision, or simply cannot be exported to the destination
+   *   directory for any reason.
    */
   public function exportDirectory($destination_dirpath) {
     if (!$item->isDirectory()) {
@@ -657,27 +666,31 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
   /**
    * Retrieve an array where each element represents a single line of the
-   * given file in the specified commit, annotated with the committer who last
-   * modified that line. Note that annotations are generally a quite slow
-   * operation, so expect this function to take a bit more time as well.
+   * given file in the specified commit, annotated with the committer who
+   * last modified that line. Note that annotations are generally a quite
+   * slow operation, so expect this function to take a bit more time as
+   * well.
    *
-   * This function is optional for VCS backends to implement, be sure to check
-   * the return to NULL.
+   * This function is optional for VCS backends to implement, be sure to
+   * check the return to NULL.
    *
    * @return
    *   A structured array that consists of one element per line, with
-   *   line numbers as keys (starting from 1) and a structured array as values,
-   *   where each of them consists of elements with the following keys:
+   *   line numbers as keys (starting from 1) and a structured array as
+   *   values, where each of them consists of elements with the following
+   *   keys:
    *
-   *   - 'username': The system specific VCS username of the last committer.
+   *   - 'username': The system specific VCS username of the last
+   *   committer.
    *   - 'line': The contents of the line, without linebreak characters.
    *
    *   NULL is returned if the given item is not under version control,
-   *   or was not under version control at the time of the given revision,
-   *   or if it is not a file item at all, or if it is marked as binary file.
+   *   or was not under version control at the time of the given
+   *   revision, or if it is not a file item at all, or if it is marked
+   *   as binary file.
    *
-   *   A real-life example of such a result array can be found
-   *   in the FakeVCS example module.
+   *   A real-life example of such a result array can be found in the
+   *   FakeVCS example module.
    */
   public function getFileAnnotation() {
     if (!$this->isFile() || $this instanceof VersioncontrolItemGetFileAnnotation) {
@@ -687,9 +700,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Check and if necessary correct item arrays so that item type and
-   * the number of source items correspond to specified actions.
-   *
+   * Check and if necessary correct item arrays so that item type and the
+   * number of source items correspond to specified actions.
    */
   public function sanitize() {
     if (isset($this->action)) {
@@ -736,10 +748,11 @@ abstract class VersioncontrolItem implements ArrayAccess {
 
   /**
    * Insert an item entry into the {versioncontrol_source_items} table.
-   * Both target and source items are expected to have an 'item_revision_id'
-   * property already. For "added" actions, it's also possible to pass 0 as the
-   * @p $source_item parameter instead of a full item array.
    *
+   * Both target and source items are expected to have an
+   * 'item_revision_id' property already. For "added" actions, it's also
+   * possible to pass 0 as the @p $source_item parameter instead of a
+   * full item array.
    */
   public function insertSourceRevision($source_item, $action) {
     if ($action == VERSIONCONTROL_ACTION_ADDED && $source_item === 0) {
@@ -786,7 +799,8 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
-   * Insert an item revision entry into the {versioncontrol_items_revisions} table.
+   * Insert an item revision entry into the {versioncontrol_items_revisions}
+   * table.
    */
   public function insert() {
     $this->repo_id = $this->repository->repo_id; // for drupal_write_record() only

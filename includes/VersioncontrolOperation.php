@@ -21,12 +21,10 @@ define('VERSIONCONTROL_OPERATION_TAG',    3);
 
 /**
  * Stuff that happened in a repository at a specific time
- *
  */
 abstract class VersioncontrolOperation implements ArrayAccess {
-  // Attributes
   /**
-   * db identifier (before vc_op_id)
+   * db identifier
    *
    * The Drupal-specific operation identifier (a simple integer)
    * which is unique among all operations (commits, branch ops, tag ops)
@@ -37,7 +35,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   public $vc_op_id;
 
   /**
-   * who actually perform the change
+   * Who actually perform the change on the repository.
    *
    * @var    string
    */
@@ -76,17 +74,15 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   public $message;
 
   /**
-   * The system specific VCS username of the user who executed
-   * this operation(aka who write the change)
+   * The system specific VCS username of the user who executed this
+   * operation(aka who write the change)
    *
    * @var    string
    */
   public $author;
 
   /**
-   * The repository where this operation occurs,
-   * given as a structured array, like the return value
-   * of Versioncontrolrepository::getRepository().
+   * The repository where this operation occurs.
    *
    * @var    VersioncontrolRepository
    */
@@ -125,7 +121,8 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   public $uid;
 
   /**
-   * FIXME: ?
+   * Error messages used mainly to get descriptions of errors at
+   * hasWriteAccess().
    */
   private static $error_messages = array();
 
@@ -143,8 +140,6 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     $this->vc_op_id = $vc_op_id;
   }
 
-  // Associations
-  // Operations
   /**
    * Retrieve all items that were affected by an operation.
    *
@@ -174,8 +169,8 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   - 'item_revision_id': Identifier of this item revision in the database.
    *        Note that you can only rely on this element to exist for
    *        operation items - functions that interface directly with the VCS
-   *        (such as versioncontrol_get_directory_contents() or
-   *        versioncontrol_get_parallel_items()) might not include
+   *        (such as VersioncontrolItem::getDirectoryContents() or
+   *        VersioncontrolItem::getParallelItems()) might not include
    *        this identifier, for obvious reasons.
    *
    *   If the @p $fetch_source_items parameter is TRUE,
@@ -387,9 +382,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   }
 
   /**
-   * Let child backend repo classes add information that _is not_ in
-   * VersioncontrolRepository::data without modifying general flow if
-   * necessary.
+   * Let child backend operation classes add information if necessary.
    */
   protected function _insert($operation_items) {
   }

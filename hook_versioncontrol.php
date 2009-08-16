@@ -99,8 +99,8 @@
  *   - 'item_revision_id': Identifier of this item revision in the database.
  *        Note that you can only rely on this element to exist for
  *        operation items - functions that interface directly with the VCS
- *        (such as versioncontrol_get_directory_contents() or
- *        versioncontrol_get_parallel_items()) might not include
+ *        (such as VersioncontrolItem::getDirectoryContents() or
+ *        VersioncontrolItem::getParallelItems()) might not include
  *        this identifier, for obvious reasons.
  *
  *   For commit operations, additional information about the origin of
@@ -270,7 +270,7 @@ function hook_versioncontrol_write_access($operation, $operation_items) {
     $error_message = t(
 "** ERROR: no Drupal user matches !vcs user '!user'.
 ** Please contact a !vcs administrator for help.",
-      array('!vcs' => $operation->repository->backend->name, '!user' => $operation['username'])
+      array('!vcs' => $operation->repository->backend->name, '!user' => $operation->committer)
     );
     return array($error_message); // disallow the commit with an explanation
   }

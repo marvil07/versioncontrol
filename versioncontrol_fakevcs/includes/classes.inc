@@ -35,7 +35,7 @@ class VersioncontrolFakeBackend extends VersioncontrolBackend {
 
 }
 
-class VersioncontrolFakeRepository extends VersioncontrolRepository implements VersioncontrolRepositoryImportExport {
+class VersioncontrolFakeRepository extends VersioncontrolRepository implements VersioncontrolRepositoryImportExport, VersioncontrolRepositoryGetItem {
 
   public function formatRevisionIdentifier($revision, $format = 'full') {
     switch ($format) {
@@ -51,6 +51,20 @@ class VersioncontrolFakeRepository extends VersioncontrolRepository implements V
       // SVN also wants to format revisions in a slightly custom way:
       return 'r'. $revision;
     }
+  }
+
+  public function _getItem($path, $constraints = array()) {
+    // Slightly adapted version of the SVN backend's implementation.
+
+    // Wherever you get your item info from.
+    $revision = empty($constraints['revision']) ? 'HEAD' : $constraints['revision'];
+    $info = $this->getItemInfo($path, $revision);
+
+    $type = ($info['rev'] == 'dir')
+      ? VERSIONCONTROL_ITEM_DIRECTORY
+      : VERSIONCONTROL_ITEM_FILE;
+    $item = new $this->backend->classes['item']($type, $path, $info['rev'], NULL, $this, NULL, $info['item_revision_id']);
+    return array('item' => $item, 'selected_label' => NULL);
   }
 
   public function importAccounts($data) {
@@ -137,6 +151,49 @@ class VersioncontrolFakeAccount extends VersioncontrolAccount {
   function isUsernameValid(&$username) {
     // Continuing the email-style username example from above.
     return valid_email_address($username);
+  }
+
+  /**
+   * Overwrite
+   */
+  protected function _insert($additional_data) {
+    $fakevcs_specific = $additional_data['fakevcs_specific'];
+    if (!isset($fakevcs_specific) || !isset($fakevcs_specific['password'])) {
+      drupal_set_message(t('Error: no FakeVCS password given on account creation!'), 'error');
+      return;
+    }
+    db_query("INSERT INTO {versioncontrol_fakevcs_accounts}
+      (uid, repo_id, password)
+      VALUES (%d, %d, '%s')",
+      $this->uid, $this->repository->repo_id, $fakevcs_specific['password']);
+  }
+
+  /**
+   * Overwrite
+   */
+  protected function _update($additional_data) {
+    $fakevcs_specific = $additional_data['fakevcs_specific'];
+    if (!isset($fakevcs_specific) || !isset($fakevcs_specific['password'])) {
+      return; // the user didn't update the password in the process.
+    }
+    db_query("UPDATE {versioncontrol_fakevcs_accounts}
+      SET password = '%s'
+      WHERE uid = %d AND repo_id = %d",
+    $fakevcs_specific['password'], $this->uid, $this->repository->repo_id);
+
+    if (!versioncontrol_admin_access()) {
+      // Admins get "The account has been updated successfully" anyways.
+      drupal_set_message(t('The FakeVCS password has been updated successfully.'));
+    }
+  }
+
+  /**
+   * Overwrite
+   */
+  protected function _delete($additional_data) {
+   db_query('DELETE FROM {versioncontrol_fakevcs_accounts}
+     WHERE uid = %d AND repo_id = %d',
+     $this->uid, $this->repository->repo_id);
   }
 
 }
