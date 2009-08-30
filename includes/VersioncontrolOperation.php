@@ -237,7 +237,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     module_invoke_all('versioncontrol_operation_labels',
       'update', $this, $labels
     );
-    $this->_setLabels($labels);
+    $this->setLabels($labels);
   }
 
   /**
@@ -273,7 +273,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   In case of an error, NULL is returned instead of the operation array.
    */
   public final function insert(&$operation_items) {
-    $this->_fill(TRUE);
+    $this->fill(TRUE);
 
     if (!isset($this->repository)) {
       return NULL;
@@ -287,7 +287,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     // drupal_write_record() has now added the 'vc_op_id' to the $operation array.
 
     // Insert labels that are attached to the operation.
-    $this->_setLabels($this->labels);
+    $this->setLabels($this->labels);
 
     $vcs = $this->repository->vcs;
 
@@ -297,7 +297,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     foreach ($operation_items as $path => $item) {
       $item->sanitize();
       $item->ensure();
-      $this->_insert_operation_item($item,
+      $this->insertOperationItem($item,
         VERSIONCONTROL_OPERATION_MEMBER_ITEM);
       $item['selected_label'] = new stdClass();
       $item['selected_label']->get_from = 'operation';
@@ -316,7 +316,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
         case VERSIONCONTROL_ACTION_COPIED:
         case VERSIONCONTROL_ACTION_MERGED:
           if ($item->path != $source_item->path) {
-            $this->_insert_operation_item($source_item,
+            $this->insertOperationItem($source_item,
               VERSIONCONTROL_OPERATION_CACHED_AFFECTED_ITEM);
           }
           break;
@@ -437,7 +437,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   If FALSE, the 'uid' property will receive a value of 0 for known
    *   but unauthorized users. If TRUE, all known users are mapped to their uid.
    */
-  private function _fill($include_unauthorized = FALSE) {
+  private function fill($include_unauthorized = FALSE) {
     // If not already there, retrieve the full repository object.
     // FIXME: take one always set member, not sure if root is one | set other condition here
     if (!isset($this->repository->root) && isset($this->repo_id)) {
@@ -464,13 +464,25 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   }
 
   /**
-   * Retrieve or set the list of access errors.
+   * Retrieve the list of access errors.
+   *
+   * If versioncontrol_has_commit_access(), versioncontrol_has_branch_access()
+   * or versioncontrol_has_tag_access() returned FALSE, you can use this function
+   * to retrieve the list of error messages from the various access checks.
+   * The error messages do not include trailing linebreaks, it is expected that
+   * those are inserted by the caller.
    */
-  private function _accessErrors($new_messages = NULL) {
+  private function getAccessErrors() {
+    return self::$error_messages;
+  }
+
+  /**
+   * Set the list of access errors.
+   */
+  private function setAccessErrors($new_messages) {
     if (isset($new_messages)) {
       self::$error_messages = $new_messages;
     }
-    return self::$error_messages;
   }
 
   /**
@@ -480,7 +492,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *
    * @return
    */
-  private function _setLabels($labels) {
+  private function setLabels($labels) {
     db_query("DELETE FROM {versioncontrol_operation_labels}
     WHERE vc_op_id = %d", $this->vc_op_id);
 
@@ -497,7 +509,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    * Insert an operation item entry into the {versioncontrol_operation_items} table.
    * The item is expected to have an 'item_revision_id' property already.
    */
-  private function _insert_operation_item($item, $type) {
+  private function insertOperationItem($item, $type) {
     // Before inserting that item entry, make sure it doesn't exist already.
     db_query("DELETE FROM {versioncontrol_operation_items}
     WHERE vc_op_id = %d AND item_revision_id = %d",
@@ -507,18 +519,6 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     (vc_op_id, item_revision_id, type) VALUES (%d, %d, %d)",
       $this->vc_op_id, $item->item_revision_id, $type);
   }
-
-  /**
-   * If versioncontrol_has_commit_access(), versioncontrol_has_branch_access()
-   * or versioncontrol_has_tag_access() returned FALSE, you can use this function
-   * to retrieve the list of error messages from the various access checks.
-   * The error messages do not include trailing linebreaks, it is expected that
-   * those are inserted by the caller.
-   */
-  protected function getAccessErrors() {
-    return $this->_accessErrors();
-  }
-
 
   /**
    * Determine if a commit, branch or tag operation may be executed or not.
@@ -574,7 +574,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
    *   by calling versioncontrol_get_access_errors().
    */
   protected function hasWriteAccess($operation, $operation_items) {
-    $operation->_fill();
+    $operation->fill();
 
     // If we can't determine this operation's repository,
     // we can't really allow the operation in the first place.
@@ -590,7 +590,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
         $type = t('tag');
         break;
       }
-      $this->_accessErrors(array(t(
+      $this->setAccessErrors(array(t(
         '** ERROR: Version Control API cannot determine a repository
         ** for the !commit-branch-or-tag information given by the VCS backend.',
         array('!commit-branch-or-tag' => $type)
@@ -604,7 +604,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
     if (!$repo_data['allow_unauthorized_access']) {
 
       if (!$operation->repository->isAccountAuthorized($operation->uid)) {
-        $this->_accessErrors(array(t(
+        $this->setAccessErrors(array(t(
           '** ERROR: !user does not have commit access to this repository.',
           array('!user' => $operation->committer)
         )));
@@ -614,7 +614,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
 
     // Don't let people do empty log messages, that's as evil as it gets.
     if (isset($operation['message']) && empty($operation['message'])) {
-      $this->_accessErrors(array(
+      $this->setAccessErrors(array(
         t('** ERROR: You have to provide a log message.'),
       ));
       return FALSE;
@@ -639,7 +639,7 @@ abstract class VersioncontrolOperation implements ArrayAccess {
 
     // Let the operation fail if there's more than zero error messages.
     if (!empty($error_messages)) {
-      $this->_accessErrors($error_messages);
+    $this->setAccessErrors($error_messages);
       return FALSE;
     }
     return TRUE;

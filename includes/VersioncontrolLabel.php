@@ -100,13 +100,13 @@ abstract class VersioncontrolLabel implements ArrayAccess {
       return;
     }
     // The item doesn't yet exist in the database, so create it.
-    $this->_insert();
+    $this->insert();
   }
 
   /**
    * Insert label to db
    */
-  private function _insert() {
+  private function insert() {
     $this->repo_id = $this->repository->repo_id; // for drupal_write_record() only
 
     if (isset($this->label_id)) {

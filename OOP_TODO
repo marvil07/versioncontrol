@@ -1,8 +1,6 @@
 on code
 -------
 
-- follow sdboyer suggestions (http://groups.drupal.org/node/23015#comment-79517)
-  - There are prolly other ones, but one coding convention we have is to get rid of the prepended underscore on function names when they become methods, and just make em protected. f.e. VersioncontrolItem::_badItemWarning.
 - unify get<some entity>, format<some entity>, load<some entity> in one <some entity> method if applies
 - remove fetch*() methods because with objects we can do that on demand whenever the API user needs the information.
 

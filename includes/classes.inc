@@ -549,7 +549,7 @@ final class VersioncontrolOperationCache {
     );
     // Construct the actual query, and let other modules provide "native"
     // custom constraints as well.
-    $query_info = self::_constructQuery(
+    $query_info = self::constructQuery(
       $constraints, $tables
     );
     if (empty($query_info)) {
@@ -772,7 +772,7 @@ final class VersioncontrolOperationCache {
 
     // Construct the actual query, and let other modules provide "native"
     // custom constraints as well.
-    $query_info = self::_constructQuery(
+    $query_info = self::constructQuery(
       $constraints, $tables
     );
     if (empty($query_info)) { // query won't yield any results
@@ -841,14 +841,14 @@ final class VersioncontrolOperationCache {
    *   actual FROM and WHERE keywords), and the 'params' element is an
    *   array with query parameter values for the returned WHERE clause.
    */
-  private static function _constructQuery(&$constraints, &$tables) {
+  private static function constructQuery(&$constraints, &$tables) {
     // Let modules alter the query by transforming custom constraints into
     // stuff that Version Control API can understand.
     drupal_alter('versioncontrol_operation_constraints', $constraints);
 
     $and_constraints = array();
     $params = array();
-    $constraint_info = self::_constraintInfo();
+    $constraint_info = self::constraintInfo();
     $join_callbacks = array();
 
     foreach ($constraints as $key => $constraint_value) {
@@ -916,7 +916,7 @@ final class VersioncontrolOperationCache {
    * The array value of each element is a description array containing
    * the elements 'callback' and 'cardinality'.
    */
-  private static function _constraintInfo() {
+  private static function constraintInfo() {
     if (empty(self::$constraint_info)) {
       foreach (module_implements('versioncontrol_operation_constraint_info') as $module) {
         $function = $module .'_versioncontrol_operation_constraint_info';
