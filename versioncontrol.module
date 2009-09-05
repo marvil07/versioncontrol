@@ -1267,50 +1267,6 @@ function versioncontrol_fetch_item_commit_operations($repository, &$items) {
 }
 
 /**
- * Get the user-visible version of a commit identifier a.k.a. 'revision',
- * as plaintext. By default, this function returns the operation's revision
- * if that property exists, or its vc_op_id identifier as fallback.
- *
- * Version control backends can, however, choose to implement their own version
- * of this function, which for example makes it possible to cut the SHA-1 hash
- * in distributed version control systems down to a readable length.
- *
- * @param $operation
- *   The operation whose commit identifier should be themed.
- * @param $format
- *   Either 'full' for the original version, or 'short' for a more compact form.
- *   If the commit identifier doesn't need to be shortened, the results can
- *   be the same for both versions.
- */
-function versioncontrol_format_operation_revision_identifier($operation, $format = 'full') {
-  if (empty($operation->revision)) {
-    return '#'. $operation->vc_op_id;
-  }
-  return $operation->repository->formatRevisionIdentifier($operation->revision, $format);
-}
-
-/**
- * Get the user-visible version of an item's revision identifier, as plaintext.
- * By default, this function simply returns $item['revision'].
- *
- * Version control backends can, however, choose to implement their own version
- * of this function, which for example makes it possible to cut the SHA-1 hash
- * in distributed version control systems down to a readable length.
- *
- * @param $repository
- *   The repository that the item is located in.
- * @param $item
- *   The item whose revision identifier should be themed.
- * @param $format
- *   Either 'full' for the original version, or 'short' for a more compact form.
- *   If the revision identifier doesn't need to be shortened, the results can
- *   be the same for both versions.
- */
-function versioncontrol_format_item_revision_identifier($repository, $item, $format = 'full') {
-  return $repository->formatRevisionIdentifier($item['revision']);
-}
-
-/**
  * Retrieve the deepest-level directory path in the repository that is common
  * to all the given items, e.g. '/src' if there are two items with the paths
  * '/src/subdir/code.php' and '/src/README.txt', or '/' for items being located

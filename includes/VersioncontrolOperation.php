@@ -646,6 +646,29 @@ abstract class VersioncontrolOperation implements ArrayAccess {
   }
 
   /**
+   * Get the user-visible version of a commit identifier a.k.a.
+   * 'revision', as plaintext. By default, this function returns the
+   * operation's revision if that property exists, or its vc_op_id
+   * identifier as fallback.
+   *
+   * Version control backends can, however, choose to implement their
+   * own version of this function, which for example makes it possible
+   * to cut the SHA-1 hash in distributed version control systems down
+   * to a readable length.
+   *
+   * @param $format
+   *   Either 'full' for the original version, or 'short' for a more compact form.
+   *   If the commit identifier doesn't need to be shortened, the results can
+   *   be the same for both versions.
+   */
+  public function formatRevisionIdentifier($format = 'full') {
+    if (empty($this->revision)) {
+      return '#'. $this->vc_op_id;
+    }
+    return $this->repository->formatRevisionIdentifier($this->revision, $format);
+  }
+
+  /**
    * Retrieve the tag or branch that applied to that item during the
    * given operation. The result of this function will be used for the
    * selected label property of the item, which is necessary to preserve

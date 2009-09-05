@@ -818,6 +818,26 @@ abstract class VersioncontrolItem implements ArrayAccess {
   }
 
   /**
+   * Get the user-visible version of an item's revision identifier, as
+   * plaintext.
+   * By default, this function simply returns $item['revision'].
+   *
+   * Version control backends can, however, choose to implement their own
+   * version of this function, which for example makes it possible to cut
+   * the SHA-1 hash in distributed version control systems down to a
+   * readable length.
+   *
+   * @param $format
+   *   Either 'full' for the original version, or 'short' for a more
+   *   compact form.
+   *   If the revision identifier doesn't need to be shortened, the
+   *   results can be the same for both versions.
+   */
+  public function formatRevisionIdentifier($format = 'full') {
+    return $this->repository->formatRevisionIdentifier($this->revision);
+  }
+
+  /**
    * Retrieve a valid label (tag or branch) for a new @p $target_item
    * that is (hopefully) similar or related to that of the given @p
    * $other_item which already has a selected label assigned. If the
